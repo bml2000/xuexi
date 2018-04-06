@@ -1,0 +1,829 @@
+常用命令：
+    Stress- 压力测试工具
+	环境变量
+    export
+        export  查看环境变量
+            export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+    设置用户启动环境
+        /etc/profile.d/xxx.sh
+            export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+
+1. 网络ip设置
+    /etc/sysconfig/network-scripts/ifcfg-eth0
+    DEVICE=eth0                // 这是网卡的名称
+    TYPE=Ethernet              // 网卡类型
+    ONBOOT=yes                 // 是否随着开机自启动
+    BOOTPROTO=static           // static表示固定ip地址，dhcp表示随机获取ip
+    IPADDR=192.168.10.150      // 手动设置的固定ip地址
+    NETMASK=255.255.255.0      // mask地址，就是掩码
+    GATEWAY=192.168.10.1       // 网关地址  
+    SERCTL=no #[yes|no]（非root用户是否可以控制该设备）
+    BOOTPROTO=static #[none|static|bootp|dhcp]（引导时不使用协议|静态分配|BOOTP协议|DHCP协议）
+
+    查看IP
+      ip addr show
+      nmap  ip  查看ip端口情况
+            -sU  ip   UDP 扫描
+            -sT  ip   TCP 扫描
+            -sP  ip   ping扫描
+            -sS  ip   TCP SYN 扫描
+    
+2、修改网关
+　　vi /etc/sysconfig/network
+　　NETWORKING=yesvim
+　　HOSTNAME=Aaron
+　　GATEWAY=192.168.30.1  
+
+3、DNS　
+　　配置文件在/etc/resolv.con
+
+　　vi /etc/resolv.conf
+　　nameserver 202.109.14.5 #主DNS
+　　nameserver 219.141.136.10 #次DNS
+　　search localdomain
+    
+    host解析：
+    /etc/hosts
+     ip   hostname   指定hostname对应IP 地址
+     
+3.1      DNS 测试工具
+            dig 命令
+                • 使用格式：dig [-t RR_TYPE] name [@server] [query options]
+                • OPTIONS:
+                • -t : 指定资源记录类型，一般为A记录，或者NS记录。
+                • +[no]trace : DNS解析路由跟踪
+                • +[no]recurse : 进行递归解析
+                • -x : 反向解析
+                  dig +trace -t NS weizhenping.me @172.16.36.70
+            host 命令
+                • 使用格式：host [-t RR_type] name SERVER_IP
+                • 示例：
+                  host [-t RR_type] name SERVER_IP
+            nslookup
+                • 交互式命令，设置参数如下：
+                • server 202.96.209.133 #设置默认的解析DNS服务器
+                set type=mx : 设置解析的资源记录类型
+				
+		/etc/nsswitch.conf
+		 hosts   files,dns
+		   指定 dns解析顺序
+		/etc/service  -各服务对于端口号
+		
+
+4、修改主机名
+       vi /etc/sysconfig/network，
+       HOSTNAME=HOSTNAME
+       修改HOSTNAME一行为HOSTNAME=主机名，重启后才能生效
+       
+    /etc/hostname -定义主机名称
+    
+    hostnamectl  set-hostname  xxx
+    
+       
+
+5.  tar 使用
+        -c  创建
+        -x  释放
+        -t  查看
+        -v 显示过程
+        -z  bzip压缩
+        -j  bzip2 压缩
+        -p  保留原属性
+        -C  将工作目录更改指定目录
+        总结
+            1、*.tar 用 tar –xvf 解压 
+            2、*.gz 用 gzip -d或者gunzip 解压 
+            3、*.tar.gz和*.tgz 用 tar –xzf 解压 
+            4、*.bz2 用 bzip2 -d或者用bunzip2 解压 
+            5、*.tar.bz2用tar –xjf 解压 
+            6、*.Z 用 uncompress 解压 
+            7、*.tar.Z 用tar –xZf 解压 
+            8、*.rar 用 unrar e解压 
+            9、*.zip 用 unzip 解压
+        
+6. 网络服务：
+     重启网络服务
+        service network restart
+        ifup  eth0
+        ifdown eth0   关闭网络端口
+    网络命令
+        ip          --iproute 安装包
+        ss          --iproute 安装包
+        ifconfig    --net-tools  安装包
+        route
+        traceroute
+        ping
+        nmap
+        netstat
+            -a (all)显示所有选项，默认不显示LISTEN相关
+            -t (tcp)仅显示tcp相关选项
+            -u (udp)仅显示udp相关选项
+            -n 拒绝显示别名，能显示数字的全部转化成数字。
+            -l 仅列出有在 Listen (监听) 的服務状态
+            -p 显示建立相关链接的程序名
+            -r 显示路由信息，路由表
+            -e 显示扩展信息，例如uid等
+            -s 按各个协议进行统计
+            -c 每隔一个固定时间，执行该netstat命令。
+                   提示：LISTEN和LISTENING的状态只有用-a或者-l才能看到
+            # 查看Linux端口号
+        
+            netstat -anp | grep 80          # 查看服务对应端口
+            netstat -nlp
+            netstat -alnpt  
+
+6.1 服务
+    systemctl
+        systemctl is-enabled firewalld.service 设置开机启动
+        systemctl list-unit-files|grep enabled 查看开机启动服务列表
+        systemctl --failed                      查看启动失败列表
+        systemctl status firewalld.service  显示一个服务的状态：
+        systemctl enable firewalld.service 在开机时启用一个服务：
+        systemctl disable firewalld.service 在开机时禁用一个服务：
+    chkconfig
+        chkconfig --list        #列出所有的系统服务
+        chkconfig --add httpd        #增加httpd服务
+        chkconfig --del httpd        #删除httpd服务
+        chkconfig --level httpd 2345 on        #设置httpd在运行级别为2、3、4、5的情况下都是on（开启）的状态
+        chkconfig --list        #列出系统所有的服务启动情况
+        chkconfig --list mysqld        #列出mysqld服务设置情况
+        chkconfig --level 35 mysqld on        #设定mysqld在等级3和5为开机运行服务，--level 35表示操作只在等级3和5执行，on表示启动，off表示关闭
+        chkconfig mysqld on        #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级
+        
+6.2 防火墙
+    启动防火墙
+    service  iptables start /stop
+    查看配置
+        iptables -L  
+    清除规则    
+        iptables -F
+        
+    system-config-firewall-tui 图形界面设置防火墙
+    
+    设置实例
+        iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+        service iptables save
+      
+7. selinux：
+    配置文件： /etc/sysconfig/seLinux
+        enforcoing:启用
+        Permissive:显示警告，但不阻止。
+        Disable ：停用。
+        
+    查看状态   
+        getenforce
+        sestaus
+    设置禁用
+        setenforce 0 /1  (0 -disable  1-启用)
+        setenforce  enforcing/permissive/disable
+        
+8.  firewall
+        systemctl start firewalld
+        systemctl  stop  firewalld
+        systemctl status  firewalld
+        systemctl enable  firewalld  -开机启动
+        systemctl  disable firewalld
+        firewall-cmd --help 帮助
+        firewall-cmd --zone=public --add-port=80/tcp --permanent 设置防火墙永久打开80 端口
+        firewall-cmd --reload                                       更新防火墙规则
+        firewall-cmd --zone=public --list-ports     查看打开的端口
+        firewall-cmd --get-active-zones 查看区域信息
+        firewall-cmd --get-zone-of-interface=eth0 查看指定接口所属区域
+        firewall-cmd --zone= public --query-port=80/tcp 查看端口规则
+        firewall-cmd --zone= public --remove-port=80/tcp --permanent  删除规则拒绝所有包：firewall-cmd --panic-on
+        firewall-cmd --panic-off 取消拒绝状态： 
+        firewall-cmd --query-panic 查看是否拒绝
+
+        
+     
+      
+        
+9. RPM
+
+    rpm  查询
+        -qi  --info : 查询程序包想着的infomation.包括其版本号、大小、所属的包组等信息
+        -qa ,-all : 查询所有已经安装的包
+        -ql  --list 列出程序包安装生成的所有文件列表
+        -qac --configfiles : 查询指定的程序包提供的配置文件
+        -qR --requires: 查询指定程序包的依赖关系
+        -qd --docfiles : 列出指定的程序包提供的文档
+        -p  对未安装包查询
+        -qf  --file FILE : 查询指定的文件是由哪个包安装生成的
+        -qg , --group GROUP: 查询指定包由哪个包组提供
+    
+    rpm -i   --install  安装
+         -v : verbos,输出详细信息
+         -vv : verbos,输出更详细的信息
+         install-options:
+         -h : 以hash marks格式输出进度条，每个#代表2%的进度
+         --test : 测试安装，只做环境检查，并不真正安装
+         --nodeps : 忽略程序依赖关系
+         --replacepkgs: 覆盖安装，如果文件修改错误，需要将其找回，可以使用此方法，但需要把修改错误的文件提前删除
+         --justdb: 不执行安装操作，只更新数据库
+         --noscripts: 不执行rpm自带的所有脚本
+         --nosignature: 不检查包签名信息，即不检查来源合法性
+        --nodigest:不检查包完整性信息
+        
+    rpm -e   --erase   卸载
+         --allmatches : 卸载所有匹配指定名称的程序包的各版本
+         --nodeps : 卸载时忽略依赖关系
+         --test : 测试卸载，dry run模式    
+    rpm -u  --update   升级
+          --oldpackage : 降级
+          --force : 强制升级
+    rpm -V    自动校验
+    rpm -K    手动校验
+    rpm  -initdb  初始化
+    rpm  -rebuilddb  重建
+    
+10.  yum
+     包 
+        yum install  安装
+        yum reinstall 重新安装
+        yum  update 升级 
+        yum remove 卸载 
+        yum check-upate 检查更新
+        yum list
+            • all : 显示所有仓库中的包
+            • available : 显示可用的软件包
+            • updates : 显示可用于升级的包
+            • installed : 显示已经安装的包
+            • yum list php* :  显示想着以php开头的所有软件包
+  
+        yum info  查看包信息
+        yum provides  查看文件由哪个包提供
+        yum clean 清理本地缓存
+        yum  makecache  生成缓存
+        yum repolist  显示仓库列表
+            all : 查看全部的仓库
+            enabled : 查看地可用的仓库
+            disabled : 查看不可用的仓库
+    组 
+        yum groupinstall  组安装
+        yum grouplist  查看组
+        yum groupinfo  组信息
+        yum groupremove 组卸载
+        yum groupupdate 组更新
+        
+    yum配置文件及格式：
+	    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		CentOS 7
+		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		或者
+		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		之后运行yum makecache生成缓存
+	
+        /etc/yum.conf
+            • 各仓库文件的公共配置，或者不属于仓库的配置，格式如下：
+            • [main]：主名称，固定名称
+            • cachedir= : 缓存目录
+            • keepcache=0:要不要保存缓存
+            • exactarch=1:要不要做精确严格的平台匹配
+            • gpgcheck=1:检查来源法性和完整性
+            • plugins=1:要不要支持插件
+            • installonly_limit: 同时安装几个
+        /etc/yum.repos.d/*.repo
+            • 为仓库的指向及其配置,格式如下：
+            • [repository ID] ：ID名称，即仓库名称，不可与其他ID重命
+            • name= ： 对ID名称的说明
+            • baserul=URL1
+                  URL2
+                 URL3 （如果同一个源有多个镜像，可以在此我写几个，但每个URL需换行）
+            • mirrorlist= (有一台服务器在网络上，保存了多个baseurl，如果使用这项，就不使用baseurl项）
+            • enabled={1|0}
+            • gpgcheck={1|0}
+            • repo_gpgcheck= ： 检查仓库的元数据的签名信息
+            • gpgkey=URL (gpg密钥文件）
+            • enablegroups= {1|0}}是否在此仓库中上使用组来指管理程序包
+            • failovermethod= roundrobin|priority (对多个baseurl做优先级的，roundrobin为轮循，priority为优先级，默认为轮循，意为随机）
+            • keepalive= 如果对方是http 1.0是否要保持连接
+            • username=  yum的验证用户
+            • password=  yum的验证用户密码
+            • cost=默认baseurl都为1000
+            * 注意：等号左右不能出现空格
+    
+    实例：
+			1、备份
+				mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+				2、下载新的CentOS-Base.repo 到/etc/yum.repos.d/
+				CentOS 5
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-5.repo
+				CentOS 6
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo
+				CentOS 7
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+				CentOS 7  yum 源
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+				或者
+				curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+        3、之后运行yum makecache生成缓存
+
+            yum仓库的配置文件示例
+                [base]  #光盘的基本软件，即os代表光盘
+                name=CentOS $releasever $basearch on local server 172.16.0.1
+                baseurl=http://172.16.0.1/cobbler/ks_mirror/CentOS-6.7-$basearch/ #此处如果使用公网公开的repo,这里的地址一定要为repodata目录相同层级地址
+                gpgcheck=1
+                gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+                enable=1 #如果此项未写，默认表示启用
+               [extra] #  extra表示额外的程序
+                name=CentOS $releasever $basearch extras
+                baseurl=http://172.16.0.1/centos/$releasever/extras/$basearch/
+                gpgcheck=0
+               [epel]  # 是由公共组织权威维护
+                name=Fedora EPEL for CentOS$releasever $basearch on local server 172.16.0.1
+                baseurl=http://172.16.0.1/fedora-epel/$releasever/$basearch/
+                gpgcheck=0
+               [cdrom]
+                name=cdrom
+                baseurl=file:///media/
+                gpgcheck=0
+11  系统监控
+        ps
+            -e 显示所有进程,环境变量
+            -f 全格式
+            -h 不显示标题
+            -l 长格式
+            -w 宽输出
+            -a 显示终端上地所有进程,包括其他用户地进程
+            -r 只显示正在运行地进程
+            -x 显示没有控制终端地进程
+            -u 显示更多信息，类似于 -f 选项。
+
+            例子：    
+            ps -ef | grep tomcat     查看进程
+            ps -aux                 显示所有状态
+        
+        cpustat
+             -cpuprofile  将 CPU 信息写到文件，然后用 cat 命令[10]查看文件
+        top
+            s - 改变画面更新频率
+            l - 关闭或开启第一部分第一行 top 信息的表示
+            t - 关闭或开启第一部分第二行 Tasks 和第三行 Cpus 信息的表示
+            m - 关闭或开启第一部分第四行 Mem 和 第五行 Swap 信息的表示
+            N - 以 PID 的大小的顺序排列表示进程列表（第三部分后述）
+            P - 以 CPU 占用率大小的顺序排列进程列表 （第三部分后述）
+            M - 以内存占用率大小的顺序排列进程列表 （第三部分后述）
+            h - 显示帮助
+            n - 设置在进程列表所显示进程的数量
+            q - 退出 top
+
+        free 显示空闲内存
+            total:总计物理内存的大小。
+            used:已使用多大。
+            free:可用有多少。
+            Shared:多个进程共享的内存总额。
+            Buffers/cached:磁盘缓存的大小。
+            第三行(-/+ buffers/cached):
+            used:已使用多大。
+            free:可用有多少。
+            空闲内存 = free + buffers + cached = total - used
+        
+        kill    如果进程运行在后台，那么首先要通过 ps 命令来获取进程ID，然后使用 kill 命令“杀死”进程
+            -9 
+        
+        job  用来查看系统中正在运行的任务，包括后台运行的任务
+            -l 选项可以查看当前任务包含的进程ID
+        
+        fg
+            fg %jobnumber  后台任务调到前台
+        
+        bg
+            bg %jobnumber 将后台暂停的任务，调到前台继续运行
+                         望将当前任务转移到后台，可以先 Ctrl+z 暂停任务，再使用 bg 命令。任务转移到后台可以空出终端，继续输入其他命令。
+        
+        df -h  显示当前文件夹及文件大小
+        
+
+        ntpdate ntp服务器域名或ip 设置时间同步
+        date
+        clock
+        hwclock
+            hwclock -r 查看BIOS时间命令
+        vi /etc/sysconfig/clock 查看当前时区        
+        clock -w 
+        tzselect  修改时区命令         
+        timeconfig 修改时区命令    
+        TZ='Asia/Shanghai'; export TZ　//改为+8中国上海时区 如果知道时区名称也可以直接使用命令
+                            
+12  文件命令
+        locate 
+            locate 是透过update程序将硬盘中的所有档案和目录资料先建立一个索引数据库，在 执行loacte时直接找该索引，查询速度会较快，
+                    索引数据库一般是由操作系统管理，但也可以直接下达update强迫系统立即修改索引数据库
+            -f 将特定的档案系统排除在外，例如我们没有到理要把 proc 档案系统中的档案 放在资料库中。
+            -q 安静模式，不会显示任何错误讯息。
+            -n 至多显示 n个输出。
+            -r 使用正规运算式 做寻找的条件。
+            -o 指定资料库存的名称。
+            -d 指定资料库的路径
+            -h 显示辅助讯息
+            -V 显示程式的版本讯息
+        upddatedb --更新索引数据库
+        
+        whereis 从数据库中查找数据,定位指定命令名的二进制、源和帮助页文件
+        
+        which  在PATH变量指定的路径中，搜索某个系统命令的位置
+        
+        whatis 用于显示你作为参数输入的命令名的单行描述
+            -l 标志来显示完整的描述。
+        
+        type 命令会输出给定命令的完整路径名
+        stat
+        man 
+        cd
+            cd ~  进入用户工作目录home
+        
+        mkdir  建目录
+            mkdir -p  建多级目录
+        rm
+            rm  -rf  删除多级目录
+        
+                find  文件查找
+                find <指定目录> <指定条件> <指定动作>
+                    - <指定目录>： 所要搜索的目录及其所有子目录。默认为当前目录。
+                    - <指定条件>： 所要搜索的文件的特征。
+                    - <指定动作>： 对搜索结果进行特定的处理。
+                    
+                    .查找条件:
+                        1. 根据文件名和inode查找
+                        2. 根据属主、属组查找
+                        3. 根据文件类型查找
+                        4. 根据逻辑组合条件查找
+                        5. 根据文件大小来查找
+                        6. 根据时间戳来查找
+                        7. 根据权限来查找
+                    处理动作:
+                        1. -print: 默认动作，显示至屏幕
+                        2. -ls: 类似于对查找到的文件执行 ls -l 命令
+                        3. -delete: 删除查找到的文件
+                        4. -fls file: 查找到的所有长格式的信息保存至指定文件中
+                        5. -ok COMMMAND {} \; 对查找到的每个文件执行由COMMAND指定的命令，且都会交互式要求用户确认
+                        6. -exec COMMAND {} \; 对查找到的每个文件执行由COMMAND指定的命令；
+                        7. {}: 用于引用查找至的文件名称自身
+                        8. find 传递查找到的文件至后面指定的命令时，查找到所有符号条件的文件一次性传递给后面的命令
+                        9. 有些命令不能接受过多的参数，此时命令执行可能会失败，用 xargs 来规避此问题   find |xargs COMMAND
+                例子：
+                    find . -name 'my*' # 搜索当前目录中，所有文件名以my开头的文件 -name（文件名需要带后缀）
+                    find . -name 'my*' -ls # 搜索当前目录中，所有文件名以my开头的文件，并显示它们的详细信息。
+                    find . -size +1000000c（在当前目录下查找文件长度大于1 M字节的文件 ） # 以文件大小来查找 -size n
+                    find . -iname "Hessian.properties" # 在当前目录及所有子目录中查找filename(忽略大小写)
+        cp
+        rm
+        ln  -sv     建立文件软连接
+        
+13  用户管理
+        passwd  密码设置
+                synopsis:passwd [-k] [-l] [-u [-f]] [-d] [-e] [-n mindays] [-x maxdays] [-w warndays] [-i inactivedays] [-S] [--stdin] [username]
+            1、passwd (修改自己的密码)
+            2、passwd USERNAME(修改其他用户的密码，root权限 )
+               options:
+                    -l : 锁定用户，在/etc/passwd的密码前面加!!,
+                    -u : 解锁用户，在/etcpasswd的密码前!!取消
+                    -d : --delete,删除用户密码
+                    -e DATE : --expire,设定过期时间
+                    -i DAYS : 非活动时间
+                    -n days : 最短使用期限
+                    -x days : 最长使用期限
+                    -w days : 警告期限
+                    --stdin : `echo "PASSWD" | passwd --stdin root` 
+
+        useradd` - create a new user or update default new user information
+            useradd [options] LOGIN
+              useradd -D [options]
+                -u : 指定用户的UID
+                -g : 指定GID
+                -c : 指定注释信息，如果有空格，需要使用" "包含
+                -d : 指定用户家目录,创建用户时，会自动将/etc/skel中的文件复制到用户家目录下，如果指定的文件存                 在将不会复制文件，如果父目录不存在，创建也将会失败
+                -s : 指定用户shell
+                -r : 指定创建一个系统用户
+                -M ：不创建用户家目录
+                -G : 指定附加组，多个使用逗号隔开
+                -D ：修改创建用户的配置信息，文件位于/etc/default/useradd
+                    注：创建用户时的诸多默认设定配置文件为/etc/login.defs
+        usermod
+                -u : 修改用户UID
+                -g : 修改用户GID
+                -c : 修改用户的注释信息
+                -d : 修改用户家目录，需要配合使用-m选项才会自动复制用户家目录下的文件到新的家目录
+                -m : move-home to new directory
+                -s : 修改用户的shell
+                -l : 修改用户的登陆名，即login名称
+                -G : 修改用户的附加组信息，需要配合-a(append)一起使用，如果不使用-a将删除原来的附加组
+                -a : --append,连接多个附加组的参数
+                -L : 锁定用户，即lock,在/etcpasswd文件中，密码前面加!(一个)
+                -U : 解锁用户，即unlock，在/etc/passwd文件中，取消密码前面的!号
+        
+        userdel [options] LOGIN 删除用户
+               -r : 删除用户的同时删除用户的家目录，即--remove参数
+    
+        su  切换用户 
+            su [-] USER
+                - : 以登陆方式切换用户，以完成用户环境变量、配置信息加载
+                -c : 不用登陆用户即可以以指定用户执行命令
+                      `su - mariabd -c 'id -u'`
+        id  查看用户信息  
+            id [OPTION]... [USERNAME]
+                -u : 查看UID号
+                -g : 查看GID号
+                -G : 查看附加组GID号，其他包含基本组ID号
+                -n : 将各ID转换为对应的名称    
+
+         chmod 用户权限管理
+            chmod [OPTION]... MODE[,MODE]... FILE...
+            chmod [OPTION]... OCTAL-MODE FILE...
+            chmod [OPTION]... --reference=RFILE FILE...
+               -r --recursive : 递归修改
+               --reference : 参照某文件来修改           
+                 1、赋权等值法
+                    chmod u=rwx,g=rwx,0=rwx FILE
+                    chmod a=rwx FILE
+                2、赋权加减法
+                    chmod u-rwx,g-rwx,o-rwx FILE
+                    chmod ugo-x FILE
+                    chmod u+rwx,go+r FILE
+                    chmod a+r FILE
+                3、十进制赋权法
+                    chmod 777 FILE
+                4、参照赋值法
+                    chmod --reference/var/log/file FILE
+               注意：1、在使用a+w的情况下，只有属主才会加w,go是不会加上W权限
+                     2、目录有写权限操作，但对目录下的文件同有写权限时，用户是不能写文件、但有删除文件的能力
+
+         
+        chown 用户属主、属组修改（ownership）
+             chown [OPTION]... [OWNER][:[GROUP]] FILE...
+             chown [OPTION]... --reference=RFILE FILE... 
+               -R :  --recursive 递归修改
+               --reference : 参照某文件来修改
+               chown mariadb FILE : 只修改文件的属主为mariadb
+               chown mariadb:mariadb FILE :修改文件的属主、属组为mariadb
+               chown mariadb:mariadb FILE : 同上
+               chown --reference=/var/log/file FILE : 参照/var/log/file来修改FILE的属主、属组
+14  组管理
+
+        groupadd [options] group
+        
+                -g : 指定GID号
+                -r : 指定为一个系统组
+
+        groupmod [options] GROUP
+                -g : 修改GID号码
+                -n : 修改组名称 （groupmod -n NEW_GROUP OLD_GROUP）
+        
+        groupdel 
+            groupdel GROUP_NAME
+        
+        gpasswd [option] group
+                    `gpasswd` - administer /etc/group and /etc/gshadow
+                -a USER_NAME GROUP_NAME: 向组内添加用户
+                -d USER_NAME GROUP_NAME: 把用户从组内删除
+                -r USER_NAMEG : 删除组的密码
+
+        
+        newgrp [-] [group] : 临时切换到其他组，好能够获取相应权限
+                            模拟用户登陆， 以实现重新初始化环境变量
+
+        chgrp               -change group ownership
+            chgrp [OPTION]... GROUP FILE...
+            chgrp [OPTION]... --reference=RFILE FILE...
+                  注：由于chgrp只能修改属组，故一般情况都使用chown代替
+
+15  文件权限
+        Linux权限标识：
+                r: Readable 读
+                W: writable 写
+                x: executable 执行
+        rwx标识对文件及目录的意义：
+            对文件：
+                r : 可以读取文件中的内容
+                w : 可以修改及删除文件中的内容
+                x : 可以将其发起为一个进程
+            对目录：
+                r : 可以查看目录中的文件，可以使用ls命令， 但不能使用 -l选项
+                w : 可以创建、删除目录，但不能修改文件中的内容
+                x : 可以使用cd命令进入目录
+
+        文件及目录权限详细表示方面
+            文件：-rwxrwxrwx
+                从左边第二位开始，每三位代表一个权限类别：
+                    u : owner
+                    g : owner group
+                    o : other
+                    a : 代表以上三项
+           目录：drwxrwxrwx
+                u、g、o同文件权限位
+
+        Linux内核对文件权限的表示方法：
+               rwx: 4 2 1 
+
+    umask
+     
+        Umask Mode Control
+            Linux对初始权限的控制来自于Umask的设定，其工作原理如下：
+               对新建立的文件：
+                   666 - Umask值（由于Linux对文件的执行权限控制很严格，默认取消了文件的执行权限，所以这里是666）
+               对新建立的目录：
+                   777 - Umask值 
+                
+            Umask对管理员ROOT的初始值：022
+            Umask对普通用户的初始值为：002
+                普通用户建立的文件及目录权限如下：
+                文件：
+                    666-002=664 （如果减得的结果为奇数，就自动加1）对应的权限如下：
+                        -rw-rw-r--
+                目录：
+                    777-002=775 ，对应的权限如下：
+                        drwxrwxr-x
+            对管理员root建立的文件及目录权限如下：
+                文件：
+                    666-022=644，对应的权限如下：
+                        -rw-r--r--
+                目录：
+                    777-022=755，对应的权限如下：
+                        drwx-r-xr-x
+            注：Umask的值可以使用umask命令来设置，但只对当前进程(即shell)有效，如要长期有效，需将此值设置到/etc/profile文件中，或者家目录下的.开头的文件中
+
+    
+16  特殊权限
+
+        SUID权限的表示方法
+                    1. -rws------ : 如果原本的U上有x权限，设置SUID后，x位变成小写的s
+                    2. -rwS------ : 如果原本的U上没有x权限，设置SUID后，x位变成大写的s
+                SUID的设置文件
+                    1. chmod u+s FILE
+                    2. chmod 4000 FILE
+
+        SGID权限的表示方法
+                    1. ----rws---:如果原本G上有x权限，设置SGID后，x位变成小写的s.
+                    2. ----rwS---:如果原本G上有x权限，设置SGID后，x位变成大写的S.
+                SGID的设置文件
+                    1. chmod g+s FILE
+                    2. chmod 2000 FILE
+
+        Sticky的表示方法
+                    1. -------rwt:如果原本o上有x权限，设置Sticky后，x位变成小写的t.
+        
+        facl的设置
+            facl - filesystem access control list
+            facl [options] [u|g]:[USER|GROUP][MODE][FILE]
+               `-m` : 设置权限
+               `-x` : 清除权限
+                应用实例
+                    1. facl -m u:mariadb:rw ./file : 设置用户为mariadb对当前目录下的file有读写权限；
+                    2. facl -m g:mygrp:rw ./file : 设置组为mygrp对当前目录下的file文件有读写权限
+                    3. setfacl -x u:user5 dir/ :清除user5对dir目录的权限
+                    4. setfacl -b ./file : 清除file文件的所有用户和组的facl权限设置
+            
+                    2. -------rwT:如果原本o上有x权限，设置Sticky后，x位变成大写的T.
+        
+        getfacl -facl权限的查看方法
+            getfacl FILE : 查看file文件的facl的权限控制
+                有facl权限控制机制的文件，展示格式     ----------+ : 在权限位后面多出来一个+号，表示此文件有设置facl权限位
+                            
+17  cron  计划任务
+            /etc/crontab
+              # Example of job definition:
+                   # .---------------- minute (0 - 59)
+                   # |  .------------- hour (0 - 23)
+                   # |  |  .---------- day of month (1 - 31)
+                   # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+                   # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+                   # |  |  |  |  |
+                   # *  *  *  *  * user-name command to be executed
+                
+                0 0 2,12,22 * * command  列表值，时间值是一个列表，如指定一个月内2、12、22日零时执行任务
+                                        上述日指定多个值，2号、12号和22号，以逗号分隔；
+                                        连续范围值，时间为连续范围的值，如指定每个月1至7号零时执行任务
+                0 0 1-7 * * command 上述日期为连续范围的值1-7时
+                                    整除值，根据指定数值是能否被整除确定执行时间，如指定零时开始每3个小时0分执行一次任务
+                0 */3 * * * command  上述能被3整除的小时满足执行条件，如3点0分，6点0分等。
+                                     混合值，支持以上类型的组合，如指定每小时0至10分，22、33分以及所有能被20整除的分时执行任务，如下
+                0-10,22,33,*/20 * * * * command     这里的分钟值采取了多种类型组合指定，包括连续范围值(0-7)，列表值(22,33)，整除值(*/20)。
+
+                
+18 调整时区
+     timedatectl list-timezones
+     timedatectl
+     timedatectl set-timezone Asia/Shanghai
+     ntpdate  time.nist.gov  -时间同步
+     clock - 系统时钟
+     hwclock - 硬件时钟
+     hwclock -w  -- sys to  hwclock
+     hwclock -s  -- hwclock to sys
+     
+
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    
+19  ss
+            所属软件包：iproute
+            
+                    用来获取socket统计信息，它可以显示和netstat类似的内容。但ss的优势在于它能够显示更多更详细的有关TCP和连接状态的信息，而且比netstat更快速更高效。
+                ss [参数]
+                ss [参数] [过滤]
+                    -h, --help  帮助信息
+                    -V, --version   程序版本信息
+                    -n, --numeric   不解析服务名称
+                    -r, --resolve        解析主机名
+                    -a, --all   显示所有套接字（sockets）
+                    -l, --listening 显示监听状态的套接字（sockets）
+                    -o, --options        显示计时器信息
+                    -e, --extended       显示详细的套接字（sockets）信息
+                    -m, --memory         显示套接字（socket）的内存使用情况
+                    -p, --processes 显示使用套接字（socket）的进程
+                    -i, --info  显示 TCP内部信息
+                    -s, --summary   显示套接字（socket）使用概况
+                    -4, --ipv4           仅显示IPv4的套接字（sockets）
+                    -6, --ipv6           仅显示IPv6的套接字（sockets）
+                    -0, --packet            显示 PACKET 套接字（socket）
+                    -t, --tcp   仅显示 TCP套接字（sockets）
+                    -u, --udp   仅显示 UCP套接字（sockets）
+                    -d, --dccp  仅显示 DCCP套接字（sockets）
+                    -w, --raw   仅显示 RAW套接字（sockets）
+                    -x, --unix  仅显示 Unix套接字（sockets）
+                    -f, --family=FAMILY  显示 FAMILY类型的套接字（sockets），FAMILY可选，支持  unix, inet, inet6, link, netlink
+                    -A, --query=QUERY, --socket=QUERY
+                          QUERY := {all|inet|tcp|udp|raw|unix|packet|netlink}[,QUERY]
+                    -D, --diag=FILE     将原始TCP套接字（sockets）信息转储到文件
+                     -F, --filter=FILE   从文件中都去过滤器信息
+                        FILTER := [ state TCP-STATE ] [ EXPRESSION ]
+            ss -t -a  --显示TCP连接
+            ss -pl  --查看进程使用的socket
+            ss -lp | grep 3306 
+            ss -o state established '( dport = :smtp or sport = :smtp )'  
+            匹配远程地址和端口号
+                命令：
+                ss dst ADDRESS_PATTERN
+                ss dst 192.168.1.5
+                ss dst 192.168.119.113:http 
+                ss dst 192.168.119.113:smtp 
+                ss dst 192.168.119.113:443
+            匹配本地地址和端口号
+                命令：
+                ss src ADDRESS_PATTERN
+                ss src 192.168.119.103
+                ss src 192.168.119.103:http
+                ss src 192.168.119.103:80
+                ss src 192.168.119.103:smtp
+                ss src 192.168.119.103:25
+            将本地或者远程端口和一个数比较
+                命令：
+                ss dport OP PORT 
+                ss sport OP PORT
+                输出：
+                复制代码
+                [root@localhost ~]# ss  sport = :http 
+                [root@localhost ~]# ss  dport = :http 
+                [root@localhost ~]# ss  dport \> :1024 
+                [root@localhost ~]# ss  sport \> :1024 
+                [root@localhost ~]# ss sport \< :32000 
+                [root@localhost ~]# ss  sport eq :22 
+                [root@localhost ~]# ss  dport != :22 
+                [root@localhost ~]# ss  state connected sport = :http 
+                [root@localhost ~]# ss \( sport = :http or sport = :https \) 
+                [root@localhost ~]# ss -o state fin-wait-1 \( sport = :http or sport = :https \) dst 192.168.1/24
+                复制代码
+                说明：
+                ss dport OP PORT 远程端口和一个数比较；ss sport OP PORT 本地端口和一个数比较。
+                OP 可以代表以下任意一个: 
+                <= or le : 小于或等于端口号
+                >= or ge : 大于或等于端口号
+                == or eq : 等于端口号
+                != or ne : 不等于端口号
+                < or gt : 小于端口号
+                > or lt : 大于端口号 
+    
+20.	ssh免密码登录
+        1.  ssh-keygen -t  rsa -P    （-P 空密码） 生成密钥对
+        2.  ssh-copy-id -i ~/.ssh/id_rsa.pub  192.168.1.41   复制公钥到远程主机
+
+
+22  SSH  加密
+        ssh-keygen  -t   rsa   -生成密钥对 （类型为RSA) 将会生成密钥文件和私钥文件 id_rsa,id_rsa.pub或id_dsa,id_dsa.pub
+                                这个程序产生一个密钥对，并要求指定一个文件存放私钥，同时将公钥存放在附加了".pub"后缀的同名文件中。
+                                程序同时要求输入一个密语字符串(passphrase)，空表示没有密语(主机密钥的密语必须为空)。
+                                密语和口令(password)非常相似，但是密语可以是一句话，里面有单词、标点符号、数字、空格或任何你想要的字符。
+                                
+                touch ~/.ssh/authorized_keys  -建授权文件
+                chmod 600 ~/.ssh/authorized_keys     -设置权限
+                cat id_dsa.pub >> ~/.ssh/authorized_keys  -将公钥文件附件到授权key 文件中
+                
+                这个 公钥对于的私钥文件即可作为登陆服务器的凭据， 可以通过密钥登陆服务器。  
+                
+    2.  /etc/ssh/sshd_config  文件中：
+                RSAAuthentication yes   -ras认证
+                PubkeyAuthentication yes   -公钥认证
+                PermitRootLogin yes    - 运行root登陆
+                PasswordAuthentication yes --运行口令认证
+                 
+    3.ssh-copy-id -i ~/.ssh/server_rsa.pub user@server   -- 自动把密钥追加到远程主机的 .ssh/authorized_key 上
+    
+23  systemctl
+
+        systemctl list-unit-files |grep  enabled -查看enable的服务
+        systemctl  enable   serivcexxx      --enable 服务
+              /etc/systemd/system/multi-user.target.wants  -对应目录下建立软连接
+                    启用服务就是在当前“runlevel”的配置文件目录/etc/systemd/system/multi-user.target.wants/里，
+                    建立/usr/lib/systemd/system里面对应服务配置文件的软链接；禁用服务就是删除此软链接，添加服务就是添加软连接。
+        systemctl  is-enabled xxservice   --查看末服务是否为开机启动模式。
+        systemct  start /stop  /status       xxx  -- 启动停止查看 服务
+        
+        systemctl  daemon-reload
