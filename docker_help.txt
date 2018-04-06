@@ -1,0 +1,213 @@
+30 docker  相关命令
+	1. 关闭selinux
+		sudo setenforce 0
+		sudo sed -i 's/enforcing/permissive/g' /etc/selinux/config 
+		停防火墙
+		systemctl stop firewalld
+		systemctl disable firewalld
+		systemctl disable firewalld
+		iptables -F    ***wl
+	 	iptables -L 
+	2.	docker安装
+		
+		cat >> /etc/yum.repos.d/docker.repo <<EOF
+		[docker-repo]
+		name=Docker Repository
+		baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+		enabled=1
+		gpgcheck=0
+		EOF
+			Kubernetes 1.6还没有针对docker 1.13和最新的docker 17.03上做测试和验证，所以这里安装Kubernetes官方推荐的Docker 1.12版本。
+			[root@server2 ~]# yum list docker-engine --showduplicates ##查看docker版本
+			[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64  ##安装docker
+			直接这样装会报错。需要同时安装docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm，如下
+			[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64 docker-engine-selinux-1.12.6-1.el7.centos.noarch
+			##或者将这两个包下载下来，再一起安装
+	3.	国内加速
+		cat > /etc/docker/daemon.json <<EOF
+		{
+		"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+		}
+		EOF
+		systemctl daemon-reload
+        systemctl enable docker
+        systemctl start docker    
+    4. 开启转发 
+		 iptables -P FORWARD ACCEPT
+			 可在docker的systemd unit文件中以ExecStartPost加入上面的命令：
+			  ExecStartPost=/usr/sbin/iptables -P FORWARD ACCEPT
+		或：
+		cat << EOF > /etc/sysctl.d/k8s.conf
+		net.ipv4.ip_forward = 1
+		net.bridge.bridge-nf-call-ip6tables = 1
+		net.bridge.bridge-nf-call-iptables = 1
+		vm.swappiness=0
+		EOF
+
+		modprobe br_netfilter
+		echo "modprobe br_netfilter" >> /etc/rc.local
+
+		sysctl -p /etc/sysctl.d/k8s.conf 
+
+		cat /proc/sys/net/bridge/bridge-nf-call-iptables 
+		cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 
+		cat /proc/sys/net/ipv4/ip_forward   
+    5. docker 命令
+		docker  images  -a  all  /  --no-trunc  / -q  only ID  -看镜像
+		docker  search --no-trunc 查找仓库
+		docker login 
+		docker logout
+		docker pull   
+		docker push 
+		docker ps  -a all  / -l laster
+		docker top
+		docker logs  -f follow  --tail 
+		docker events 
+		docker history
+		docker build -t='container name :tag" .    --no-cache 通过dockerfile 生产镜像
+		docker attach  附加容器  ctrl+p  ctrl+q
+		docker  inspect  查看容器
+		docker port 容器 查看端口
+		docker  rm  -f  force / -v volumes /-l link 删除容器
+		docker  rmi -f  force  删除镜像
+		docker start
+		docker pause		
+		docker stop
+		docker kill
+		docker  restart
+		docker rename
+		docker  run  -d / -t  -i  -P -p 
+		docker  exec -d -t -i
+		docker  tag 
+		docker  info
+		docker version  
+		docker  commit 容器TO 镜像
+		docker load IMAGE
+		docker save IMAGE
+		docker export CONTAINER
+		docker import  CONTAINER
+		docker network
+		docker swarm
+		docker node
+		
+        dockerfile  entrypoint [" ", ”  ]   CMD [""]  -命令参数替换
+    
+	6.	网桥管理命令
+		yum  install -y  bridge-utils  安装网桥工具包 
+		
+		brctl show  查看桥架设备
+		brctl addbr 新建桥
+		brctl delbr	删除桥
+		brctl addif 加interface to 桥
+		brctl delif  删除interface from 桥
+		
+		建网桥
+			brctl addbr bridge0 
+			ip addr add 192.168.5.1/24 dev bridge0 
+			ip link set dev bridge0 up 
+		route -n  -查看路由表
+		
+		关闭网桥：
+			brctl delif br0 eth0;
+			ifconfig bro  down;
+			brctl delbr br0;
+
+	7.	docker  服务启动参数
+			/etc/sysconfig/docker -启动配置文件
+					-H tcp://0.0.0.0:2375    提供远程访问
+					可本机定义变量  DOCKER_HOST  可本机访问
+				或：-H unix:///var/run/docker.sock	 默认本机
+		centos7: vi  /usr/lib/systemd/system/docker.services 加如下内容：- 指定远程访问及本机访问
+					 -H tcp://0.0.0.0:2375 \
+					 -H unix:///var/run/docker.sock \			
+			
+	8.	docker 客户端远程访问 ， 可以定义环境变量
+			export DOCER_HOST=”tcp://192.168.x.x:2375“	
+			noset   --删除环境变量定义
+			env   显示环境变量
+		 
+		/etc/sysconfig/docker-storage
+		/etc/sysconfig/docker-network
+		/etc/docker/daemon.json 
+	
+	9.  docker info  查看docker　id  如相同 需删除 /etc/docker/key.json  可重新生产docker id
+		    rm -f  /etc/docker/key.json
+	
+	10.	pipework:
+				brctl  addbr  br0   
+				ip link set dev  br0 up
+				ip address add  192.168.1.10/24 dev br0
+				ip address del 192.168.1.10/24 dev eth0 
+				brctl addif  br0  eth0  将宿主机网卡绑定br0 上
+			
+				ip route del default
+				ip route add default   via  192.168.1.24 dev br0            为br0 设置路由
+			
+			git clone  https://github.com/jpetazzo/pipework
+			cp ~/pipework/pipework /usr/local/bin   将 PIPEWORK  复制的PATH 路径中
+			启动容器：
+				docker  run  -itd  --net=none  --name=test  centos:laster  /bin/bash
+				pipework br0  test  192.168.1.88/24@192.168.1.254   设置容器IP 及网关  该地址只在运行状态有效， 容器停止后IP 将丢失
+	
+			进入容器查看IP
+				docker attach  test
+				docker exec   test   ip add  show  
+				
+				pipework
+				ip address show
+			
+	
+
+
+   
+31.gitlab
+		docker pull gitlab/gitlab-ce  
+		wget https://raw.githubusercontent.com/sameersbn/docker-gitlab/master/docker-compose.yml
+		docker-compose up
+
+			Start GitLab using:
+
+			docker-compose up
+			Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
+
+			Step 1. Launch a postgresql container
+
+			docker run --name gitlab-postgresql -d \
+				--env 'DB_NAME=gitlabhq_production' \
+				--env 'DB_USER=gitlab' --env 'DB_PASS=password' \
+				--env 'DB_EXTENSION=pg_trgm' \
+				--volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
+				sameersbn/postgresql:9.6-2
+			Step 2. Launch a redis container
+
+			docker run --name gitlab-redis -d \
+				--volume /srv/docker/gitlab/redis:/var/lib/redis \
+				sameersbn/redis:latest
+			Step 3. Launch the gitlab container
+
+			docker run --name gitlab -d \
+				--link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
+				--publish 10022:22 --publish 10080:80 \
+				--env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+				--env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--volume /srv/docker/gitlab/gitlab:/home/git/data \
+				sameersbn/gitlab:10.5.6
+			Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
+
+			NOTE: Please allow a couple of minutes for the GitLab application to start.
+
+			Point your browser to http://localhost:10080 and set a password for the root user account
+
+32.	jenkins
+		docker pull jenkins    
+		chmod 777 -R  /root/jenkins
+		docker run -p 8080:8080 -p 50000:50000 -v /root/jenkins:/var/jenkins_home jenkins
+
+33. swarm
+    docker swarm init --advertise-addr  192.168.1.12
+    docker swarm join     --token SWMTKN-1-24uw3xrfo0for1gb6tvqn0vomlnp9vgr05kpe03p9iknfll4qo-cv1jgkz320ydu09flw990urec   192.168.1.12:237
+    docker network create -d overlay  --subnet  10.25.0.0/24  overnet
+    docker service create  --network overnet  nginx
+
