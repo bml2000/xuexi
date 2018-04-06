@@ -794,3 +794,36 @@
 20.	ssh免密码登录
         1.  ssh-keygen -t  rsa -P    （-P 空密码） 生成密钥对
         2.  ssh-copy-id -i ~/.ssh/id_rsa.pub  192.168.1.41   复制公钥到远程主机
+
+
+22  SSH  加密
+        ssh-keygen  -t   rsa   -生成密钥对 （类型为RSA) 将会生成密钥文件和私钥文件 id_rsa,id_rsa.pub或id_dsa,id_dsa.pub
+                                这个程序产生一个密钥对，并要求指定一个文件存放私钥，同时将公钥存放在附加了".pub"后缀的同名文件中。
+                                程序同时要求输入一个密语字符串(passphrase)，空表示没有密语(主机密钥的密语必须为空)。
+                                密语和口令(password)非常相似，但是密语可以是一句话，里面有单词、标点符号、数字、空格或任何你想要的字符。
+                                
+                touch ~/.ssh/authorized_keys  -建授权文件
+                chmod 600 ~/.ssh/authorized_keys     -设置权限
+                cat id_dsa.pub >> ~/.ssh/authorized_keys  -将公钥文件附件到授权key 文件中
+                
+                这个 公钥对于的私钥文件即可作为登陆服务器的凭据， 可以通过密钥登陆服务器。  
+                
+    2.  /etc/ssh/sshd_config  文件中：
+                RSAAuthentication yes   -ras认证
+                PubkeyAuthentication yes   -公钥认证
+                PermitRootLogin yes    - 运行root登陆
+                PasswordAuthentication yes --运行口令认证
+                 
+    3.ssh-copy-id -i ~/.ssh/server_rsa.pub user@server   -- 自动把密钥追加到远程主机的 .ssh/authorized_key 上
+    
+23  systemctl
+
+        systemctl list-unit-files |grep  enabled -查看enable的服务
+        systemctl  enable   serivcexxx      --enable 服务
+              /etc/systemd/system/multi-user.target.wants  -对应目录下建立软连接
+                    启用服务就是在当前“runlevel”的配置文件目录/etc/systemd/system/multi-user.target.wants/里，
+                    建立/usr/lib/systemd/system里面对应服务配置文件的软链接；禁用服务就是删除此软链接，添加服务就是添加软连接。
+        systemctl  is-enabled xxservice   --查看末服务是否为开机启动模式。
+        systemct  start /stop  /status       xxx  -- 启动停止查看 服务
+        
+        systemctl  daemon-reload
