@@ -1,0 +1,697 @@
+ 有kubeadm  设置 kubernetes
+
+1.  资源准备
+ 
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+enabled=1
+gpgcheck=0
+EOF
+
+2  安装 docker
+
+yum list | grep docker
+yum list docker-engine --show-duplicates
+yum install docker-engine-1.13.1-1.el7.centos -y
+
+ yum install -y docker-engine-1.12.6-1.el7.centos.x86_64 docker-engine-selinux-1.12.6-1.el7.centos.noarch
+yum  install kubeadm kubectl kubelet kubernetes-cni -y
+ 
+ wget -O /etc/yum.repos.d/docker-ce.repo https://download.docker.com/linux/centos/docker-ce.repo  && yum install -y docker-ce 
+ && systemctl enable docker.service && service docker start
+
+3.  docker  国内加速
+ 
+
+cat > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+4.  docker 与 k8s  的CGROUP 要一致
+
+可以看出docker 17.03使用的Cgroup Driver为cgroupfs。
+
+于是修改各节点docker的cgroup driver使其和kubelet一致，即修改或创建/etc/docker/daemon.json，加入下面的内容：
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+
+或：
+CGROUP_DRIVER=$(sudo docker info | grep "Cgroup Driver" | awk '{print $3}')
+sudo sed -i "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--cgroup-driver=$CGROUP_DRIVER --enable-cri=false |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sudo sed -i "s|\$KUBELET_NETWORK_ARGS| |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+
+
+5. 关闭selinux
+sudo setenforce 0
+sudo sed -i 's/enforcing/permissive/g' /etc/selinux/config
+
+6. 停防火墙
+
+systemctl stop firewalld
+systemctl disable firewalld
+systemctl disable firewalld
+
+ iptables -F    ***wl
+ 
+ iptables -L   查看防火墙配置
+ 
+ 
+
+7. 关闭Swap
+
+swapoff -a 
+sed 's/.*swap.*/#&/' /etc/fstab
+
+8. 开启转发 
+
+ 开启 IP forward 
+ iptables -P FORWARD ACCEPT
+     可在docker的systemd unit文件中以ExecStartPost加入上面的命令：
+      ExecStartPost=/usr/sbin/iptables -P FORWARD ACCEPT
+或：
+cat << EOF > /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+vm.swappiness=0
+EOF
+
+
+modprobe br_netfilter
+echo "modprobe br_netfilter" >> /etc/rc.local
+
+sysctl -p /etc/sysctl.d/k8s.conf 
+
+
+cat /proc/sys/net/bridge/bridge-nf-call-iptables 
+cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 
+cat /proc/sys/net/ipv4/ip_forward
+
+9. 安装 k8s 服务程序
+
+
+yum  install kubeadm kubectl kubelet kubernetes-cni -y
+
+
+systemctl daemon-reload
+systemctl enable kubelet
+systemctl enable docker
+
+systemctl restart kubelet
+systemctl restart docker
+
+10.  准备镜像
+
+
+11。 kubeadm  安装
+
+kubeadm init --kubernetes-version=v1.8.4
+
+
+# 对于非root用户
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# 对于root用户
+$ export KUBECONFIG=/etc/kubernetes/admin.conf
+# 也可以直接放到~/.bash_profile
+$ echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
+
+		Your Kubernetes master has initialized successfully!
+		To start using your cluster, you need to run (as a regular user):
+		mkdir -p $HOME/.kube
+		sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+		sudo chown $(id -u):$(id -g) $HOME/.kube/config
+		You should now deploy a pod network to the cluster.
+		Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+		http://kubernetes.io/docs/admin/addons/
+
+		You can now join any number of machines by running the following on each node
+		as root:
+
+		kubeadm join --token e2743c.140cd11dc082002b 192.168.1.11:6443
+
+
+export KUBECONFIG=/etc/kubernetes/kubelet.conf 
+
+12. 安装 flannel
+
+wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+kubectl apply -f  kube-flannel.yml
+
+13.  kubeadm  join 
+安装 dashboard
+
+https://github.com/rootsongjc/follow-me-install-kubernetes-cluster/tree/master/manifests/dashboard
+kube-dashboard
+
+kubectl  apply -f  kube-dashboard.yml
+
+
+
+"busybox.yaml" 14L, 261C                                                                               
+apiVersion: v1
+kind: Pod
+metadata:
+    name: busybox
+    namespace: default
+spec:
+    containers:
+      - image: busybox
+        command:
+          - sleep
+          - "3600"
+        imagePullPolicy: IfNotPresent
+        name: busybox
+    restartPolicy: Always
+~                          
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+  namespace: default
+spec:
+  containters:
+    -  image: busybox
+       command:
+         -  sleep
+         -  "3600"
+        imagePullPolicy: IfNotPresent
+        name: busybox
+  restartPolicy: Always
+~                         
+
+确认个组件都处于healthy状态。
+
+集群初始化如果遇到问题，可以使用下面的命令进行清理：
+
+kubeadm reset
+ifconfig cni0 down
+ip link delete cni0
+ifconfig flannel.1 down
+ip link delete flannel.1
+rm -rf /var/lib/cni/
+
+如果Node有多个网卡的话，参考flannel issues 39701，目前需要在kube-flannel.yml中使用–iface参数指定集群主机内网网卡的名称，否则可能会出现dns无法解析。需要将kube-flannel.yml下载到本地，flanneld启动参数加上–iface=<iface-name>
+
+......
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds
+......
+containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.9.0-amd64
+        command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr", "--iface=eth1" ]
+......
+
+.master node参与工作负载
+
+使用kubeadm初始化的集群，出于安全考虑Pod不会被调度到Master Node上，也就是说Master Node不参与工作负载。
+
+这里搭建的是测试环境可以使用下面的命.master node参与工作负载
+
+使用kubeadm初始化的集群，出于安全考虑Pod不会被调度到Master Node上，也就是说Master Node不参与工作负载。
+
+这里搭建的是测试环境可以使用下面的命令使Master Node参与工作负载：
+
+kubectl taint nodes node1 node-role.kubernetes.io/master-
+node "node1" untainted
+
+令使Master Node参与工作负载：
+
+kubectl taint nodes node1 node-role.kubernetes.io/master-
+node "node1" untainted
+
+journalctl -xue | kubelet
+=====================================================
+全手动安装 kubernetes-cni
+一.  系统准备
+    Centos Mini安装 每台机器root
+1.   设置机器名
+
+hostnamectl set-hostname etcd-host1
+
+2.    停防火墙
+
+systemctl stop firewalld
+systemctl disable firewalld
+systemctl disable firewalld
+
+    关闭Swap
+
+swapoff -a 
+sed 's/.*swap.*/#&/' /etc/fstab
+
+
+3.    关闭防火墙
+
+systemctl disable firewalld && systemctl stop firewalld && systemctl status firewalld
+
+4.    关闭Selinux
+
+setenforce  0 
+sed -i "s/^SELINUX=enforcing/SELINUX=disabled/g" /etc/sysconfig/selinux 
+sed -i "s/^SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config 
+sed -i "s/^SELINUX=permissive/SELINUX=disabled/g" /etc/sysconfig/selinux 
+sed -i "s/^SELINUX=permissive/SELINUX=disabled/g" /etc/selinux/config 
+
+getenforce
+
+
+5.   增加DNS
+
+echo nameserver 114.114.114.114>>/etc/resolv.conf
+
+6.  设置内核  转发
+
+cat << EOF > /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+vm.swappiness=0
+EOF
+
+
+modprobe br_netfilter
+echo "modprobe br_netfilter" >> /etc/rc.local
+
+sysctl -p /etc/sysctl.d/k8s.conf 
+
+
+CGROUP_DRIVER=$(sudo docker info | grep "Cgroup Driver" | awk '{print $3}')
+sudo sed -i "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--cgroup-driver=$CGROUP_DRIVER --enable-cri=false |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sudo sed -i "s|\$KUBELET_NETWORK_ARGS| |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+
+#若问题
+执行sysctl -p 时出现：
+sysctl -p
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-ip6tables: No such file or directory
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: No such file or directory
+
+解决方法：
+modprobe br_netfilter
+ls /proc/sys/net/bridge
+
+
+二。  keepalived  安装
+    安装
+
+yum install -y keepalived
+
+    配置keepalived.conf
+
+cat >/etc/keepalived/keepalived.conf  <<EOL
+global_defs {
+router_id LVS_k8s
+}
+
+vrrp_script CheckK8sMaster {
+script "curl -k https://10.129.6.220:6443"
+interval 3
+timeout 9
+fall 2
+rise 2
+}
+
+vrrp_instance VI_1 {
+state MASTER
+interface ens32
+virtual_router_id 61
+# 主节点权重最高 依次减少
+priority 120
+advert_int 1
+#修改为本地IP 
+mcast_src_ip 10.129.6.211
+nopreempt
+authentication {
+	auth_type PASS
+	auth_pass sqP05dQgMSlzrxHj
+}
+unicast_peer {
+	#注释掉本地IP
+	#10.129.6.211
+	10.129.6.212
+	10.129.6.213
+}
+virtual_ipaddress {
+	10.129.6.220/24
+}
+track_script {
+	CheckK8sMaster
+}
+
+}
+EOL
+
+    启动
+
+systemctl enable keepalived && systemctl restart keepalived
+
+    结果
+
+[root@etcd-host1 k8s]# systemctl status keepalived
+● keepalived.service - LVS and VRRP High Availabilitymonitor
+   Loaded: loaded (/usr/lib/systemd/system/keepalived.service; enabled; vendor preset: disabled)
+   Active: active (running) since Fri 2018-01-19 10:27:58 CST; 8h ago
+ Main PID: 1158 (keepalived)
+   CGroup: /system.slice/keepalived.service
+           ├─1158 /usr/sbin/keepalived -D
+           ├─1159 /usr/sbin/keepalived -D
+           └─1161 /usr/sbin/keepalived -D
+
+Jan 19 10:28:00 etcd-host1 Keepalived_vrrp[1161]: Sending gratuitous ARP on ens32 for 10.129.6.220
+Jan 19 10:28:05 etcd-host1 Keepalived_vrrp[1161]: VRRP_Instance(VI_1) Sending/queueing gratuitous ARPs on ens32 for 10.129.6.220
+
+    依次配置 其他2台从节点master 配置 修改对应节点 ip
+    master01 priority 120
+    master02 priority 110
+    master03 priority 100
+
+
+
+三.  Etcd 证书创建（我们使用https方式）
+
+创建 CA 证书和秘钥
+
+    安装cfssl， CloudFlare 的 PKI 工具集 cfssl 来生成 Certificate Authority (CA) 证书和秘钥文件
+    如果不希望将cfssl工具安装到部署主机上，可以在其他的主机上进行该步骤，生成以后将证书拷贝到部署etcd的主机上即可。本教程就是采取这种方法，在一台测试机上执行下面操作。
+
+wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+
+
+chmod +x cfssl_linux-amd64
+mv cfssl_linux-amd64 /usr/local/bin/cfssl
+
+wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+chmod +x cfssljson_linux-amd64
+mv cfssljson_linux-amd64 /usr/local/bin/cfssljson
+
+wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+chmod +x cfssl-certinfo_linux-amd64
+mv cfssl-certinfo_linux-amd64 /usr/local/bin/cfssl-certinfo
+
+生成ETCD的TLS 秘钥和证书
+
+    为了保证通信安全，客户端(如 etcdctl) 与 etcd 集群、etcd 集群之间的通信需要使用 TLS 加密，本节创建 etcd TLS 加密所需的证书和私钥。
+    创建 CA 配置文件：
+
+    cat >  ca-config.json <<EOF
+    {
+    "signing": {
+    "default": {
+      "expiry": "8760h"
+    },
+    "profiles": {
+      "kubernetes": {
+        "usages": [
+            "signing",
+            "key encipherment",
+            "server auth",
+            "client auth"
+        ],
+        "expiry": "8760h"
+      }
+    }
+    }
+    }
+    EOF
+
+    ==ca-config.json==：可以定义多个 profiles，分别指定不同的过期时间、使用场景等参数；后续在签名证书时使用某个 profile；
+    ==signing==：表示该证书可用于签名其它证书；生成的 ca.pem 证书中 CA=TRUE；
+    ==server auth==：表示 client 可以用该 CA 对 server 提供的证书进行验证；
+    ==client auth==：表示 server 可以用该 CA 对 client 提供的证书进行验证；
+
+    cat >  ca-csr.json <<EOF
+    {
+    "CN": "kubernetes",
+    "key": {
+    "algo": "rsa",
+    "size": 2048
+    },
+    "names": [
+    {
+      "C": "CN",
+      "ST": "BeiJing",
+      "L": "BeiJing",
+      "O": "k8s",
+      "OU": "System"
+    }
+    ]
+    }
+    EOF
+
+    “CN”：Common Name，kube-apiserver 从证书中提取该字段作为请求的用户名 (User Name)；浏览器使用该字段验证网站是否合法；
+    “O”：Organization，kube-apiserver 从证书中提取该字段作为请求用户所属的组 (Group)；
+    ==生成 CA 证书和私钥==：
+
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+ls ca*
+
+==创建 etcd 证书签名请求：==
+
+cat > etcd-csr.json <<EOF
+{
+  "CN": "etcd",
+  "hosts": [
+    "127.0.0.1",
+    "10.129.6.211",
+    "10.129.6.212",
+    "10.129.6.213"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "BeiJing",
+      "L": "BeiJing",
+      "O": "k8s",
+      "OU": "System"
+    }
+  ]
+}
+EOF
+
+
+    hosts 字段指定授权使用该证书的 etcd 节点 IP；
+    每个节点IP 都要在里面 或者 每个机器申请一个对应IP的证书
+
+生成 etcd 证书和私钥：
+
+cfssl gencert -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+
+ls etcd*
+
+mkdir -p /etc/etcd/ssl
+cp etcd.pem etcd-key.pem  ca.pem /etc/etcd/ssl/
+#
+
+#其他node
+rm -rf /etc/etcd/ssl/*
+scp -r /etc/etcd/ssl root@10.129.6.211:/etc/etcd/
+
+scp -r root@10.129.6.211:/root/k8s/etcd/etcd-v3.3.0-rc.1-linux-amd64.tar.gz /root
+
+将生成好的etcd.pem和etcd-key.pem以及ca.pem三个文件拷贝到目标主机的/etc/etcd/ssl目录下。
+下载二进制安装文件
+
+
+四： etcd 集群设置
+
+
+到 https://github.com/coreos/etcd/releases 页面下载最新版本的二进制文件：
+
+wget http://github.com/coreos/etcd/releases/download/v3.1.10/etcd-v3.1.10-linux-amd64.tar.gz
+
+tar -xvf etcd-v3.1.10-linux-amd64.tar.gz
+
+mv etcd-v3.1.10-linux-amd64/etcd* /usr/local/bin
+
+创建 etcd 的 systemd unit 文件
+
+mkdir -p /var/lib/etcd  # 必须先创建工作目录
+
+
+Etcd https 集群部署
+Etcd 环境准备
+
+#机器名称
+centos740: 192.168.1.40
+centos741: 192.168.1.41
+centos742: 192.168.1.42
+#部署环境变量
+export NODE_NAME=centos742 #当前部署的机器名称(随便定义，只要能区分不同机器即可)
+export NODE_IP=192.168.1.42 # 当前部署的机器 IP
+export NODE_IPS="192.168.1.40  192.168.1.41 192.168.1.42" # etcd 集群所有机器 IP
+# etcd 集群间通信的IP和端口
+export ETCD_NODES=centos740=https://192.168.1.40:2380,centos741=https://192.168.1.41:2380,centos742=https://192.168.1.42:2380
+
+cat > etcd.service <<EOF
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+
+[Service]
+Type=notify
+WorkingDirectory=/var/lib/etcd/
+ExecStart=/usr/bin/etcd \\
+  --name=${NODE_NAME} \\
+  --cert-file=/etc/etcd/ssl/etcd.pem \\
+  --key-file=/etc/etcd/ssl/etcd-key.pem \\
+  --peer-cert-file=/etc/etcd/ssl/etcd.pem \\
+  --peer-key-file=/etc/etcd/ssl/etcd-key.pem \\
+  --trusted-ca-file=/etc/etcd/ssl/ca.pem \\
+  --peer-trusted-ca-file=/etc/etcd/ssl/ca.pem \\
+  --initial-advertise-peer-urls=https://${NODE_IP}:2380 \\
+  --listen-peer-urls=https://${NODE_IP}:2380 \\
+  --listen-client-urls=https://${NODE_IP}:2379,http://127.0.0.1:2379 \\
+  --advertise-client-urls=https://${NODE_IP}:2379 \\
+  --initial-cluster-token=etcd-cluster-1 \\
+  --initial-cluster=${ETCD_NODES} \\
+  --initial-cluster-state=new \\
+  --data-dir=/var/lib/etcd
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    指定 etcd 的工作目录和数据目录为 /var/lib/etcd，需在启动服务前创建这个目录；
+    为了保证通信安全，需要指定 etcd 的公私钥(cert-file和key-file)、Peers 通信的公私钥和 CA 证书(peer-cert-file、peer-key-file、peer-trusted-ca-file)、客户端的CA证书（trusted-ca-file）；
+    –initial-cluster-state 值为 new 时，–name 的参数值必须位于 –initial-cluster 列表中；
+
+启动 etcd 服务
+
+mv etcd.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable etcd
+systemctl start etcd
+systemctl status etcd
+
+验证服务
+
+ etcdctl \
+  --endpoints=https://${NODE_IP}:2379  \
+  --ca-file=/etc/etcd/ssl/ca.pem \
+  --cert-file=/etc/etcd/ssl/etcd.pem \
+  --key-file=/etc/etcd/ssl/etcd-key.pem \
+  cluster-health
+
+若有失败 或 重新配置
+
+systemctl stop etcd
+
+rm -Rf /var/lib/etcd
+
+rm -Rf /var/lib/etcd-cluster
+
+mkdir -p /var/lib/etcd
+
+systemctl start etcd
+
+验证服务
+
+ etcdctl \
+  --endpoints=https://${NODE_IP}:2379  \
+  --ca-file=/etc/etcd/ssl/ca.pem \
+  --cert-file=/etc/etcd/ssl/etcd.pem \
+  --key-file=/etc/etcd/ssl/etcd-key.pem \
+  cluster-health
+
+etcdctl   --endpoints=https://${NODE_IP}:2379    --ca-file=/etc/etcd/ssl/ca.pem   --cert-file=/etc/etcd/ssl/etcd.pem   --key-file=/etc/etcd/ssl/etcd-key.pem   cluster-health
+
+
+预期结果：
+
+[root@node02 ~]# etcdctl   --endpoints=https://${NODE_IP}:2379    --ca-file=/etc/etcd/ssl/ca.pem   --cert-file=/etc/etcd/ssl/etcd.pem   --key-file=/etc/etcd/ssl/etcd-key.pem   cluster-health
+member 18699a64c36a7e7b is healthy: got healthy result from https://10.129.6.213:2379
+member 5dbd6a0b2678c36d is healthy: got healthy result from https://10.129.6.211:2379
+member 6b1bf02f85a9e68f is healthy: got healthy result from https://10.129.6.212:2379
+cluster is healthy
+
+五.  docker  and  k8s  准备
+
+1. 设置YUM  源：
+
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+enabled=1
+gpgcheck=0
+EOF
+
+
+2.安装DOCKER、UBERADM ....
+
+ yum install -y docker-engine-1.12.6-1.el7.centos.x86_64 docker-engine-selinux-1.12.6-1.el7.centos.noarch
+yum  install kubeadm kubectl kubelet kubernetes-cni -y
+ 
+ wget -O /etc/yum.repos.d/docker-ce.repo https://download.docker.com/linux/centos/docker-ce.repo  && yum install -y docker-ce 
+ && systemctl enable docker.service && service docker start
+
+ 
+3.  docker  国内加速
+ 
+
+cat > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+
+4. 设置 CGROUP 的类型  docker 与 Kuberlet  一致。
+
+
+CGROUP_DRIVER=$(sudo docker info | grep "Cgroup Driver" | awk '{print $3}')
+sudo sed -i "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--cgroup-driver=$CGROUP_DRIVER --enable-cri=false |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sudo sed -i "s|\$KUBELET_NETWORK_ARGS| |g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+5. 设置
+
+systemctl daemon-reload
+systemctl enable kubelet
+systemctl enable docker
+
+systemctl restart kubelet
+systemctl restart docker
+
+6. 准备镜像
+
+
