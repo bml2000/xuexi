@@ -1,0 +1,2517 @@
+常用命令：
+
+
+1. 网络ip设置
+    /etc/sysconfig/network-scripts/ifcfg-eth0
+    DEVICE=eth0                // 这是网卡的名称
+    TYPE=Ethernet              // 网卡类型
+    ONBOOT=yes                 // 是否随着开机自启动
+    BOOTPROTO=static           // static表示固定ip地址，dhcp表示随机获取ip
+    IPADDR=192.168.10.150      // 手动设置的固定ip地址
+    NETMASK=255.255.255.0      // mask地址，就是掩码
+    GATEWAY=192.168.10.1       // 网关地址  
+    SERCTL=no #[yes|no]（非root用户是否可以控制该设备）
+    BOOTPROTO=static #[none|static|bootp|dhcp]（引导时不使用协议|静态分配|BOOTP协议|DHCP协议）
+
+    查看IP
+      ip addr show
+      nmap  ip  查看ip端口情况
+            -sU  ip   UDP 扫描
+            -sT  ip   TCP 扫描
+            -sP  ip   ping扫描
+            -sS  ip   TCP SYN 扫描
+    
+2、修改网关
+　　vi /etc/sysconfig/network
+　　NETWORKING=yesvim
+　　HOSTNAME=Aaron
+　　GATEWAY=192.168.30.1  
+
+3、DNS　
+　　配置文件在/etc/resolv.con
+
+　　vi /etc/resolv.conf
+　　nameserver 202.109.14.5 #主DNS
+　　nameserver 219.141.136.10 #次DNS
+　　search localdomain
+    
+    host解析：
+    /etc/hosts
+     ip   hostname   指定hostname对应IP 地址
+     
+3.1      DNS 测试工具
+            dig 命令
+                • 使用格式：dig [-t RR_TYPE] name [@server] [query options]
+                • OPTIONS:
+                • -t : 指定资源记录类型，一般为A记录，或者NS记录。
+                • +[no]trace : DNS解析路由跟踪
+                • +[no]recurse : 进行递归解析
+                • -x : 反向解析
+                  dig +trace -t NS weizhenping.me @172.16.36.70
+            host 命令
+                • 使用格式：host [-t RR_type] name SERVER_IP
+                • 示例：
+                  host [-t RR_type] name SERVER_IP
+            nslookup
+                • 交互式命令，设置参数如下：
+                • server 202.96.209.133 #设置默认的解析DNS服务器
+                set type=mx : 设置解析的资源记录类型
+				
+		/etc/nsswitch.conf
+		 hosts   files,dns
+		   指定 dns解析顺序
+		/etc/service  -各服务对于端口号
+		
+
+4、修改主机名
+       vi /etc/sysconfig/network，
+       HOSTNAME=HOSTNAME
+       修改HOSTNAME一行为HOSTNAME=主机名，重启后才能生效
+       
+    /etc/hostname -定义主机名称
+    
+    hostnamectl  set-hostname  xxx
+    
+       
+
+5.  tar 使用
+        -c  创建
+        -x  释放
+        -t  查看
+        -v 显示过程
+        -z  bzip压缩
+        -j  bzip2 压缩
+        -p  保留原属性
+        -C  将工作目录更改指定目录
+        总结
+            1、*.tar 用 tar –xvf 解压 
+            2、*.gz 用 gzip -d或者gunzip 解压 
+            3、*.tar.gz和*.tgz 用 tar –xzf 解压 
+            4、*.bz2 用 bzip2 -d或者用bunzip2 解压 
+            5、*.tar.bz2用tar –xjf 解压 
+            6、*.Z 用 uncompress 解压 
+            7、*.tar.Z 用tar –xZf 解压 
+            8、*.rar 用 unrar e解压 
+            9、*.zip 用 unzip 解压
+        
+6. 网络服务：
+     重启网络服务
+        service network restart
+        ifup  eth0
+        ifdown eth0   关闭网络端口
+    网络命令
+		yum  install net-tools   -网络工具包（stress add netstat  ifconfig等)
+        ip          --iproute 安装包
+        ss          --iproute 安装包
+        ifconfig    --net-tools  安装包
+        route
+        traceroute
+        ping
+        nmap
+		stress  -c  4    -- cpu 运算测速
+		ab               --  网络压力测试
+        netstat
+            -a (all)显示所有选项，默认不显示LISTEN相关
+            -t (tcp)仅显示tcp相关选项
+            -u (udp)仅显示udp相关选项
+            -n 拒绝显示别名，能显示数字的全部转化成数字。
+            -l 仅列出有在 Listen (监听) 的服務状态
+            -p 显示建立相关链接的程序名
+            -r 显示路由信息，路由表
+            -e 显示扩展信息，例如uid等
+            -s 按各个协议进行统计
+            -c 每隔一个固定时间，执行该netstat命令。
+                   提示：LISTEN和LISTENING的状态只有用-a或者-l才能看到
+            # 查看Linux端口号
+        
+            netstat -anp | grep 80          # 查看服务对应端口
+            netstat -nlp
+            netstat -alnpt  
+			    yum  install  unzip
+	
+6.1 服务
+    systemctl
+        systemctl is-enabled firewalld.service 设置开机启动
+        systemctl list-unit-files|grep enabled 查看开机启动服务列表
+        systemctl --failed                      查看启动失败列表
+        systemctl status firewalld.service  显示一个服务的状态：
+        systemctl enable firewalld.service 在开机时启用一个服务：
+        systemctl disable firewalld.service 在开机时禁用一个服务：
+    chkconfig
+        chkconfig --list        #列出所有的系统服务
+        chkconfig --add httpd        #增加httpd服务
+        chkconfig --del httpd        #删除httpd服务
+        chkconfig --level httpd 2345 on        #设置httpd在运行级别为2、3、4、5的情况下都是on（开启）的状态
+        chkconfig --list        #列出系统所有的服务启动情况
+        chkconfig --list mysqld        #列出mysqld服务设置情况
+        chkconfig --level 35 mysqld on        #设定mysqld在等级3和5为开机运行服务，--level 35表示操作只在等级3和5执行，on表示启动，off表示关闭
+        chkconfig mysqld on        #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级
+        
+6.2 防火墙
+    启动防火墙
+    service  iptables start /stop
+    查看配置
+        iptables -L  
+    清除规则    
+        iptables -F
+        
+    system-config-firewall-tui 图形界面设置防火墙
+    
+    设置实例
+        iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+        service iptables save
+      
+7. selinux：
+    配置文件： /etc/sysconfig/seLinux
+        enforcoing:启用
+        Permissive:显示警告，但不阻止。
+        Disable ：停用。
+        
+    查看状态   
+        getenforce
+        sestaus
+    设置禁用
+        setenforce 0 /1  (0 -disable  1-启用)
+        setenforce  enforcing/permissive/disable
+        
+8.  firewall
+        systemctl start firewalld
+        systemctl  stop  firewalld
+        systemctl status  firewalld
+        systemctl enable  firewalld  -开机启动
+        systemctl  disable firewalld
+        firewall-cmd --help 帮助
+        firewall-cmd --zone=public --add-port=80/tcp --permanent 设置防火墙永久打开80 端口
+        firewall-cmd --reload                                       更新防火墙规则
+        firewall-cmd --zone=public --list-ports     查看打开的端口
+        firewall-cmd --get-active-zones 查看区域信息
+        firewall-cmd --get-zone-of-interface=eth0 查看指定接口所属区域
+        firewall-cmd --zone= public --query-port=80/tcp 查看端口规则
+        firewall-cmd --zone= public --remove-port=80/tcp --permanent  删除规则拒绝所有包：firewall-cmd --panic-on
+        firewall-cmd --panic-off 取消拒绝状态： 
+        firewall-cmd --query-panic 查看是否拒绝
+
+       
+9. RPM
+
+    rpm  查询
+        -qi  --info : 查询程序包想着的infomation.包括其版本号、大小、所属的包组等信息
+        -qa ,-all : 查询所有已经安装的包
+        -ql  --list 列出程序包安装生成的所有文件列表
+        -qac --configfiles : 查询指定的程序包提供的配置文件
+        -qR --requires: 查询指定程序包的依赖关系
+        -qd --docfiles : 列出指定的程序包提供的文档
+        -p  对未安装包查询
+        -qf  --file FILE : 查询指定的文件是由哪个包安装生成的
+        -qg , --group GROUP: 查询指定包由哪个包组提供
+    
+    rpm -i   --install  安装
+         -v : verbos,输出详细信息
+         -vv : verbos,输出更详细的信息
+         install-options:
+         -h : 以hash marks格式输出进度条，每个#代表2%的进度
+         --test : 测试安装，只做环境检查，并不真正安装
+         --nodeps : 忽略程序依赖关系
+         --replacepkgs: 覆盖安装，如果文件修改错误，需要将其找回，可以使用此方法，但需要把修改错误的文件提前删除
+         --justdb: 不执行安装操作，只更新数据库
+         --noscripts: 不执行rpm自带的所有脚本
+         --nosignature: 不检查包签名信息，即不检查来源合法性
+        --nodigest:不检查包完整性信息
+        
+    rpm -e   --erase   卸载
+         --allmatches : 卸载所有匹配指定名称的程序包的各版本
+         --nodeps : 卸载时忽略依赖关系
+         --test : 测试卸载，dry run模式    
+    rpm -u  --update   升级
+          --oldpackage : 降级
+          --force : 强制升级
+    rpm -V    自动校验
+    rpm -K    手动校验
+    rpm  -initdb  初始化
+    rpm  -rebuilddb  重建
+    
+10.  yum
+     包 
+        yum install  安装
+        yum reinstall 重新安装
+        yum  update 升级 
+        yum remove 卸载 
+        yum check-upate 检查更新
+        yum list
+            • all : 显示所有仓库中的包
+            • available : 显示可用的软件包
+            • updates : 显示可用于升级的包
+            • installed : 显示已经安装的包
+            • yum list php* :  显示想着以php开头的所有软件包
+  
+        yum info  查看包信息
+        yum provides  查看文件由哪个包提供
+        yum clean 清理本地缓存
+        yum  makecache  生成缓存
+        yum repolist  显示仓库列表
+            all : 查看全部的仓库
+            enabled : 查看地可用的仓库
+            disabled : 查看不可用的仓库
+    组 
+        yum groupinstall  组安装
+        yum grouplist  查看组
+        yum groupinfo  组信息
+        yum groupremove 组卸载
+        yum groupupdate 组更新
+        
+    yum配置文件及格式：
+	    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		CentOS 7
+		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		或者
+		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		之后运行yum makecache生成缓存
+	
+		wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+	
+        /etc/yum.conf
+            • 各仓库文件的公共配置，或者不属于仓库的配置，格式如下：
+            • [main]：主名称，固定名称
+            • cachedir= : 缓存目录
+            • keepcache=0:要不要保存缓存
+            • exactarch=1:要不要做精确严格的平台匹配
+            • gpgcheck=1:检查来源法性和完整性
+            • plugins=1:要不要支持插件
+            • installonly_limit: 同时安装几个
+        /etc/yum.repos.d/*.repo
+            • 为仓库的指向及其配置,格式如下：
+            • [repository ID] ：ID名称，即仓库名称，不可与其他ID重命
+            • name= ： 对ID名称的说明
+            • baserul=URL1
+                  URL2
+                 URL3 （如果同一个源有多个镜像，可以在此我写几个，但每个URL需换行）
+            • mirrorlist= (有一台服务器在网络上，保存了多个baseurl，如果使用这项，就不使用baseurl项）
+            • enabled={1|0}
+            • gpgcheck={1|0}
+            • repo_gpgcheck= ： 检查仓库的元数据的签名信息
+            • gpgkey=URL (gpg密钥文件）
+            • enablegroups= {1|0}}是否在此仓库中上使用组来指管理程序包
+            • failovermethod= roundrobin|priority (对多个baseurl做优先级的，roundrobin为轮循，priority为优先级，默认为轮循，意为随机）
+            • keepalive= 如果对方是http 1.0是否要保持连接
+            • username=  yum的验证用户
+            • password=  yum的验证用户密码
+            • cost=默认baseurl都为1000
+            * 注意：等号左右不能出现空格
+    
+    实例：
+			1、备份
+				mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+				2、下载新的CentOS-Base.repo 到/etc/yum.repos.d/
+				CentOS 5
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-5.repo
+				CentOS 6
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo
+				CentOS 7
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+				CentOS 7  yum 源
+				wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+				或者
+				curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+				epel  源
+				
+				wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+				
+				
+        3、之后运行yum makecache生成缓存
+
+            yum仓库的配置文件示例
+                [base]  #光盘的基本软件，即os代表光盘
+                name=CentOS $releasever $basearch on local server 172.16.0.1
+                baseurl=http://172.16.0.1/cobbler/ks_mirror/CentOS-6.7-$basearch/ #此处如果使用公网公开的repo,这里的地址一定要为repodata目录相同层级地址
+                gpgcheck=1
+                gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+                enable=1 #如果此项未写，默认表示启用
+               [extra] #  extra表示额外的程序
+                name=CentOS $releasever $basearch extras
+                baseurl=http://172.16.0.1/centos/$releasever/extras/$basearch/
+                gpgcheck=0
+               [epel]  # 是由公共组织权威维护
+                name=Fedora EPEL for CentOS$releasever $basearch on local server 172.16.0.1
+                baseurl=http://172.16.0.1/fedora-epel/$releasever/$basearch/
+                gpgcheck=0
+               [cdrom]
+                name=cdrom
+                baseurl=file:///media/
+                gpgcheck=0
+11  系统监控
+        ps
+            -e 显示所有进程,环境变量
+            -f 全格式
+            -h 不显示标题
+            -l 长格式
+            -w 宽输出
+            -a 显示终端上地所有进程,包括其他用户地进程
+            -r 只显示正在运行地进程
+            -x 显示没有控制终端地进程
+            -u 显示更多信息，类似于 -f 选项。
+
+            例子：    
+            ps -ef | grep tomcat     查看进程
+            ps -aux                 显示所有状态
+        
+        cpustat
+             -cpuprofile  将 CPU 信息写到文件，然后用 cat 命令[10]查看文件
+        top
+            s - 改变画面更新频率
+            l - 关闭或开启第一部分第一行 top 信息的表示
+            t - 关闭或开启第一部分第二行 Tasks 和第三行 Cpus 信息的表示
+            m - 关闭或开启第一部分第四行 Mem 和 第五行 Swap 信息的表示
+            N - 以 PID 的大小的顺序排列表示进程列表（第三部分后述）
+            P - 以 CPU 占用率大小的顺序排列进程列表 （第三部分后述）
+            M - 以内存占用率大小的顺序排列进程列表 （第三部分后述）
+            h - 显示帮助
+            n - 设置在进程列表所显示进程的数量
+            q - 退出 top
+
+        free 显示空闲内存
+            total:总计物理内存的大小。
+            used:已使用多大。
+            free:可用有多少。
+            Shared:多个进程共享的内存总额。
+            Buffers/cached:磁盘缓存的大小。
+            第三行(-/+ buffers/cached):
+            used:已使用多大。
+            free:可用有多少。
+            空闲内存 = free + buffers + cached = total - used
+        
+        kill    如果进程运行在后台，那么首先要通过 ps 命令来获取进程ID，然后使用 kill 命令“杀死”进程
+            -9 
+        
+        job  用来查看系统中正在运行的任务，包括后台运行的任务
+            -l 选项可以查看当前任务包含的进程ID
+        
+        fg
+            fg %jobnumber  后台任务调到前台
+        
+        bg
+            bg %jobnumber 将后台暂停的任务，调到前台继续运行
+                         望将当前任务转移到后台，可以先 Ctrl+z 暂停任务，再使用 bg 命令。任务转移到后台可以空出终端，继续输入其他命令。
+        
+        df -h  显示当前文件夹及文件大小
+        
+
+        ntpdate ntp服务器域名或ip 设置时间同步
+        date
+        clock
+        hwclock
+            hwclock -r 查看BIOS时间命令
+        vi /etc/sysconfig/clock 查看当前时区        
+        clock -w 
+        tzselect  修改时区命令         
+        timeconfig 修改时区命令    
+        TZ='Asia/Shanghai'; export TZ　//改为+8中国上海时区 如果知道时区名称也可以直接使用命令
+                            
+12  文件命令
+        locate 
+            locate 是透过update程序将硬盘中的所有档案和目录资料先建立一个索引数据库，在 执行loacte时直接找该索引，查询速度会较快，
+                    索引数据库一般是由操作系统管理，但也可以直接下达update强迫系统立即修改索引数据库
+            -f 将特定的档案系统排除在外，例如我们没有到理要把 proc 档案系统中的档案 放在资料库中。
+            -q 安静模式，不会显示任何错误讯息。
+            -n 至多显示 n个输出。
+            -r 使用正规运算式 做寻找的条件。
+            -o 指定资料库存的名称。
+            -d 指定资料库的路径
+            -h 显示辅助讯息
+            -V 显示程式的版本讯息
+        upddatedb --更新索引数据库
+        
+        whereis 从数据库中查找数据,定位指定命令名的二进制、源和帮助页文件
+        
+        which  在PATH变量指定的路径中，搜索某个系统命令的位置
+        
+        whatis 用于显示你作为参数输入的命令名的单行描述
+            -l 标志来显示完整的描述。
+        
+        type 命令会输出给定命令的完整路径名
+        stat
+        man 
+        cd
+            cd ~  进入用户工作目录home
+        
+        mkdir  建目录
+            mkdir -p  建多级目录
+        rm
+            rm  -rf  删除多级目录
+        
+                find  文件查找
+                find <指定目录> <指定条件> <指定动作>
+                    - <指定目录>： 所要搜索的目录及其所有子目录。默认为当前目录。
+                    - <指定条件>： 所要搜索的文件的特征。
+                    - <指定动作>： 对搜索结果进行特定的处理。
+                    
+                    .查找条件:
+                        1. 根据文件名和inode查找
+                        2. 根据属主、属组查找
+                        3. 根据文件类型查找
+                        4. 根据逻辑组合条件查找
+                        5. 根据文件大小来查找
+                        6. 根据时间戳来查找
+                        7. 根据权限来查找
+                    处理动作:
+                        1. -print: 默认动作，显示至屏幕
+                        2. -ls: 类似于对查找到的文件执行 ls -l 命令
+                        3. -delete: 删除查找到的文件
+                        4. -fls file: 查找到的所有长格式的信息保存至指定文件中
+                        5. -ok COMMMAND {} \; 对查找到的每个文件执行由COMMAND指定的命令，且都会交互式要求用户确认
+                        6. -exec COMMAND {} \; 对查找到的每个文件执行由COMMAND指定的命令；
+                        7. {}: 用于引用查找至的文件名称自身
+                        8. find 传递查找到的文件至后面指定的命令时，查找到所有符号条件的文件一次性传递给后面的命令
+                        9. 有些命令不能接受过多的参数，此时命令执行可能会失败，用 xargs 来规避此问题   find |xargs COMMAND
+                例子：
+                    find . -name 'my*' # 搜索当前目录中，所有文件名以my开头的文件 -name（文件名需要带后缀）
+                    find . -name 'my*' -ls # 搜索当前目录中，所有文件名以my开头的文件，并显示它们的详细信息。
+                    find . -size +1000000c（在当前目录下查找文件长度大于1 M字节的文件 ） # 以文件大小来查找 -size n
+                    find . -iname "Hessian.properties" # 在当前目录及所有子目录中查找filename(忽略大小写)
+        cp
+        rm
+        ln  -sv     建立文件软连接
+        
+13  用户管理
+        passwd  密码设置
+                synopsis:passwd [-k] [-l] [-u [-f]] [-d] [-e] [-n mindays] [-x maxdays] [-w warndays] [-i inactivedays] [-S] [--stdin] [username]
+            1、passwd (修改自己的密码)
+            2、passwd USERNAME(修改其他用户的密码，root权限 )
+               options:
+                    -l : 锁定用户，在/etc/passwd的密码前面加!!,
+                    -u : 解锁用户，在/etcpasswd的密码前!!取消
+                    -d : --delete,删除用户密码
+                    -e DATE : --expire,设定过期时间
+                    -i DAYS : 非活动时间
+                    -n days : 最短使用期限
+                    -x days : 最长使用期限
+                    -w days : 警告期限
+                    --stdin : `echo "PASSWD" | passwd --stdin root` 
+
+        useradd` - create a new user or update default new user information
+            useradd [options] LOGIN
+              useradd -D [options]
+                -u : 指定用户的UID
+                -g : 指定GID
+                -c : 指定注释信息，如果有空格，需要使用" "包含
+                -d : 指定用户家目录,创建用户时，会自动将/etc/skel中的文件复制到用户家目录下，如果指定的文件存                 在将不会复制文件，如果父目录不存在，创建也将会失败
+                -s : 指定用户shell
+                -r : 指定创建一个系统用户
+                -M ：不创建用户家目录
+                -G : 指定附加组，多个使用逗号隔开
+                -D ：修改创建用户的配置信息，文件位于/etc/default/useradd
+                    注：创建用户时的诸多默认设定配置文件为/etc/login.defs
+        usermod
+                -u : 修改用户UID
+                -g : 修改用户GID
+                -c : 修改用户的注释信息
+                -d : 修改用户家目录，需要配合使用-m选项才会自动复制用户家目录下的文件到新的家目录
+                -m : move-home to new directory
+                -s : 修改用户的shell
+                -l : 修改用户的登陆名，即login名称
+                -G : 修改用户的附加组信息，需要配合-a(append)一起使用，如果不使用-a将删除原来的附加组
+                -a : --append,连接多个附加组的参数
+                -L : 锁定用户，即lock,在/etcpasswd文件中，密码前面加!(一个)
+                -U : 解锁用户，即unlock，在/etc/passwd文件中，取消密码前面的!号
+        
+        userdel [options] LOGIN 删除用户
+               -r : 删除用户的同时删除用户的家目录，即--remove参数
+    
+        su  切换用户 
+            su [-] USER
+                - : 以登陆方式切换用户，以完成用户环境变量、配置信息加载
+                -c : 不用登陆用户即可以以指定用户执行命令
+                      `su - mariabd -c 'id -u'`
+        id  查看用户信息  
+            id [OPTION]... [USERNAME]
+                -u : 查看UID号
+                -g : 查看GID号
+                -G : 查看附加组GID号，其他包含基本组ID号
+                -n : 将各ID转换为对应的名称    
+
+         chmod 用户权限管理
+            chmod [OPTION]... MODE[,MODE]... FILE...
+            chmod [OPTION]... OCTAL-MODE FILE...
+            chmod [OPTION]... --reference=RFILE FILE...
+               -r --recursive : 递归修改
+               --reference : 参照某文件来修改           
+                 1、赋权等值法
+                    chmod u=rwx,g=rwx,0=rwx FILE
+                    chmod a=rwx FILE
+                2、赋权加减法
+                    chmod u-rwx,g-rwx,o-rwx FILE
+                    chmod ugo-x FILE
+                    chmod u+rwx,go+r FILE
+                    chmod a+r FILE
+                3、十进制赋权法
+                    chmod 777 FILE
+                4、参照赋值法
+                    chmod --reference/var/log/file FILE
+               注意：1、在使用a+w的情况下，只有属主才会加w,go是不会加上W权限
+                     2、目录有写权限操作，但对目录下的文件同有写权限时，用户是不能写文件、但有删除文件的能力
+
+         
+        chown 用户属主、属组修改（ownership）
+             chown [OPTION]... [OWNER][:[GROUP]] FILE...
+             chown [OPTION]... --reference=RFILE FILE... 
+               -R :  --recursive 递归修改
+               --reference : 参照某文件来修改
+               chown mariadb FILE : 只修改文件的属主为mariadb
+               chown mariadb:mariadb FILE :修改文件的属主、属组为mariadb
+               chown mariadb:mariadb FILE : 同上
+               chown --reference=/var/log/file FILE : 参照/var/log/file来修改FILE的属主、属组
+14  组管理
+
+        groupadd [options] group
+        
+                -g : 指定GID号
+                -r : 指定为一个系统组
+
+        groupmod [options] GROUP
+                -g : 修改GID号码
+                -n : 修改组名称 （groupmod -n NEW_GROUP OLD_GROUP）
+        
+        groupdel 
+            groupdel GROUP_NAME
+        
+        gpasswd [option] group
+                    `gpasswd` - administer /etc/group and /etc/gshadow
+                -a USER_NAME GROUP_NAME: 向组内添加用户
+                -d USER_NAME GROUP_NAME: 把用户从组内删除
+                -r USER_NAMEG : 删除组的密码
+
+        
+        newgrp [-] [group] : 临时切换到其他组，好能够获取相应权限
+                            模拟用户登陆， 以实现重新初始化环境变量
+
+        chgrp               -change group ownership
+            chgrp [OPTION]... GROUP FILE...
+            chgrp [OPTION]... --reference=RFILE FILE...
+                  注：由于chgrp只能修改属组，故一般情况都使用chown代替
+
+15  文件权限
+        Linux权限标识：
+                r: Readable 读
+                W: writable 写
+                x: executable 执行
+        rwx标识对文件及目录的意义：
+            对文件：
+                r : 可以读取文件中的内容
+                w : 可以修改及删除文件中的内容
+                x : 可以将其发起为一个进程
+            对目录：
+                r : 可以查看目录中的文件，可以使用ls命令， 但不能使用 -l选项
+                w : 可以创建、删除目录，但不能修改文件中的内容
+                x : 可以使用cd命令进入目录
+
+        文件及目录权限详细表示方面
+            文件：-rwxrwxrwx
+                从左边第二位开始，每三位代表一个权限类别：
+                    u : owner
+                    g : owner group
+                    o : other
+                    a : 代表以上三项
+           目录：drwxrwxrwx
+                u、g、o同文件权限位
+
+        Linux内核对文件权限的表示方法：
+               rwx: 4 2 1 
+
+    umask
+     
+        Umask Mode Control
+            Linux对初始权限的控制来自于Umask的设定，其工作原理如下：
+               对新建立的文件：
+                   666 - Umask值（由于Linux对文件的执行权限控制很严格，默认取消了文件的执行权限，所以这里是666）
+               对新建立的目录：
+                   777 - Umask值 
+                
+            Umask对管理员ROOT的初始值：022
+            Umask对普通用户的初始值为：002
+                普通用户建立的文件及目录权限如下：
+                文件：
+                    666-002=664 （如果减得的结果为奇数，就自动加1）对应的权限如下：
+                        -rw-rw-r--
+                目录：
+                    777-002=775 ，对应的权限如下：
+                        drwxrwxr-x
+            对管理员root建立的文件及目录权限如下：
+                文件：
+                    666-022=644，对应的权限如下：
+                        -rw-r--r--
+                目录：
+                    777-022=755，对应的权限如下：
+                        drwx-r-xr-x
+            注：Umask的值可以使用umask命令来设置，但只对当前进程(即shell)有效，如要长期有效，需将此值设置到/etc/profile文件中，或者家目录下的.开头的文件中
+
+    
+16  特殊权限
+
+        SUID权限的表示方法
+                    1. -rws------ : 如果原本的U上有x权限，设置SUID后，x位变成小写的s
+                    2. -rwS------ : 如果原本的U上没有x权限，设置SUID后，x位变成大写的s
+                SUID的设置文件
+                    1. chmod u+s FILE
+                    2. chmod 4000 FILE
+
+        SGID权限的表示方法
+                    1. ----rws---:如果原本G上有x权限，设置SGID后，x位变成小写的s.
+                    2. ----rwS---:如果原本G上有x权限，设置SGID后，x位变成大写的S.
+                SGID的设置文件
+                    1. chmod g+s FILE
+                    2. chmod 2000 FILE
+
+        Sticky的表示方法
+                    1. -------rwt:如果原本o上有x权限，设置Sticky后，x位变成小写的t.
+        
+        facl的设置
+			facl - filesystem access control list
+            facl [options] [u|g]:[USER|GROUP][MODE][FILE]
+               `-m` : 设置权限
+               `-x` : 清除权限
+                应用实例
+                    1. facl -m u:mariadb:rw ./file : 设置用户为mariadb对当前目录下的file有读写权限；
+                    2. facl -m g:mygrp:rw ./file : 设置组为mygrp对当前目录下的file文件有读写权限
+                    3. setfacl -x u:user5 dir/ :清除user5对dir目录的权限
+                    4. setfacl -b ./file : 清除file文件的所有用户和组的facl权限设置
+            
+                    2. -------rwT:如果原本o上有x权限，设置Sticky后，x位变成大写的T.
+        
+        getfacl -facl权限的查看方法
+            getfacl FILE : 查看file文件的facl的权限控制
+                有facl权限控制机制的文件，展示格式     ----------+ : 在权限位后面多出来一个+号，表示此文件有设置facl权限位
+                            
+17  cron  计划任务
+            /etc/crontab
+              # Example of job definition:
+                   # .---------------- minute (0 - 59)
+                   # |  .------------- hour (0 - 23)
+                   # |  |  .---------- day of month (1 - 31)
+                   # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+                   # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+                   # |  |  |  |  |
+                   # *  *  *  *  * user-name command to be executed
+                
+                0 0 2,12,22 * * command  列表值，时间值是一个列表，如指定一个月内2、12、22日零时执行任务
+                                        上述日指定多个值，2号、12号和22号，以逗号分隔；
+                                        连续范围值，时间为连续范围的值，如指定每个月1至7号零时执行任务
+                0 0 1-7 * * command 上述日期为连续范围的值1-7时
+                                    整除值，根据指定数值是能否被整除确定执行时间，如指定零时开始每3个小时0分执行一次任务
+                0 */3 * * * command  上述能被3整除的小时满足执行条件，如3点0分，6点0分等。
+                                     混合值，支持以上类型的组合，如指定每小时0至10分，22、33分以及所有能被20整除的分时执行任务，如下
+                0-10,22,33,*/20 * * * * command     这里的分钟值采取了多种类型组合指定，包括连续范围值(0-7)，列表值(22,33)，整除值(*/20)。
+
+                
+18 调整时区
+     timedatectl list-timezones
+     timedatectl
+     timedatectl set-timezone Asia/Shanghai
+     ntpdate  time.nist.gov
+	ntpdate asia.pool.ntp.org	 -时间同步
+     clock - 系统时钟
+     hwclock - 硬件时钟
+     hwclock -w  -- sys to  hwclock
+	 hwclock --systohc
+     hwclock -s  -- hwclock to sys  硬件时间=系统时间
+	 hwclock --systohc
+	 hwclock --hctosys 系统时间=硬件时间
+	cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+	
+	中文：查看是否安装中文字体支持
+	locale -a |grep "zh_CN" -查看安装的中文字体
+	yum  installgroup "fonts"
+	locale
+	查看安装中文字体
+			locale -a |grep "zh_CN"
+				zh_CN
+				zh_CN.gb18030
+				zh_CN.gb2312
+				zh_CN.gbk
+				zh_CN.utf8
+	localectl set-locale LANG=zh_CN.utf8    -默认区域语言
+	vim  /etc/profile
+		export  LANG=zh_CN.UTF-8
+	source /etc/profile
+	
+	环境变量：
+	export
+		export  查看环境变量
+			export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+	设置用户启动环境
+		/etc/profile.d/xxx.sh
+			export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+	
+19  ss
+            所属软件包：iproute
+            
+                    用来获取socket统计信息，它可以显示和netstat类似的内容。但ss的优势在于它能够显示更多更详细的有关TCP和连接状态的信息，而且比netstat更快速更高效。
+                ss [参数]
+                ss [参数] [过滤]
+                    -h, --help  帮助信息
+                    -V, --version   程序版本信息
+                    -n, --numeric   不解析服务名称
+                    -r, --resolve        解析主机名
+                    -a, --all   显示所有套接字（sockets）
+                    -l, --listening 显示监听状态的套接字（sockets）
+                    -o, --options        显示计时器信息
+                    -e, --extended       显示详细的套接字（sockets）信息
+                    -m, --memory         显示套接字（socket）的内存使用情况
+                    -p, --processes 显示使用套接字（socket）的进程
+                    -i, --info  显示 TCP内部信息
+                    -s, --summary   显示套接字（socket）使用概况
+                    -4, --ipv4           仅显示IPv4的套接字（sockets）
+                    -6, --ipv6           仅显示IPv6的套接字（sockets）
+                    -0, --packet            显示 PACKET 套接字（socket）
+                    -t, --tcp   仅显示 TCP套接字（sockets）
+                    -u, --udp   仅显示 UCP套接字（sockets）
+                    -d, --dccp  仅显示 DCCP套接字（sockets）
+                    -w, --raw   仅显示 RAW套接字（sockets）
+                    -x, --unix  仅显示 Unix套接字（sockets）
+                    -f, --family=FAMILY  显示 FAMILY类型的套接字（sockets），FAMILY可选，支持  unix, inet, inet6, link, netlink
+                    -A, --query=QUERY, --socket=QUERY
+                          QUERY := {all|inet|tcp|udp|raw|unix|packet|netlink}[,QUERY]
+                    -D, --diag=FILE     将原始TCP套接字（sockets）信息转储到文件
+                     -F, --filter=FILE   从文件中都去过滤器信息
+                        FILTER := [ state TCP-STATE ] [ EXPRESSION ]
+            ss -t -a  --显示TCP连接
+            ss -pl  --查看进程使用的socket
+            ss -lp | grep 3306 
+            ss -o state established '( dport = :smtp or sport = :smtp )'  
+            匹配远程地址和端口号
+                命令：
+                ss dst ADDRESS_PATTERN
+                ss dst 192.168.1.5
+                ss dst 192.168.119.113:http 
+                ss dst 192.168.119.113:smtp 
+                ss dst 192.168.119.113:443
+            匹配本地地址和端口号
+                命令：
+                ss src ADDRESS_PATTERN
+                ss src 192.168.119.103
+                ss src 192.168.119.103:http
+                ss src 192.168.119.103:80
+                ss src 192.168.119.103:smtp
+                ss src 192.168.119.103:25
+            将本地或者远程端口和一个数比较
+                命令：
+                ss dport OP PORT 
+                ss sport OP PORT
+                输出：
+                复制代码
+                [root@localhost ~]# ss  sport = :http 
+                [root@localhost ~]# ss  dport = :http 
+                [root@localhost ~]# ss  dport \> :1024 
+                [root@localhost ~]# ss  sport \> :1024 
+                [root@localhost ~]# ss sport \< :32000 
+                [root@localhost ~]# ss  sport eq :22 
+                [root@localhost ~]# ss  dport != :22 
+                [root@localhost ~]# ss  state connected sport = :http 
+                [root@localhost ~]# ss \( sport = :http or sport = :https \) 
+                [root@localhost ~]# ss -o state fin-wait-1 \( sport = :http or sport = :https \) dst 192.168.1/24
+                复制代码
+                说明：
+                ss dport OP PORT 远程端口和一个数比较；ss sport OP PORT 本地端口和一个数比较。
+                OP 可以代表以下任意一个: 
+                <= or le : 小于或等于端口号
+                >= or ge : 大于或等于端口号
+                == or eq : 等于端口号
+                != or ne : 不等于端口号
+                < or gt : 小于端口号
+                > or lt : 大于端口号 
+    
+20.	ssh免密码登录
+        1.  ssh-keygen -t  rsa -P    （-P 空密码） 生成密钥对
+        2.  ssh-copy-id -i ~/.ssh/id_rsa.pub  192.168.1.41   复制公钥到远程主机
+
+21. docker  相关命令
+	1. 关闭selinux
+		sudo setenforce 0
+		sudo sed -i 's/enforcing/permissive/g' /etc/selinux/config 
+		停防火墙
+		systemctl stop firewalld
+		systemctl disable firewalld
+		systemctl disable firewalld
+		iptables -F    ***wl
+	 	iptables -L 
+	2.	docker安装
+		
+		cat >> /etc/yum.repos.d/docker.repo <<EOF
+		[docker-repo]
+		name=Docker Repository
+		baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+		enabled=1
+		gpgcheck=0
+		EOF
+			Kubernetes 1.6还没有针对docker 1.13和最新的docker 17.03上做测试和验证，所以这里安装Kubernetes官方推荐的Docker 1.12版本。
+			[root@server2 ~]# yum list docker-engine --showduplicates ##查看docker版本
+			[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64  ##安装docker
+			直接这样装会报错。需要同时安装docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm，如下
+			[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64 docker-engine-selinux-1.12.6-1.el7.centos.noarch
+			##或者将这两个包下载下来，再一起安装
+	3.	国内加速
+		cat > /etc/docker/daemon.json <<EOF
+		{
+		"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+		}
+		EOF
+		systemctl daemon-reload
+        systemctl enable docker
+        systemctl start docker    
+    4. 开启转发 
+		 iptables -P FORWARD ACCEPT
+			 可在docker的systemd unit文件中以ExecStartPost加入上面的命令：
+			  ExecStartPost=/usr/sbin/iptables -P FORWARD ACCEPT
+		或：
+		cat << EOF > /etc/sysctl.d/k8s.conf
+		net.ipv4.ip_forward = 1
+		net.bridge.bridge-nf-call-ip6tables = 1
+		net.bridge.bridge-nf-call-iptables = 1
+		vm.swappiness=0
+		EOF
+
+		modprobe br_netfilter
+		echo "modprobe br_netfilter" >> /etc/rc.local
+
+		sysctl -p /etc/sysctl.d/k8s.conf 
+
+		cat /proc/sys/net/bridge/bridge-nf-call-iptables 
+		cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 
+		cat /proc/sys/net/ipv4/ip_forward   
+    5. docker 命令
+		docker  images  -a  all  /  --no-trunc  / -q  only ID  -看镜像
+		docker  search --no-trunc 查找仓库
+		docker login 
+		docker logout
+		docker pull   
+		docker push 
+		docker ps  -a all  / -l laster
+		docker top
+		docker logs  -f follow  --tail 
+		docker events 
+		docker history
+		docker build -t='container name :tag" .    --no-cache 通过dockerfile 生产镜像
+		docker attach  附加容器  ctrl+p  ctrl+q
+		docker  inspect  查看容器
+		docker port 容器 查看端口
+		docker  rm  -f  force / -v volumes /-l link 删除容器
+		docker  rmi -f  force  删除镜像
+		docker start
+		docker pause		
+		docker stop
+		docker kill
+		docker  restart
+		docker rename
+		docker  run  -d / -t  -i  -P -p 
+		docker  exec -d -t -i
+		docker  tag 
+		docker  info
+		docker version  
+		docker  commit 容器TO 镜像
+		docker load IMAGE
+		docker save IMAGE
+		docker export CONTAINER
+		docker import  CONTAINER
+		docker network
+		docker swarm
+		docker node
+		
+        dockerfile  entrypoint [" ", ”  ]   CMD [""]  -命令参数替换
+    
+	6.	网桥管理命令
+		yum  install -y  bridge-utils  安装网桥工具包 
+		
+		brctl show  查看桥架设备
+		brctl addbr 新建桥
+		brctl delbr	删除桥
+		brctl addif 加interface to 桥
+		brctl delif  删除interface from 桥
+		
+		建网桥
+			brctl addbr bridge0 
+			ip addr add 192.168.5.1/24 dev bridge0 
+			ip link set dev bridge0 up 
+		route -n  -查看路由表
+		
+		关闭网桥：
+			brctl delif br0 eth0;
+			ifconfig bro  down;
+			brctl delbr br0;
+
+	7.	docker  服务启动参数
+			/etc/sysconfig/docker -启动配置文件
+					-H tcp://0.0.0.0:2375    提供远程访问
+					可本机定义变量  DOCKER_HOST  可本机访问
+				或：-H unix:///var/run/docker.sock	 默认本机
+		centos7: vi  /usr/lib/systemd/system/docker.services 加如下内容：- 指定远程访问及本机访问
+					 -H tcp://0.0.0.0:2375 \
+					 -H unix:///var/run/docker.sock \			
+			
+	8.	docker 客户端远程访问 ， 可以定义环境变量
+			export DOCER_HOST=”tcp://192.168.x.x:2375“	
+			noset   --删除环境变量定义
+			env   显示环境变量
+		 
+		/etc/sysconfig/docker-storage
+		/etc/sysconfig/docker-network
+		/etc/docker/daemon.json 
+	
+	9.  docker info  查看docker　id  如相同 需删除 /etc/docker/key.json  可重新生产docker id
+		    rm -f  /etc/docker/key.json
+		
+		
+
+echo1 > /proc/sys/net/ipv4/ip_forward
+
+hub.dockerc.om
+www.docker.com
+www.docker.io
+
+开启ip forward
+  
+   echo  1  > /proc/sys/net/ipv4/ip_forward
+
+pipework:
+        brctl  addbr  br0   
+        ip link set dev  br0 up
+        ip address add  192.168.1.10/24 dev br0
+        ip address del 192.168.1.10/24 dev eth0 
+        brctl addif  br0  eth0  将宿主机网卡绑定br0 上
+    
+        ip route del default
+        ip route add default   via  192.168.1.24 dev br0            为br0 设置路由
+    
+    git clone  https://github.com/jpetazzo/pipework
+    cp ~/pipework/pipework /usr/local/bin   将 PIPEWORK  复制的PATH 路径中
+
+启动容器：
+
+    docker  run  -itd  --net=none  --name=test  centos:laster  /bin/bash
+    pipework br0  test  192.168.1.88/24@192.168.1.254   设置容器IP 及网关  该地址只在运行状态有效， 容器停止后IP 将丢失
+    
+进入容器查看IP
+    docker attach  test
+    docker exec   test   ip add  show  
+    
+    pipework
+    ip address show
+	
+	
+docker pull jenkins    
+chmod 777 -R  /root/jenkins
+docker run -p 8080:8080 -p 50000:50000 -v /root/jenkins:/var/jenkins_home jenkins
+
+   
+    
+docker pull gitlab/gitlab-ce  
+wget https://raw.githubusercontent.com/sameersbn/docker-gitlab/master/docker-compose.yml
+docker-compose up
+
+			Start GitLab using:
+
+			docker-compose up
+			Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
+
+			Step 1. Launch a postgresql container
+
+			docker run --name gitlab-postgresql -d \
+				--env 'DB_NAME=gitlabhq_production' \
+				--env 'DB_USER=gitlab' --env 'DB_PASS=password' \
+				--env 'DB_EXTENSION=pg_trgm' \
+				--volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
+				sameersbn/postgresql:9.6-2
+			Step 2. Launch a redis container
+
+			docker run --name gitlab-redis -d \
+				--volume /srv/docker/gitlab/redis:/var/lib/redis \
+				sameersbn/redis:latest
+			Step 3. Launch the gitlab container
+
+			docker run --name gitlab -d \
+				--link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
+				--publish 10022:22 --publish 10080:80 \
+				--env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+				--env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+				--volume /srv/docker/gitlab/gitlab:/home/git/data \
+				sameersbn/gitlab:10.5.6
+			Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
+
+			NOTE: Please allow a couple of minutes for the GitLab application to start.
+
+			Point your browser to http://localhost:10080 and set a password for the root user account
+
+
+
+docker
+  
+    docker swarm init --advertise-addr  192.168.1.12
+    docker swarm join     --token SWMTKN-1-24uw3xrfo0for1gb6tvqn0vomlnp9vgr05kpe03p9iknfll4qo-cv1jgkz320ydu09flw990urec   192.168.1.12:237
+    docker network create -d overlay  --subnet  10.25.0.0/24  overnet
+    docker service create  --network overnet  nginx
+    
+22  SSH  加密
+        ssh-keygen  -t   rsa   -生成密钥对 （类型为RSA) 将会生成密钥文件和私钥文件 id_rsa,id_rsa.pub或id_dsa,id_dsa.pub
+                                这个程序产生一个密钥对，并要求指定一个文件存放私钥，同时将公钥存放在附加了".pub"后缀的同名文件中。
+                                程序同时要求输入一个密语字符串(passphrase)，空表示没有密语(主机密钥的密语必须为空)。
+                                密语和口令(password)非常相似，但是密语可以是一句话，里面有单词、标点符号、数字、空格或任何你想要的字符。
+                                
+                touch ~/.ssh/authorized_keys  -建授权文件
+                chmod 600 ~/.ssh/authorized_keys     -设置权限
+                cat id_dsa.pub >> ~/.ssh/authorized_keys  -将公钥文件附件到授权key 文件中
+                
+                这个 公钥对于的私钥文件即可作为登陆服务器的凭据， 可以通过密钥登陆服务器。  
+                
+    2.  /etc/ssh/sshd_config  文件中：
+                RSAAuthentication yes   -ras认证
+                PubkeyAuthentication yes   -公钥认证
+                PermitRootLogin yes    - 运行root登陆
+                PasswordAuthentication yes --运行口令认证
+                 
+    3.ssh-copy-id -i ~/.ssh/server_rsa.pub user@server   -- 自动把密钥追加到远程主机的 .ssh/authorized_key 上
+    
+23  systemctl
+
+        systemctl list-unit-files |grep  enabled -查看enable的服务
+        systemctl  enable   serivcexxx      --enable 服务
+              /etc/systemd/system/multi-user.target.wants  -对应目录下建立软连接
+                    启用服务就是在当前“runlevel”的配置文件目录/etc/systemd/system/multi-user.target.wants/里，
+                    建立/usr/lib/systemd/system里面对应服务配置文件的软链接；禁用服务就是删除此软链接，添加服务就是添加软连接。
+        systemctl  is-enabled xxservice   --查看末服务是否为开机启动模式。
+        systemct  start /stop  /status       xxx  -- 启动停止查看 服务
+        
+        systemctl  daemon-reload
+24 	mariadb
+		yum  install  -y  mariadb  mariadb-server  
+		systemctl start mariadb
+		systemctl enable mariadb
+		mysql_secure_installation
+			首先是设置密码，会提示先输入密码
+			Enter current password for root (enter for none):<–初次运行直接回车
+			Set root password? [Y/n] <– 是否设置root用户密码，输入y并回车或直接回车
+			New password: <– 设置root用户的密码
+			Re-enter new password: <– 再输入一次你设置的密码
+			Remove anonymous users? [Y/n] <– 是否删除匿名用户，回车
+			Disallow root login remotely? [Y/n] <–是否禁止root远程登录,回车,
+			Remove test database and access to it? [Y/n] <– 是否删除test数据库，回车
+			Reload privilege tables now? [Y/n] <– 是否重新加载权限表，回车
+			mysql -uroot -ppassword
+
+25	zabbix
+	server
+		rpm -i http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-2.el7.noarch.rpm
+		yum install zabbix-server-mysql zabbix-web-mysql zabbix-agent
+		mysql -uroot -p
+			password
+			mysql> create database zabbix character set utf8 collate utf8_bin;
+			mysql> grant all privileges on zabbix.* to zabbix@localhost identified by 'password';
+			mysql> quit
+		zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -p zabbix
+		vim /etc/zabbix/zabbix_server.conf  设置数据库密码
+		DBPassword=password
+		systemctl restart zabbix-server zabbix-agent httpd
+		systemctl enable zabbix-server zabbix-agent httpd
+		vim /etc/httpd/conf.d/zabbix.conf, uncomment and set the right timezone for you.
+			php_value date.timezone Asia/Shanghai	
+		systemctl restart zabbix-server zabbix-agent httpd
+		http://server_ip_or_name/zabbix 
+			login:  Admin  password: zabbix
+			
+	client：
+		1. rpm -Uvh http://repo.zabbix.com/zabbix/3.2/rhel/7/x86_64/zabbix-release-3.2-1.el7.noarch.rpm
+		2. yum  install  zabbix-agent
+		3.编辑Zabbix Agent 配置文件
+		vim /etc/zabbix/zabbix_agentd.conf
+			Server=[zabbix server ip]
+			ServerActive=[zabbix server ip]
+			Hostname=[ Hostname of client system ]
+
+		4.重启Zabbix Agent
+			service zabbix-agent restart
+		5.添加开机启动
+			chkconfig zabbix-agent on
+	设置mail 报警 通过外网邮件发送邮件
+	    yum  install  postfix  
+		yum  install mailx
+		vim  /etc/mail.rc
+			set from=wanglong@tongdelai.cn
+			set smtp=stmp.yiye.163.com
+			set smtp-auth-user=wanglong@tongdelai.cn
+			set smtp-auth-password=sdfasdf
+			set smtp-auth=login
+
+26. 	JAVA 安装：
+		tar  zxvf  jdkxxx.tar.gz
+		mv  jdkxxx  /usr/local/java
+		ln -s  /usr/local/jdkxxx /usr/local/java
+			
+		profile.d]# vim /etc/profile.d/java.sh
+					JAVA_HOME=/usr/local/java
+					CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar 
+					PATH=$JAVA_HOME/bin:$HOME/bin:$HOME/.local/bin:$PATH
+		source  /etc/profile.d/java.sh
+		java -version  -检查java 运行正常。
+		
+27. 	tomcat  安装
+		tar  zxvf  apach-tomcat.tar.gz
+		mv  apach-tomcat /usr/local
+		ln -s  apach-tomcat tomcat
+		vim /etc/profile.d/tomcat.sh
+			export JAVA_HOME=/usr/local/java
+			export JAVA_BIN=$JAVA_HOME/bin
+			export PATH=$PATH:$JAVA_HOME/bin
+			export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+			export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+        source  /etc/profile.d/tomcat.sh
+		/usr/local/tomcat/bin/startup.sh  -启动tomcat
+	yum 安装  tomcat			
+		yum install  java
+		yum  install tomcat
+			systemctl  start tomcat
+		安装管理包
+			yum install tomcat-webapps tomcat-admin-webapps 
+		安装文档软件包。
+			yum install tomcat-docs-webapp tomcat-javadoc
+28.	centos7  内核升级：
+		uname -a
+		uname  -r  -显示内核版本
+			通过ELRepo存储库安装/升级最新的稳定内核版本
+		1、在CentOS上启用ELRepo存储库
+			导入公钥
+			# rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+			CentOS7上安装ELRepo 7存储库：
+			# rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+			安装了ELRepo存储库，我们可以通过查找特定的存储库中查找可用的软件包，这里我们查看"elrepo-kernel" 内核软件包的版本信息
+			# yum --disablerepo "*" --enablerepo "elrepo-kernel" list available
+		2、指定ELRepo存储库安装最新的稳定内核
+			# yum --enablerepo=elrepo-kernel install kernel-ml	kernel-ml-devel
+		3、在/boot/grub/grub.conf 文件看到存在新安装的内核条目，并修改default=0	
+			查看 gurb 启动行
+				grubby --info=ALL
+		4.	查看默认执行内核
+				grubby --default-kernel  -查看默认内核
+				grubbu  --default-index  -查看启动顺序号
+		5.	设置默认启动号
+				grub2-set-default=1  -设置启动顺序号
+		6. 删除旧内核（可选）
+			内核有两种删除方式：通过 yum remove 命令或通过 yum-utils 工具。
+			6.1 通过 yum remove 命令
+				# rpm -qa | grep kernel
+				kernel-tools-libs-3.10.0-514.26.2.el7.x86_64
+				kernel-ml-4.15.6-1.el7.elrepo.x86_64
+				kernel-3.10.0-327.el7.x86_64
+				kernel-tools-3.10.0-514.26.2.el7.x86_64
+				kernel-headers-3.10.0-514.26.2.el7.x86_64
+				kernel-3.10.0-514.26.2.el7.x86_64
+			删除旧内核的 RPM 包
+				yum remove kernel-tools-libs-3.10.0-514.26.2.el7.x86_64 kernel-3.10.0-327.el7.x86_64 kernel
+			6.2 通过 yum-utils 工具		
+				如果安装的内核不多于 3 个，yum-utils 工具不会删除任何一个。只有在安装的内核大于 3 个时，才会自动删除旧内核。
+			6.2.1 安装
+				yum install yum-utils
+			6.2.2 删除
+				package-cleanup --oldkernels
+				
+29. python
+		yum  install python36
+		wget  https://bootstrap.pypa.io/get-pip.py
+		python get-pip.py
+30  pip
+		pip 加速器，
+			mkdir ~/.pip
+			cat > ~/.pip/pip.conf << EOF
+				[global]
+				trusted-host=mirrors.aliyun.com
+				index-url=https://mirrors.aliyun.com/pypi/simple/
+				EOF
+			pip install --upgrade pip
+		
+31	centos7  设置启动界面
+		systemctl get-default
+			获取当前的默认target
+		systemctl set-default multi-user.target
+			设置当前的target,可选值有graphical.target,multi-user.target，multi_user.target就是开机不进入图形界面的多用户模式。
+			    1.首先删除已经存在的符号链接：
+				rm /etc/systemd/system/default.target 
+				2.默认级别转换为3(文本模式)： 
+				ln -sf /lib/systemd/system/multi-user.target /etc/systemd/system/default.target 
+				或者默认级别转换为5(图形模式)：
+				 ln -sf /lib/systemd/system/graphical.target /etc/systemd/system/default.target 
+				3.重启：
+				 reboot 
+			 centos7以下的版本 
+				以管理员权限编辑/etc/inittab
+				id:5:initdefault:
+				改为
+				id:3:initdefault:
+		
+
+		
+		
+				
+docker 监控：
+		容器准备：
+		docker  pull tutum/influxdb
+		docker pull docker.io/google/cadvisor 
+		docker  pull docker.io/grafana/grafana
+		
+		docker run -d -p 8086:8086 -v ~/influxdb:/var/libinfluxdb \
+				--name influxdb tutum/influxdb
+		docker  exec -ti influxdb influx
+			create database "test"
+			create user “root” with password ’password' with all privileges
+			quit
+		docker run -d \
+				 -v /:/rootfs -v /var/run:/var/run -v /sys:/sys \
+				 -v /var/lib/docker:/var/lib/docker \
+				 --privileged=true \
+				 --volume=/cgroup:/cgroup:ro \
+				 --link=influxdb:influxdb --name cadvisor google/cadvisor \
+				 --storage_driver=influxdb \
+				 --storage_driver_host=influxdb:8086 \
+				 --storage_driver_db=test \
+				 --storage_driver_user=root \
+				 --storage_driver_password=password \
+				
+		docker run -d -p 5000:3000 \
+				-v ~/grafana:/var/lib/grafana \
+				--link=influxdb:influxdb \
+				--name grafana grafana/grafana
+				
+	
+		
+24 	ETCD
+    etcd -static
+                https://discovery.etcd.io/new?3 --3个客户的
+                http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335       
+                etcd --name infra0 \
+                --initial-advertise-peer-urls http://192.168.1.30:2380 \
+                --listen-peer-urls http://192.168.1.30:2380 \
+                --listen-client-urls http://192.168.1.30:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.30:2379 \
+                --initial-cluster-token etcd-cluster-1 \
+                --initial-cluster infra0=http://192.168.1.30:2380,infra1=http://192.168.1.31:2380,infra2=http://192.168.1.32:2380 \
+                --initial-cluster-state new \
+                --data-dir /root/etcddir &
+
+
+
+                etcd --name infra1 \
+                --initial-advertise-peer-urls http://192.168.1.31:2380 \
+                --listen-peer-urls http://192.168.1.31:2380 \
+                --listen-client-urls http://192.168.1.31:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.31:2379 \
+                --initial-cluster-token etcd-cluster-1 \
+                --initial-cluster infra0=http://192.168.1.30:2380,infra1=http://192.168.1.31:2380,infra2=http://192.168.1.32:2380 \
+                --initial-cluster-state new \
+                --data-dir /root/etcddir &
+
+                etcd --name infra2  \
+                --initial-advertise-peer-urls http://192.168.1.32:2380 \
+                --listen-peer-urls http://192.168.1.32:2380 \
+                --listen-client-urls http://192.168.1.32:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.32:2379 \
+                --initial-cluster-token etcd-cluster-1 \
+                --initial-cluster infra0=http://192.168.1.30:2380,infra1=http://192.168.1.31:2380,infra2=http://192.168.1.32:2380 \
+                --initial-cluster-state new \
+                --data-dir /root/etcddir &
+
+	etcd-discovery
+                https://discovery.etcd.io/new?3 --3个客户的
+                http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335
+
+                etcd --name infra0 \
+                --initial-advertise-peer-urls http://192.168.1.30:2380 \
+                --listen-peer-urls http://192.168.1.30:2380 \
+                --listen-client-urls http://192.168.1.30:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.30:2379 \
+                --data-dir /root/etcddir \
+                --discovery http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335 &
+
+
+
+                etcd --name infra1 \
+                --initial-advertise-peer-urls http://192.168.1.31:2380 \
+                --listen-peer-urls http://192.168.1.31:2380 \
+                --listen-client-urls http://192.168.1.31:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.31:2379 \
+                --data-dir /root/etcddir \
+                --discovery http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335 &
+
+
+
+
+                etcd --name infra2  \
+                --initial-advertise-peer-urls http://192.168.1.32:2380 \
+                --listen-peer-urls http://192.168.1.32:2380 \
+                --listen-client-urls http://192.168.1.32:2379,http://127.0.0.1:2379 \
+                --advertise-client-urls http://192.168.1.32:2379 \
+                --data-dir /root/etcddir \
+                --discovery http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335 &
+
+    etcdctl  member list
+    etcdctl cluster-health
+    etcdctl set 
+    etcdctl get
+    etcdctl update
+    etcdctl rm
+    etcdctl ls -r /
+    etcdctl mkdir 
+
+    ——ETCD集群搭建配置                                                                  
+            安装etcd服务                                                                                                                      
+                # yum -y install etcd
+                # cp /etc/etcd/etcd.conf /etc/etcd/etcd.conf.bak_$(date +%Y%m%d)
+                # vim /etc/etcd/etcd.conf
+                        ETCD_NAME=etcd_node1  // 节点名称
+                        ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+                        ETCD_LISTEN_PEER_URLS="http://192.168.100.110:2380"
+                        ETCD_LISTEN_CLIENT_URLS="http://192.168.100.110:2379,http://127.0.0.1:2379"  // 必须增加127.0.0.1否则启动会报错
+                        ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.100.110:2380"
+                        ETCD_INITIAL_CLUSTER="etcd_node1=http://192.168.100.110:2380,etcd_node2=http://192.168.100.111:2380"  // 集群IP地址
+                        ETCD_INITIAL_CLUSTER_STATE="new"
+                        ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
+                        ETCD_ADVERTISE_CLIENT_URLS="http://192.168.100.110:2379"
+                # systemctl enable etcd.service 
+                # systemctl start etcd.service && systemctl status etcd.service
+            验证etcd集群配置                                                                                                              
+                # etcdctl cluster-health
+                    member 7e218077496bccf9 is healthy: got healthy result from http://localhost:2379
+                cluster is healthy //表示安装成功 
+                
+        [root@centos73 etcd]# vim etcd.conf
+                    # [member]
+                    ETCD_NAME=c73
+                    ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+                    #ETCD_WAL_DIR=""
+                    #ETCD_SNAPSHOT_COUNT="10000"
+                    #ETCD_HEARTBEAT_INTERVAL="100"
+                    #ETCD_ELECTION_TIMEOUT="1000"
+                    ETCD_LISTEN_PEER_URLS="http://192.168.1.30:2380"
+                    ETCD_LISTEN_CLIENT_URLS="http://192.168.1.30:2379,http://127.0.0.1:2379"
+                    #ETCD_MAX_SNAPSHOTS="5"
+                    #ETCD_MAX_WALS="5"
+                    #ETCD_CORS=""
+                    #
+                    #[cluster]
+                    ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.1.30:2380"
+                    # if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://...
+                    "
+                    ETCD_INITIAL_CLUSTER="c73=http://192.168.1.30:2380,c731=http://192.168.1.31:2380,c732=http://192.168.1.32:2380"
+                    ETCD_INITIAL_CLUSTER_STATE="new"
+                    ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-1"
+                    ETCD_ADVERTISE_CLIENT_URLS="http://192.168.1.30:2379"
+                    #ETCD_DISCOVERY=""
+                    #ETCD_DISCOVERY_SRV=""
+                    #ETCD_DISCOVERY_FALLBACK="proxy"
+                    #ETCD_DISCOVERY_PROXY=""
+                    #ETCD_STRICT_RECONFIG_CHECK="false"
+                    #ETCD_AUTO_COMPACTION_RETENTION="0"
+                    #
+                    #[proxy]
+                    #ETCD_PROXY="off"
+                    #ETCD_PROXY_FAILURE_WAIT="5000"
+                    "etcd.conf" 55L, 1611C                                                                         1,1           Top
+                    # [member]
+                    ETCD_NAME=c73
+                    ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+                    #ETCD_WAL_DIR=""
+                    #ETCD_SNAPSHOT_COUNT="10000"
+                    #ETCD_HEARTBEAT_INTERVAL="100"
+                    #ETCD_ELECTION_TIMEOUT="1000"
+                    ETCD_LISTEN_PEER_URLS="http://192.168.1.30:2380"
+                    ETCD_LISTEN_CLIENT_URLS="http://192.168.1.30:2379,http://127.0.0.1:2379"
+                    #ETCD_MAX_SNAPSHOTS="5"
+                    #ETCD_MAX_WALS="5"
+                    #ETCD_CORS=""
+                    #
+                    #[cluster]
+                    ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.1.30:2380"
+                    # if you use different ETCD_NAME (e.g. test), set ETCD_INITIAL_CLUSTER value for this name, i.e. "test=http://...
+                    "
+                    ETCD_INITIAL_CLUSTER="c73=http://192.168.1.30:2380,c731=http://192.168.1.31:2380,c732=http://192.168.1.32:2380"
+                    ETCD_INITIAL_CLUSTER_STATE="new"
+                    ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-1"
+                    ETCD_ADVERTISE_CLIENT_URLS="http://192.168.1.30:2379"
+                    #ETCD_DISCOVERY=""
+                    #ETCD_DISCOVERY_SRV=""
+                    #ETCD_DISCOVERY_FALLBACK="proxy"
+                    #ETCD_DISCOVERY_PROXY=""
+                    #ETCD_STRICT_RECONFIG_CHECK="false"
+                    #ETCD_AUTO_COMPACTION_RETENTION="0"
+                    #
+                    #[proxy]
+                    #ETCD_PROXY="off"
+                    #ETCD_PROXY_FAILURE_WAIT="5000"
+        
+    vim  /usr/lib/systemd/system/etcd.service
+                    "etcd.service" 18L, 762C                                                                       13,1          All
+                    [Unit]
+                    Description=Etcd Server
+                    After=network.target
+                    After=network-online.target
+                    Wants=network-online.target
+
+                    [Service]
+                    Type=notify
+                    WorkingDirectory=/var/lib/etcd/
+                    EnvironmentFile=-/etc/etcd/etcd.conf
+                    User=etcd
+                    # set GOMAXPROCS to number of processors
+                    ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) /usr/bin/etcd --name=\"${ETCD_NAME}\" --data-dir=\"${ETCD_DATA_DIR}\"
+                     --listen-client-urls=\"${ETCD_LISTEN_CLIENT_URLS}\" --listen-peer-urls=\"${ETCD_LISTEN_PEER_URLS}\" --advertise-
+                    client-urls=\"${ETCD_ADVERTISE_CLIENT_URLS}\" --initial-cluster-token=\"${ETCD_INITIAL_CLUSTER_TOKEN}\" --initial
+                    -cluster=\"${ETCD_INITIAL_CLUSTER}\" --initial-cluster-state=\"${ETCD_INITIAL_CLUSTER_STATE}\" "
+                    Restart=on-failure
+                    LimitNOFILE=65536
+
+                    [Install]
+                    WantedBy=multi-user.target
+    
+    
+ docer:   docker.io/elcolio/etcd:latest
+ 
+        1     https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
+              
+              docker run \
+              -d \
+              -p 2379:2379 \
+              -p 2380:2380 \
+              -p 4001:4001 \
+              -p 7001:7001 \
+              -v /data/backup/dir:/data \
+              --name some-etcd \
+              elcolio/etcd:latest \
+              -name some-etcd \
+              -discovery=https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
+              -advertise-client-urls http://192.168.1.30:4001 \
+              -initial-advertise-peer-urls http://192.168.1.30:7001
+              
+              
+        2     docker run \
+              -d \
+              -p 2379:2379 \
+              -p 2380:2380 \
+              -p 4001:4001 \
+              -p 7001:7001 \
+              -v /data/backup/dir:/data \
+              --name some-etcd \
+              elcolio/etcd:latest \
+              -name some-etcd1 \
+              -discovery=https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
+              -advertise-client-urls http://192.168.1.31:4001 \
+              -initial-advertise-peer-urls http://192.168.1.31:7001
+              
+        3       docker run \
+              -d \
+              -p 2379:2379 \
+              -p 2380:2380 \
+              -p 4001:4001 \
+              -p 7001:7001 \
+              -v /data/backup/dir:/data \
+              --name some-etcd \
+              elcolio/etcd:latest \
+              -name some-etcd2 \
+              -discovery=https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
+              -advertise-client-urls http://192.168.1.32:4001 \
+              -initial-advertise-peer-urls http://192.168.1.32:7001
+        
+  
+    curl -L http://172.17.8.101:2379/version  --测试 etcd
+        
+
+24  flannel
+
+                # flanneld --help
+                    Usage: flanneld [OPTION]...
+                            -etcd-endpoints string
+                                a comma-delimited list of etcd endpoints (default "http://127.0.0.1:2379")
+                    
+
+        1.  yum install  flannel
+                    /etc/sysconfig/flanneld --flanneld 配置文件
+        
+        2.  etcdctl set  /atomic.io/network/config '{Network":"172.17.0.0/16"}'  --设置网络地址
+        3.  systemctl  start  flanneld   -启动flannel
+             flanneld-start   -与上相同
+            flanned -etcd-endpoints  =http://192.168.x.x:2379    
+        4.  sh ip addr   --检查是否有 flannel0 的设备
+            source /run/flannel/subnet
+        5.  /usr/libexec/flannel/mk-docker-opts.sh -生成docker 启动参数
+        6.  /run/flannel/docker       -生成docker 参数
+            /run/flannel/subnet.env
+            /run/docker_opts.env -将此文件内容附加到 /etc/sysconfig/docker  的DOCKER 运行参数后面。
+            
+            ifconfig docker0 ${FLANNEL_SUBNET} --（可不要执行）。
+        
+        7.  /etc/sysconfig/docker        -docker 启动参数
+            /etc/sysconfig/docker_network        - 网络参数   将生成的参数加入到的文件中
+        8.  systemctl  restart  docker     -重启docker
+        9.  sh ip add   --检查docker0 的网络是否与flannel0 设置的范围相同。
+        10  etcdctl  ls /atomic.io/network/subnets
+        11  etcdctl  get /automic.io/network/subnets/172.17.x.x-24
+    
+    
+    cbcv    
+    
+25  calico
+        1.  curl -L http://172.17.8.101:2379/version --测试etcd
+       
+        2   vim  /etc/docker/daemon.json
+                "cluster-store": "etcd://192.168.1.30:2379"
+        3.  systemctl daemon-reload
+        4.  systemctl  restart  docker
+        5.  calicoctl get  node
+        6.  calicoctl get ipPool
+        6.  calicoctl node  run  --ip=192.168.1.0
+        7.  calicoctl node status
+        
+     1.         vim  /root/ipPool.yaml
+                      - apiVersion: v1
+                      kind: ipPool
+                      metadata:
+                        cidr: 10.20.0.0/24
+                      spec:
+                        ipip:
+                          enabled: true
+                        nat-outgoing: true
+                cat << EOF | calicoctl create -f -
+                        - apiVersion: v1
+                          kind: ipPool
+                          metadata:
+                            cidr: 192.0.2.0/24
+                        EOF
+                        
+      calicoctl  create -f ippool.yaml
+      calicoctl  get  ipPool
+      calicoctl  get  workloadendpoint
+      calicoctl get ipPool --output=wide
+      
+      calicoctl  node --ip=172.17.122.22  --设置node
+          calicoctl node status
+    
+    
+docker  批量删除 镜像仓库
+        docker rmi $(docker images | grep "none" | awk '{print $3}') 
+      
+      
+      docker network create --driver calico  --ipam-driver  calico-ipam  --subnet 192.168.x.x/24  mynet
+        docker network ls
+     
+        calicoctl config set nodeTonodeMesh off  --关闭全互联模式
+        --BGP Speaker RR模式，就是在网络中指定一个或多个BGP Speaker作为Router Reflection，RR与所有的BGP Speaker建立bgp连接。
+                                                关闭了全互联模式后，再将RR作为Global Peers添加到Calico中，Calico网络就切换到了RR模式，可以支撑容纳更多的node。     
+$ calicoctl apply -f - << EOF
+apiVersion: v1
+kind: ipPool
+metadata:
+  cidr: 172.16.0.0/16
+spec:
+  ipip:
+    enabled: true
+    mode: always
+  nat-outgoing: true
+EOF
+        
+        
+       
+kubernetes
+
+0.          yum install etcd flanned ntpdate
+
+                timedatectl   查看时区
+                timedatectl set-timezone Asia/Shanghai
+                ntpdate -u  time.nist.gov  时间同步
+                hwclock -w   软件时间to硬件时钟
+0.1         指定docer 镜像仓库
+
+cat > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+
+
+
+                vim /etc/docker/daemon.json
+                    {
+                     "registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+                    }
+
+1   etcd
+            https://discovery.etcd.io/new?size=5
+            812490a4405328af0329f105628f8c09
+
+            71：
+            etcd -name infra1 -initial-advertise-peer-urls http://192.168.110.71:2380 -listen-peer-urls http://192.168.110.71:2380 -listen-client-urls http://192.168.110.71:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.71:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+            72：
+            etcd -name infra2 -initial-advertise-peer-urls http://192.168.110.72:2380 -listen-peer-urls http://192.168.110.72:2380 -listen-client-urls http://192.168.110.72:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.72:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+            73
+            etcd -name infra3 -initial-advertise-peer-urls http://192.168.110.73:2380 -listen-peer-urls http://192.168.110.73:2380 -listen-client-urls http://192.168.110.73:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.73:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+            74
+            etcd -name infra4 -initial-advertise-peer-urls http://192.168.110.74:2380 -listen-peer-urls http://192.168.110.74:2380 -listen-client-urls http://192.168.110.74:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.74:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+
+2    etcdctl  set  /atomic.io/network/config '{ "Network": "172.17.0.0/16" }'
+3         flanneld >> /usr/local/kubernete_test/logs/flanneld.log 2>&1 &
+                source /run/flannel/subnet.env 
+                /usr/libexec/flannel/mk-docker-opts.sh  -i  （生成 /run/docker_opts.env 运行参数文件）
+4           vim  /etc/sysconfig/docker
+                插入文件 /run/docker_opts.env 更改 运行参数
+5       systemctl  daemon-reload
+        systemctl  restart docker
+6       ip add sh  检查一下docker0 的ip 与flannel0 的IP 地址是否一致
+
+        
+master：     yum install -y  kubernetes-master
+client:     yum install -y  kubernetes-node
+
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF 
+
+master:
+
+            vim /etc/kubernetes
+                        vim  config 
+                        vim  apiserver  
+                         ###
+                            # kubernetes system config
+                            #
+                            # The following values are used to configure the kube-apiserver
+                            #
+
+                            # The address on the local server to listen to.
+                            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+                            # The port on the local server to listen on.
+                             KUBE_API_PORT="--port=8080"
+                            # Port minions listen on
+                            #KUBELET_PORT="--kubelet-port=10250"
+                            # Comma separated list of nodes in the etcd cluster
+                            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
+                            # Address range to use for services
+                     vim  /etc/kubernetes/apiserver
+                            # kubernetes system config
+                            #
+                            # The following values are used to configure the kube-apiserver
+                            #
+                            # The address on the local server to listen to.
+                            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+                            # The port on the local server to listen on.
+                             KUBE_API_PORT="--port=8080"
+                            # Port minions listen on
+                             KUBELET_PORT="--kubelet-port=10250"
+                            # Comma separated list of nodes in the etcd cluster
+                            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
+                            # Address range to use for services
+                            KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=10.254.0.0/16"
+                            # default admission control policies
+                            KUBE_ADMISSION_CONTROL="--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
+                            # Add your own!
+                            KUBE_API_ARGS=""                                                             
+
+                    sytemctl daemon-reload
+                    systemctl start kube-apiserver
+                    systemctl start kube-controller-manager
+                    systemctl start kube-scheduler
+
+                kubectl  get componentstatuses  （cs）
+                kubectl  get nodes
+                kubectl  get  podes
+                kubectl  get  endpoints
+                kubectl get deployment  (deploy)
+                kubectl  describe node xxx
+                
+                
+client:
+            vim /etc/kubernetes
+                vim config
+                    # The following values are used to configure various aspects of all
+                    # kubernetes services, including
+                    #
+                    #   kube-apiserver.service
+                    #   kube-controller-manager.service
+                    #   kube-scheduler.service
+                    #   kubelet.service
+                    #   kube-proxy.service
+                    # logging to stderr means we get it in the systemd journal
+                    KUBE_LOGTOSTDERR="--logtostderr=true"
+
+                    # journal message level, 0 is debug
+                    KUBE_LOG_LEVEL="--v=0"
+
+                    # Should this cluster be allowed to run privileged docker containers
+                    KUBE_ALLOW_PRIV="--allow-privileged=false"
+
+                    # How the controller-manager, scheduler, and proxy find the apiserver
+                    KUBE_MASTER="--master=http://192.168.110.71:8080"
+                vim kubelet
+                        # kubernetes kubelet (minion) config
+                        # The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+                        KUBELET_ADDRESS="--address=192.168.110.73"
+                        # The port for the info server to serve on
+                        # KUBELET_PORT="--port=10250"
+                        # You may leave this blank to use the actual hostname
+                        KUBELET_HOSTNAME="--hostname-override=192.168.110.73"
+                        # location of the api-server
+                        KUBELET_API_SERVER="--api-servers=http://192.168.110.71:8080"
+                        # pod infrastructure container
+                         KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest"
+                        # Add your own!
+                        KUBELET_ARGS=""
+                vim kube-proxy
+                
+                
+        kubectl  run nginx  --image=nginx  --port=80 --replicas=5 
+        kubectl  expose deployment nginx --type=NodePort --name=nginx-service --external-ip=192.168.110.73
+        kubectl --server=192.168.110.71:80 get service nginx-service
+        kubectl --server=192.168.110.71:80 describe service nginx-service
+    测试：
+    在client 是可以访问 10.254.x.x:80    
+                curl   10.254.x.x:80    
+                
+        curl  192.168.110.73:80
+        curl  172.19.x.x:80
+        在外网访问  external-ip 地址   
+            curl  192.168.110.73:80
+        
+        
+        
+          
+kube-apiserver --address=0.0.0.0  --insecure-port=8080 --service-cluster-ip-range='10.254.0.0/16' --log_dir=/usr/local/kubernete_test/logs/kube --kubelet_port=10250 --v=0 --logtostderr=false --etcd_servers=http://192.168.110.71:2379 --allow_privileged=false  >> /usr/local/kubernete_test/logs/kube-apiserver.log 2>&1 &
+kube-controller-manager  --v=0 --logtostderr=false --log_dir=/usr/local/kubernete_test/logs/kube --master=192.168.110.71:8080 >> /usr/local/kubernete_test/logs/kube-controller-manager 2>&1 &
+kube-scheduler  --master='192.168.110.71:8080' --v=0  --log_dir=/usr/local/kubernete_test/logs/kube  >> /usr/local/kubernete_test/logs/kube-scheduler.log 2>&1 &
+   
+kubeadm:
+
+docker pull  index.tenxcloud.com/jimmy/elasticsearch:v2.4.1-2
+docker pull   index.tenxcloud.com/jimmy/fluentd-elasticsearch:1.22
+docker pull  index.tenxcloud.com/jimmy/kibana:v4.6.1-1
+docker pull  index.tenxcloud.com/jimmy/heapster-grafana-amd64:v4.0.2
+docker pull  index.tenxcloud.com/jimmy/heapster-amd64:v1.3.0-beta.1
+docker pull  index.tenxcloud.com/jimmy/heapster-influxdb-amd64:v1.1.1
+
+
+docker pull  index.tenxcloud.com/jimmy/kubernetes-dashboard-amd64:v1.6.0
+
+docker pull  index.tenxcloud.com/jimmy/k8s-dns-kube-dns-amd64:1.14.1
+docker pull  index.tenxcloud.com/jimmy/k8s-dns-dnsmasq-nanny-amd64:1.14.1
+docker pull  index.tenxcloud.com/jimmy/k8s-dns-sidecar-amd64:1.14.1
+
+docker pull 4admin2root/kube-controller-manager-amd64:v1.6.0
+docker pull 4admin2root/kube-scheduler-amd64:v1.6.0
+docker pull 4admin2root/kube-apiserver-amd64:v1.6.0
+docker pull 4admin2root/etcd-amd64:3.0.17
+docker pull 4admin2root/kube-proxy-amd64:v1.6.0
+docker pull  4admin2root/k8s-dns-sidecar-amd64:1.14.1
+docker pull  4admin2root/k8s-dns-dnsmasq-nanny-amd64:1.14.1
+docker pull  4admin2root/pause-amd64:3.0
+docker pull 4admin2root/etcd:2.2.1
+
+docker pull 4admin2root/node:v1.1.0
+docker pull 4admin2root/cni:v1.6.1
+docker pull 4admin2root/kube-policy-controller:v0.5.4
+
+
+CentOS 7  yum 源
+        wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+        或者
+        curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+        3、之后运行yum makecache生成缓存
+        
+        
+        使用说明
+        首先备份/etc/yum.repos.d/CentOS-Base.repo
+        mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+        下载对应版本repo文件, 放入/etc/yum.repos.d/(操作前请做好相应备份)
+            CentOS7
+            CentOS6
+            CentOS5
+        运行以下命令生成缓存
+            yum clean all
+            yum makecache
+            
+            
+kubernetes 1.5.2 yum源
+        [virt7-docker-common-candidate]
+        name=virt7-docker-common-candidate
+        baseurl=https://cbs.centos.org/repos/virt7-docker-common-candidate/x86_64/os/
+        enabled=1
+        gpgcheck=0
+        EOF
+
+        
+
+docker-ce  安装
+    CentOS 7 (使用yum进行安装)
+        # step 1: 安装必要的一些系统工具
+        sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+        # Step 2: 添加软件源信息
+        sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+        # Step 3: 更新并安装 Docker-CE
+        sudo yum makecache fast
+        sudo yum -y install docker-ce
+        # Step 4: 开启Docker服务
+        sudo service docker start
+
+
+    1. yum  源
+             tee /etc/yum.repos.d/kubernetes.repo << EOF
+                [kubernetes]
+                name=kubernetes
+                baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+                enabled=1
+                gpgcheck=0
+                EOF
+            
+                #kubernetes yum源
+                cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+                [kubernetes]
+                name=Kubernetes
+                baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+                enabled=1
+                gpgcheck=0
+                EOF
+            
+            tee /etc/yum.repos.d/docker.repo << EOF
+                [dockerrepo]
+                name=Docker Repository
+                baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+                enabled=1
+                gpgcheck=1
+                gpgkey=https://yum.dockerproject.org/gpg    
+                EOF
+            
+            cat >> /etc/yum.repos.d/docker.repo <<EOF
+                [docker-repo]
+                name=Docker Repository
+                baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+                enabled=1
+                gpgcheck=0
+                EOF
+            
+    2.  yum clean all
+        yum makecache
+
+        yum list | grep docker | sort -r    
+        yum  list  installed  | grep docker*
+        
+        
+        
+    3. 开启路由转发
+            echo 1 > /proc/sys/net/ipv4/ip_forward
+            echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+            echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+            sysctl -p
+		禁用 swapp
+		     swapoff  -a
+        
+    4. 禁用ipv6
+            lsmod | grep -i ipv6
+            ifconfig | grep -i inet6
+            
+    5. 清空iptables
+            iptables -X
+            iptables -Z
+            iptables -P INPUT ACCEPT
+            iptables -F
+            
+    6.  关闭防火墙
+            setenforce=0
+            systemctl disable firewalld.service
+            systemctl stop firewalld.service
+
+
+    5. 安装Docker
+        yum install -y docker
+        systemctl enable docker
+        systemctl start docker
+
+    6.  Docker,加速器，避免自己下载镜像速度太慢
+        修改/etc/docker/daemon.json 添加如下内容：
+            cat > /etc/docker/daemon.json <<EOF
+			{
+			"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+			}
+			EOF
+            systemctl daemon-reload
+            systemctl enable docker
+            systemctl start docker      
+    
+    安装 kubeadm
+          yum install -y  kubelet kubeadm kubectl kubernetes-cni
+		 systemctl  eanble  kubelet
+		 systemctl  start  kubelet
+		 
+		  
+	下载镜像
+		cat > k8s.sh <<EOF
+		#!/bin/bash
+		images=(kube-proxy-amd64:v1.10.0 kube-scheduler-amd64:v1.10.0 kube-controller-manager-amd64:v1.10.0 kube-apiserver-amd64:v1.10.0
+		etcd-amd64:3.1.12 pause-amd64:3.1 kubernetes-dashboard-amd64:v1.8.3 k8s-dns-sidecar-amd64:1.14.8 k8s-dns-kube-dns-amd64:1.14.8
+		k8s-dns-dnsmasq-nanny-amd64:1.14.8)
+		for imageName in ${images[@]} ; do
+		  docker pull mirrorgooglecontainers/$imageName
+		  docker tag mirrorgooglecontainers/$imageName k8s.gcr.io/$imageName
+		  docker rmi mirrorgooglecontainers/$imageName
+		done
+		EOF
+		
+		chmod +x  k8s
+		./k8s.sh    #运行脚本， 下载镜像
+			
+	安装kubernetes
+	
+		  kubeadm init --kubernetes-version=v1.10.0 --pod-network-cidr=10.244.0.0/16
+         
+          kubeadm  reset  - 删除k8s
+		  $ kubeadm reset
+			$ ifconfig cni0 down && ip link delete cni0
+			$ ifconfig flannel.1 down && ip link delete flannel.1
+			$ rm -rf /var/lib/cni/
+	配置环境 
+		    mkdir -p $HOME/.kube
+			sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+			sudo chown $(id -u):$(id -g) $HOME/.kube/config
+			
+			把master节点的~/.kube/config文件拷贝到当前节点对应的位置即可使用kubectl命令行工具了。
+			
+		五、在master节点上部署网络插件flannel
+
+        wget https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml
+        kubectl create -f kube-flannel.yml
+        
+		
+          kubectl --kubeconfig /etc/kubernetes/admin.conf get pod --all-namespaces /
+          
+          
+          kubectl apply -f http://docs.projectcalico.org/v2.1/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml --kubeconfig /etc/kubernetes/admin.conf
+          kubectl apply -f http://docs.projectcalico.org/v2.1/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
+
+kubectl apply -f http://k8s.oss-cn-shanghai.aliyuncs.com/kube/kubernetes-dashboard1.5.0.yaml
+          
+          kubectl --kubeconfig /etc/kubernetes/kubelet.conf get pod --all-namespaces /
+		  
+		  
+		  --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
+
+
+mirrorgooglecontainers/kube-proxy-amd64		  
+		  
+#!/bin/bash
+images=(kube-proxy-amd64:v1.10.0 kube-scheduler-amd64:v1.10.0 kube-controller-manager-amd64:v1.10.0 kube-apiserver-amd64:v1.10.0
+etcd-amd64:3.1.12 pause-amd64:3.1 kubernetes-dashboard-amd64:v1.8.3 k8s-dns-sidecar-amd64:1.14.8 k8s-dns-kube-dns-amd64:1.14.8
+k8s-dns-dnsmasq-nanny-amd64:1.14.8)
+for imageName in ${images[@]} ; do
+  docker pull mirrorgooglecontainers/$imageName
+  docker tag mirrorgooglecontainers/$imageName k8s.gcr.io/$imageName
+  docker rmi mirrorgooglecontainers/$imageName
+done
+
+
+keveon/$imageName
+          
+docker  安装： 
+    yum  install -y  docker-engin
+    systemctl start docker
+    systemctl disable  firewalld
+    yum install -y iptables-services
+    systemctl enable iptables
+    systemctl start iptables
+    
+          
+#!/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
+KUBE_VERSION=v1.7.2
+KUBE_PAUSE_VERSION=3.0
+ETCD_VERSION=3.0.17
+DNS_VERSION=1.14.4
+
+GCR_URL=gcr.io/google_containers
+ALIYUN_URL=registry.cn-hangzhou.aliyuncs.com/szss_k8s
+
+images=(kube-proxy-amd64:${KUBE_VERSION}
+kube-scheduler-amd64:${KUBE_VERSION}
+kube-controller-manager-amd64:${KUBE_VERSION}
+kube-apiserver-amd64:${KUBE_VERSION}
+pause-amd64:${KUBE_PAUSE_VERSION}
+etcd-amd64:${ETCD_VERSION}
+k8s-dns-sidecar-amd64:${DNS_VERSION}
+k8s-dns-kube-dns-amd64:${DNS_VERSION}
+k8s-dns-dnsmasq-nanny-amd64:${DNS_VERSION})
+
+for imageName in ${images[@]} ; do
+  docker pull $ALIYUN_URL/$imageName
+  docker tag $ALIYUN_URL/$imageName $GCR_URL/$imageName
+ # docker push $ALIYUN_URL/$imageName
+  docker rmi $ALIYUN_URL/$imageName 
+done
+
+
+
+cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
+[Service]
+Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/szss_k8s/pause-amd64:3.0"
+EOF
+
+
+sed -i.bak 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+
+export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
+export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
+
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+
+
+kubectl --namespace kube-system apply -f https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
+
+sed -i 's/quay.io\/coreos\/flannel:v0.8.0-amd64/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel:v0.8.0-amd64/g' ./kube-flannel.yml
+ kubectl --namespace kube-system apply -f ./kube-flannel.yml
+ 
+ 
+
+ 
+NODE INSTALL 
+ http://blog.csdn.net/running_free/article/details/78398984
+
+systemctl disable firewalld
+systemctl stop firewalld
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+iptables -F
+setenforce 0 
+ 
+##docker yum源
+
+ 增加docker repository
+        yum-config-manager \
+            --add-repo \
+                    http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+        # 下载包信息到本地
+        yum makecache fast
+
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+##kubernetes yum源
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+
+
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+enabled=1
+gpgcheck=0
+EOF
+
+
+vi /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+
+
+ docker安装
+    Kubernetes 1.6还没有针对docker 1.13和最新的docker 17.03上做测试和验证，所以这里安装Kubernetes官方推荐的Docker 1.12版本。
+
+[root@server2 ~]# yum list docker-engine --showduplicates ##查看docker版本
+[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64  ##安装docker
+
+
+直接这样装会报错。需要同时安装docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm，如下
+
+[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64 docker-engine-selinux-1.12.6-1.el7.centos.noarch
+
+##或者将这两个包下载下来，再一起安装
+
+[root@server2 ~]# wget https://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7/Packages/docker-engine-1.12.6-1.el7.centos.x86_64.rpm
+[root@server2 ~]# wget https://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7/Packages/docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm
+[root@server2 ~]# yum install -y docker-engine-1.12.6-1.el7.centos.x86_64.rpm docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm
+
+  
+    kubernetes安装：
+
+[root@server2 ~]# yum list kubeadm --showduplicates
+[root@server2 ~]# yum list kubernetes-cni --showduplicates
+[root@server2 ~]# yum list kubelet --showduplicates
+[root@server2 ~]# yum list kubectl --showduplicates
+##以上为查看可用版本，选择合适版本安装即可
+
+[root@server2 ~]# yum install -y kubernetes-cni-0.5.1-0.x86_64 kubelet-1.7.2-0.x86_64 kubectl-1.7.2-0.x86_64 kubeadm-1.7.2-0.x86_64
+export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
+export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
+
+
+sed -i.bak 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
+[Service]
+Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/szss_k8s/pause-amd64:3.0"
+EOF
+
+检查 DNS :
+
+1. vim busybox.yml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: busybox
+    namespace: default
+spec:
+    containers:
+      - image: busybox
+        command:
+          - sleep
+          - "3600"
+        imagePullPolicy: IfNotPresent
+        name: busybox
+    restartPolicy: Always
+    
+2.kubectl create -f busybox.yaml
+      pod "busybox" created
+
+3. kubectl exec busybox -- nslookup kubernetes
+        Server:    10.96.0.10
+        Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
+        Name:      kubernetes
+        Address 1: 10.96.0.1 kubernetes.default.svc.cluster.local
+
+测试 应用实例
+1. vim rc-nginx.yaml 
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: rc-nginx-2
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginx-2
+    spec:
+      containers:
+      - name: nginx-2
+        image: docker.io/nginx
+        ports:
+        - containerPort: 80
+2. kubectl create -f rc-nginx.yaml
+        replicationcontroller "rc-nginx-2" created
+3. kubectl get rc
+        NAME         DESIRED   CURRENT   READY     AGE
+        rc-nginx-2   2         2         0         12s
+
+wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml  
+kubectl  apply -f  kube-flannel.yml
+
+
+kuectl get pods --all-namespaces  -o wide      
+        
+dashboard
+
+# openssl req -newkey rsa:4096 -nodes -sha256 -keyout alleyz.key -x509 -days 365 -out dashboard.crt
+
+==========================================================================================================================
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+
+
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+enabled=1
+gpgcheck=0
+EOF
+
+
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+yum list docker-engine --showduplicates
+
+yum  list  xxx     --show-duplicates, --showduplicates
+
+yum install docker-engine-1.12.6-1.el7.centos  -y docker-engine-selinux-1.12.6-1.el7.centos
+yum  install kubeadm kubectl kubelet kubernetes-cni -y
+
+
+systemctl daemon-reload
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+echo 1 > /proc/sys/net/bridge/bridge-nf-call-ip6tables
+sysctl -p
+systemctl restart kubelet
+systemctl restart docker
+
+
+ cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+ sudo sysctl --system
+ 
+ 
+
+vim /etc/docker/daemon.json
+{
+"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+
+
+vim /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+   更改  cgroupfs
+
+
+
+kubeadm init --kubernetes-version=v1.6.13 --pod-network-cidr=10.244.0.0/16
+
+# 对于非root用户
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# 对于root用户
+$ export KUBECONFIG=/etc/kubernetes/admin.conf
+# 也可以直接放到~/.bash_profile
+$ echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
+默认情况下，为了保证master的安全，master是不会被调度到app的。你可以取消这个限制通过输入：
+
+$ kubectl taint nodes --all node-role.kubernetes.io/master-
+
+
+wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml  
+
+kubectl apply  -f  kube-flannel.yml
+
+https://github.com/rootsongjc/follow-me-install-kubernetes-cluster/tree/master/manifests/dashboard
+kube-dashboard
+
+
+    dashboard-contoller.yaml
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kubernetes-dashboard
+  namespace: kube-system
+  labels:
+    k8s-app: kubernetes-dashboard
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kubernetes-dashboard
+  template:
+    metadata:
+      labels:
+        k8s-app: kubernetes-dashboard
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      serviceAccountName: dashboard
+      containers:
+      - name: kubernetes-dashboard
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.6.0
+        resources:
+          # keep request = limit to keep this container in guaranteed class
+          limits:
+            cpu: 100m
+            memory: 50Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        ports:
+        - containerPort: 9090
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9090
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+      tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Exists"
+
+
+    dashboard-rbac.yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dashboard
+  namespace: kube-system
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1alpha1
+metadata:
+  name: dashboard
+subjects:
+  - kind: ServiceAccount
+    name: dashboard
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+
+
+    dashboard-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-dashboard
+  namespace: kube-system
+  labels:
+    k8s-app: kubernetes-dashboard
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  type: NodePort 
+  selector:
+    k8s-app: kubernetes-dashboard
+  ports:
+  - port: 80
+    targetPort: 9090
+    nodePort: 38888
+-------------------------------------------------------------------------------------------------------------------------  
+		
+作者：老吕子
+链接：http://www.jianshu.com/p/8ce11f947410
+來源：简书
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+1.1 方案1:使用阿里云yum镜像
+
+配置yum源，由于google被墙，可以使用阿里云搭建的yum源
+
+#docker yum源
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+enabled=1
+gpgcheck=0
+EOF
+
+#kubernetes yum源
+cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+
+批量删除镜像：
+
+docker images | grep dns  | awk '{print $3}'
+docker rmi $(docker images | grep dns  | awk '{print $3}')
+
+
+docker安装：
+
+Kubernetes 1.6还没有针对docker 1.13和最新的docker 17.03上做测试和验证，所以这里安装Kubernetes官方推荐的Docker 1.12版本。
+
+#查看docker版本
+yum list docker-engine –showduplicates
+#安装docker
+yum install -y docker-engine-1.12.6-1.el7.centos.x86_64
+
+
+cat  > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+
+
+setenforce 0
+sed -i's/SELINUX=enforcing/SELINUX=disabled/g'/etc/sysconfig/selinux
+
+
+
+kubernetes安装：
+
+#查看版本
+yum list kubeadm –showduplicates
+yum list kubernetes-cni –showduplicates
+yum list kubelet –showduplicates
+yum list kubectl –showduplicates
+
+kubeadm init \
+--kubernetes-version=v1.8.1 \
+--pod-network-cidr=10.244.0.0/16
+
+
+export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
+export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
+kubeadm init --apiserver-advertise-address=172.16.120.151 --kubernetes-version=v1.7.2 --pod-network-cidr=10.244.0.0/12
+
+
+
+为了使用kubectl访问apiserver，在~/.bash_profile中追加下面的环境变量：
+echo "exportKUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+source /etc/profile
+
+
+kubectl --namespace kube-system apply -f https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
+rm -rf kube-flannel.yml
+wget https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel.yml
+sed -i 's/quay.io\/coreos\/flannel:v0.8.0-amd64/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel:v0.8.0-amd64/g' ./kube-flannel.yml
+
+
+
+
+
+https://raw.githubusercontent.com/coreos/flannel/v0.9.0/Documentation/kube-flannel.yml
+https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel.yml
+https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
+
+Master Isolation
+由于安全原因，默认情况下pod不会被schedule到master节点上，可以通过下面命令解除这种限制：kubectl taint nodes --all node-role.kubernetes.io/master
+
+kubectl taint nodes --all node-role.kubernetes.io/master-
+node "bjo-ep-dep-039.dev.fwmrm.net" untainted
+
+
+export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
+export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
+kubeadm join --token 242b80.86d585ebd6358b08 172.16.120.151:6443 --skip-preflight-checks
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+name: busybox
+namespace: default
+spec:
+containers:
+- image: busybox
+command:
+- sleep
+- "3600"
+name: busybox
+restartPolicy: Always
+
+
