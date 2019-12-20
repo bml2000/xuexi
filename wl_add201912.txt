@@ -1,4 +1,30 @@
+--------------------------------------代理自动----------------------------------------------------------
 
+data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20cmule.xyz";}
+-------------------------
+https://www.fanqiangzhe.com/
+env | grep -i proxy
+export http_proxy=http://xxx:xx  设置代理
+export  https_proxy=https://xxx:xx
+
+取消export 环境变量  noset  http_proxy  即可
+
+------------------------------------------shadowsock----------------------------------------------------
+
+[librehat-shadowsocks]
+name=Copr repo for shadowsocks owned by librehat
+baseurl=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/epel-7-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+
+yum install shadowsocks-qt5
+
+==========================================================
 1 hostnamectl set-hostname  hostname    --设置主机名称
 2 vi /etc/sysconfig/network-scirpt/ifc-en33  -设置主机IP dns  
   vi /etc/hosts                          -设置hosts
