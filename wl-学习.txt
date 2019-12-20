@@ -137,6 +137,17 @@
         systemctl status firewalld.service  显示一个服务的状态：
         systemctl enable firewalld.service 在开机时启用一个服务：
         systemctl disable firewalld.service 在开机时禁用一个服务：
+		
+		systemd:  对应目录：  /usr/lib/systemd/system 下的文件
+		systemctl get-default
+		systemctl set-default multi-user.target
+		systemctl  list-units    # 列出 active 的units
+		systemctl list-units  --all --type=service 
+		systemctl list-units  --type=service  # 列出已启动的服务
+		systemctl list-units  --all --state=inactive  #
+		systemctl  is-enabled  crond.service 
+		systemctl  is-active crond.service
+		systemctl list-dependencies  multi-user.target  查看包内的服务
     chkconfig
         chkconfig --list        #列出所有的系统服务
         chkconfig --add httpd        #增加httpd服务
@@ -146,6 +157,84 @@
         chkconfig --list mysqld        #列出mysqld服务设置情况
         chkconfig --level 35 mysqld on        #设定mysqld在等级3和5为开机运行服务，--level 35表示操作只在等级3和5执行，on表示启动，off表示关闭
         chkconfig mysqld on        #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级
+   
+================================  nmcli  =========================================================================
+
+		nmcli  # 查看ip（类似于ifconfig、ip addr）
+
+		# 创建connection，配置静态ip（等同于配置ifcfg，其中BOOTPROTO=none，并ifup启动）
+		nmcli c add type ethernet con-name ethX ifname ethX ipv4.addr 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.method manual
+
+		# 创建connection，配置动态ip（等同于配置ifcfg，其中BOOTPROTO=dhcp，并ifup启动）
+		nmcli c add type ethernet con-name ethX ifname ethX ipv4.method auto
+
+		# 修改ip（非交互式）
+		nmcli c modify ethX ipv4.addr '192.168.1.200/24'
+		nmcli c up ethX
+
+		# 修改ip（交互式）
+		nmcli c edit ethX
+		nmcli> goto ipv4.addresses
+		nmcli ipv4.addresses> change
+		Edit 'addresses' value: 192.168.1.200/24
+		Do you also want to set 'ipv4.method' to 'manual'? [yes]: yes
+		nmcli ipv4> save
+		nmcli ipv4> activate
+		nmcli ipv4> quit
+
+
+		nmcli c up ethX   # 启用connection（相当于ifup）
+		nmcli c down  # 停止connection（相当于ifdown）
+		nmcli c delete ethX # 删除connection（类似于ifdown并删除ifcfg）
+		nmcli c show  # 查看connection列表
+		nmcli c show ethX  # 查看connection详细信息
+		nmcli c reload  # 重载所有ifcfg或route到connection（不会立即
+		nmcli c load /etc/sysconfig/network-scripts/ifcfg-ethX    # 重载指定ifcfg或route到connection（不会立即生效）
+		nmcli c load /etc/sysconfig/network-scripts/route-ethX  # 重载指定ifcfg或route到connection（不会立即生效）
+		# 立即生效connection，有3种方法
+		nmcli c up ethX
+		nmcli d reapply ethX
+		nmcli d connect ethX
+		nmcli d  # 查看device列表
+		nmcli d show   # 查看所有device详细信息
+		nmcli d show ethX  # 查看指定device的详细信息
+		nmcli d connect ethX # 激活网卡
+		nmcli r all off  # 关闭无线网络（NM默认启用无线网络）
+		nmcli n  # 查看NM纳管状态
+		nmcli n on  # 开启NM纳管
+		nmcli n off  # 关闭NM纳管（谨慎执行）
+		nmcli m  # 监听事件
+		nmcli  # 查看NM本身状态
+		nm-online  # 检测NM是否在线可用
+		========================================================================================================
+		# /etc/sysconfig/network-scripts/ifcfg-ethX-test
+		TYPE=Ethernet
+		PROXY_METHOD=none
+		BROWSER_ONLY=no
+		BOOTPROTO=none
+		IPADDR=192.168.1.100
+		PREFIX=24
+		IPADDR1=192.168.1.101
+		PREFIX1=32
+		GATEWAY=192.168.1.254
+		DNS1=8.8.8.8
+		DNS2=4.4.4.4
+		DEFROUTE=yes
+		IPV4_FAILURE_FATAL=no
+		IPV6INIT=yes
+		IPV6_AUTOCONF=yes
+		IPV6_DEFROUTE=yes
+		IPV6_FAILURE_FATAL=no
+		IPV6_ADDR_GEN_MODE=stable-privacy
+		NAME=ethX-test
+		UUID=9a10ad89-437c-4caa-949c-a394a6d28c8d
+		DEVICE=ethX
+		ONBOOT=yes
+
+		# /etc/resolv.conf
+		nameserver 8.8.8.8
+		nameserver 4.4.4.4		
+		
         
 6.2 防火墙
     启动防火墙
@@ -160,6 +249,35 @@
     设置实例
         iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
         service iptables save
+		
+	iptables 配置文件位置： /etc/sysconfig/iptables-config
+	 保存： iptables-save
+	 恢复： iptables-restore
+	4个表  -t： filter、nat、mangle、raw 
+	5个链： RREROUTING 、INPUT、FORWARD、OUTPUT、POSTROUTING
+	动作 -j ：  ACCEPT  DROP  REJECT MASQUERADE
+	iptables -I INPUT -p icmp  --icmp-type 8 -j DROP   # 可以ping出， 不许ping 入
+	iptables -nvL
+	iptables -F  clean
+	iptables -P    设置某条规则链的默认动作
+	iptables  -P INPUT ACCEPT
+	iptables  -P  FORWARD  DROP
+	iptables -X  删除用户定义链
+
+	---------------------------- 
+	目录： /usr/lib/firewalld/services
+	systemctl start firewalld  
+	firewall-cmd  --get-default 
+	firewall-cmd --get-zones
+	firewall-cmd --set-default-zone=work
+	firewall-cmd --get-active-zones # 查看系统网卡所在zone
+	firewall-cmd --zone=dmz --add-interface=lo
+	firewall-cmd --get-service  #列出所有的服务  对应目录 /etc/firewalld/services/
+	firewall-cmd --list-services  # 列出当前zone下的services
+	firewall-cmd --zone=dmz  --list-services  # 列出知道zone下的服务。
+	firewall-cmd --zone=dmz  --add-service=http   --permanent #
+	firewall-cmd  --reload 
+	
       
 7. selinux：
     配置文件： /etc/sysconfig/seLinux
@@ -338,6 +456,51 @@
                 name=cdrom
                 baseurl=file:///media/
                 gpgcheck=0
+			 
+			 --------------------------yum 安装包保留--------------------------------------------------
+					1、修改yum配置文件/etc/yum.conf
+					# vi /etc/yum.conf
+					[main]
+					cachedir=/var/cache/yum/$basearch/$releasever   
+					<----安装包存放路径
+					keepcache=1 
+					<-----改为1，1代表保留安装包
+					debuglevel=2
+
+					通过yum uodate更新glibc
+					#  yum update glibc glibc-devel glibc-common glibc-headers -y
+					4、更新结束后，查看缓存目录，并报错所需的rpm包
+					# ls /var/cache/yum/x86_64/6/updates/packages/  
+					# cp -r  /var/cache/yum/x86_64/6/updates/packages /opt/
+
+					OK 大功告成了
+					其他服务器就可以通过rpm包直接更新了
+					# rpm -Uvh /opt/packages/*.rpm
+
+					yum  仅下载， 不安装
+					yum install unixODBC --downloadonly --downloaddir=/usr/local/src
+
+					yum  install xxx   --downloadonly  --downloaddir=/var/tmp
+
+					yum localinstall  ****.rpm
+
+
+					yum 安装后保留rmp安装包
+					如题：想要在yum安装后不清理安装包，应该怎么做？
+
+					可以设置升级后不删除下载的rpm包
+					vi /etc/yum.conf
+					[main]
+					cachedir=/var/cache/yum
+					keepcache=0
+
+					将 keepcache=0 修改为 keepcache=1， 安装或者升级后，
+
+					在目录 /var/cache/yum下就会有下载的 rpm 包
+
+			 
+			 
+			 
 11  系统监控
         ps
             -e 显示所有进程,环境变量
@@ -405,6 +568,303 @@
         tzselect  修改时区命令         
         timeconfig 修改时区命令    
         TZ='Asia/Shanghai'; export TZ　//改为+8中国上海时区 如果知道时区名称也可以直接使用命令
+		
+-----------------------------sar -------------------------------------------------------------------
+
+		sar命令可以从文件的读写情况、系统调用的使用情况、磁盘I/O、CPU效率、内存使用状况、进程活动及IPC有关的活动等方面进行报告。
+
+		命令格式：sar [options] [-A] [-o file] t [n]
+		t为采样间隔，n为采样次数，默认值是1
+		-o file表示将命令结果以二进制格式存放在文件中，file 是文件名。
+		options 为命令行选项
+
+
+		sar命令常用选项如下：
+
+		-A：所有报告的总和
+		-u：输出CPU使用情况的统计信息
+		-v：输出inode、文件和其他内核表的统计信息
+		-d：输出每一个块设备的活动信息
+		-r：输出内存和交换空间的统计信息
+		-b：显示I/O和传送速率的统计信息
+		-a：文件读写情况
+		-c：输出进程统计信息，每秒创建的进程数
+		-R：输出内存页面的统计信息
+		-y：终端设备活动情况
+		-w：输出系统交换活动信息
+
+
+		----------------------------------netstat---------------------------------------------------------            
+		A机器上查看本地ipv4的监听端口
+		 
+		netstat参数解释：
+		-l  (listen) 仅列出 Listen (监听) 的服务
+		-t  (tcp) 仅显示tcp相关内容
+		-n (numeric) 直接显示ip地址以及端口，不解析为服务名或者主机名
+		-p (pid) 显示出socket所属的进程PID 以及进程名字
+		--inet 显示ipv4相关协议的监听
+		 
+		查看IPV4端口上的tcp的监听
+		netstat -lntp --inet
+
+		[root@A ~]# netstat   -lntp    --inet
+
+		-----------------------------tcpdum------------------------------------------------------
+
+		tcpdump命令是一款sniffer工具，它可以打印所有经过网络接口的数据包的头信息，也可以使用-w选项将数据包保存到文件中，方便以后分析。
+
+		语法
+		tcpdump(选项)
+		选项
+		-a：尝试将网络和广播地址转换成名称；
+		-c<数据包数目>：收到指定的数据包数目后，就停止进行倾倒操作；
+		-d：把编译过的数据包编码转换成可阅读的格式，并倾倒到标准输出；
+		-dd：把编译过的数据包编码转换成C语言的格式，并倾倒到标准输出；
+		-ddd：把编译过的数据包编码转换成十进制数字的格式，并倾倒到标准输出；
+		-e：在每列倾倒资料上显示连接层级的文件头；
+		-f：用数字显示网际网络地址；
+		-F<表达文件>：指定内含表达方式的文件；
+		-i<网络界面>：使用指定的网络截面送出数据包；
+		-l：使用标准输出列的缓冲区；
+		-n：不把主机的网络地址转换成名字；
+		-N：不列出域名；
+		-O：不将数据包编码最佳化；
+		-p：不让网络界面进入混杂模式；
+		-q ：快速输出，仅列出少数的传输协议信息；
+		-r<数据包文件>：从指定的文件读取数据包数据；
+		-s<数据包大小>：设置每个数据包的大小；
+		-S：用绝对而非相对数值列出TCP关联数；
+		-t：在每列倾倒资料上不显示时间戳记；
+		-tt： 在每列倾倒资料上显示未经格式化的时间戳记；
+		-T<数据包类型>：强制将表达方式所指定的数据包转译成设置的数据包类型；
+		-v：详细显示指令执行过程；
+		-vv：更详细显示指令执行过程；
+		-x：用十六进制字码列出数据包资料；
+		-w<数据包文件>：把数据包数据写入指定的文件。
+
+		-----------------------nmap -------------------------------------------------------------------------------------
+		nmap是一款非常实用的扫描工具，适用于linux、windows、mac三大主流平台。 
+		$wget http://nmap.org/dist/nmap-7.01.tar.bz2
+		$tar -xvf nmap-7.01.tar.bz2 
+		1
+		进入解压后的文件夹，取得root权限，执行#./configure,若报错“configure: error: no acceptable C compiler found in $PATH”，说明未安装gcc，gcc安装命令为#yum install gcc. 
+		执行#make 若报错“-bash: make: command not found”，则执行#yum install g++或#yum install gcc-c++安装gcc。 
+		执行#make install安装软件。 
+		检测是否安装成功：#nmap -v
+
+		至此，安装完成。下面，来讨论nmap软件的基本用法： 
+		扫描特定主机：#nmap 192.168.1.2 
+		扫描整个子网：#nmap 192.168.1.1/24 
+		扫描多个目标：#nmap 192.168.1.2 192.168.1.5 
+		扫描一个范围内主机：#nmap 192.168.1.1-100 (扫描IP地址为192.168.1.1-192.168.1.100内的所有主机) 
+		向目标发送两个ping数据包：#nmap -sn -PE -c 2 --send-ip 192.168.1.1
+
+
+		-----------------ipperf---------------------------------------------------------------
+		yum install iperf  -- 网络传输速度测试
+		 iperf  -s -d    #  服务器端
+		 iperf  -c  ip     #  客户端
+
+
+		-------------------------------------iftop ----------------------------------------------------
+		yum  install sysstate -y  安装系统监控统计包
+
+
+		iftop是一款实时流量监控工具,监控TCP/IP连接等,缺点就是无报表功能。必须以root身份才能运行。
+
+		默认是监控第一块网卡的流量
+
+		iftop
+		监控eth1
+
+		iftop -i eth1
+		直接显示IP, 不进行DNS反解析
+
+		iftop -n
+		直接显示连接埠编号, 不显示服务名称:
+
+		iftop -N
+		显示某个网段进出封包流量
+
+		iftop -F 192.168.1.0/24 or 192.168.1.0/255.255.255.0
+		 
+
+		基于实例讲解输出含义
+
+		执行iftop -N -n -i eth1后界面为
+		-----------------------ifstat----------------------------------------------------------
+		ifstat
+
+		-l 监测环路网络接口（lo）。缺省情况下，ifstat监测活动的所有非环路网络接口。经使用发现，加上-l参数能监测所有的网络接口的信息，而不是只监测 lo的接口信息，也就是说，加上-l参数比不加-l参数会多一个lo接口的状态信息。
+		-a 监测能检测到的所有网络接口的状态信息。使用发现，比加上-l参数还多一个plip0的接口信息，搜索一下发现这是并口（网络设备中有一 个叫PLIP (Parallel Line Internet Protocol). 它提供了并口...）
+		-z 隐藏流量是无的接口，例如那些接口虽然启动了但是未用的
+		-i 指定要监测的接口,后面跟网络接口名
+		-s 等于加-d snmp:[comm@][#]host[/nn]] 参数，通过SNMP查询一个远程主机
+		-h 显示简短的帮助信息
+		-n 关闭显示周期性出现的头部信息（也就是说，不加-n参数运行ifstat时最顶部会出现网络接口的名称，当一屏显示不下时，会再一次出现接口的名称，提示我们显示的流量信息具体是哪个网络接口的。加上-n参数把周期性的显示接口名称关闭，只显示一次）
+		-t 在每一行的开头加一个时间 戳（能告诉我们具体的时间）
+		-T 报告所有监测接口的全部带宽（最后一列有个total，显示所有的接口的in流量和所有接口的out流量，简单的把所有接口的in流量相加,out流量相 加）
+		-w  用指定的列宽，而不是为了适应接口名称的长度而去自动放大列宽
+		-W 如果内容比终端窗口的宽度还要宽就自动换行
+		-S 在同一行保持状态更新（不滚动不换行）注：如果不喜欢屏幕滚动则此项非常方便，与bmon的显示方式类似
+		-b 用kbits/s显示带宽而不是kbytes/s
+		-q 安静模式，警告信息不出现
+		-v 显示版本信息
+		-d 指定一个驱动来收集状态信息
+
+		-------------------------工具------nc ---------------------------
+		Linux nc命令用法收集 全称是netcat。  
+		ps.ubuntu自带的nc是netcat-openbsd版,不带-c/-e参数。
+		pss.在线Markdown编辑器的bug是怎么回事...“#”号依然显示着
+		##参数
+		想要连接到某处: nc [-options] hostname port[s] [ports] …
+		绑定端口等待连接: nc -l port [-options] [hostname] [port]
+
+		-g<网关>：设置路由器跃程通信网关，最多设置8个;
+		-G<指向器数目>：设置来源路由指向器，其数值为4的倍数;
+		-h：在线帮助;
+		-i<延迟秒数>：设置时间间隔，以便传送信息及扫描通信端口;
+		-l：使用监听模式，监控传入的资料;
+		-n：直接使用ip地址，而不通过域名服务器;
+		-o<输出文件>：指定文件名称，把往来传输的数据以16进制字码倾倒成该文件保存;
+		-p<通信端口>：设置本地主机使用的通信端口;
+		-r：指定源端口和目的端口都进行随机的选择;
+		-s<来源位址>：设置本地主机送出数据包的IP地址;
+		-u：使用UDP传输协议;
+		-v：显示指令执行过程;
+		-w<超时秒数>：设置等待连线的时间;
+		-z：使用0输入/输出模式，只在扫描通信端口时使用。
+		1、TCP端口扫描
+
+		# nc -v -z -w2 127.0.0.1 1-100
+		Connection to 127.0.0.1 22 port [tcp/ssh] succeeded!
+		Connection to 127.0.0.1 53 port [tcp/domain] succeeded!
+		Connection to 127.0.0.1 80 port [tcp/http] succeeded!
+		...
+		nc: connect to 127.0.0.1 port 100 (tcp) failed: Connection refused
+		2、从192.168.1.2拷贝文件到192.168.1.3
+
+		首先在接收端192.168.1.3上： nc -l 1234 > test.txt
+
+		然后在发送端192.168.1.2上： nc 192.168.1.3 < test.txt
+
+		注意：先运行接收端，指定一个端口为1234，文件为test.txt，再执行发送端，并且发送端必须存在同名的文件test.txt
+
+		3、传输目录
+
+		从server1(192.168.16.233)拷贝nginx目录内容到server2(192.168.48.47)上。需要先在server2上，用nc激活监听，
+
+		server2上运行:# nc -l 1234 | tar xzv-
+
+		server1上运行:# tar czv- nginx | nc 192.168.48.47 1234 
+
+		4、简单聊天工具
+
+		在192.168.1.2上： nc -l 1234
+
+		在192.168.1.3上： nc 192.168.1.2 1234
+
+		这样，双方就可以相互交流了。使用ctrl+C(或D）退出
+
+
+		------------------------------------------------rsync---------------------------------------------------
+		rsync 
+			rsync [OPTION]... SRC DEST
+			rsync [OPTION]... SRC [USER@]host:DEST
+			rsync [OPTION]... [USER@]HOST:SRC DEST
+			rsync [OPTION]... [USER@]HOST::SRC DEST
+			rsync [OPTION]... SRC [USER@]HOST::DEST
+			rsync [OPTION]... rsync://[USER@]HOST[:PORT]/SRC [DEST]
+				-v, --verbose 详细模式输出。
+				-q, --quiet 精简输出模式。
+				-c, --checksum 打开校验开关，强制对文件传输进行校验。
+				-a, --archive 归档模式，表示以递归方式传输文件，并保持所有文件属性，等于-rlptgoD。
+				-r, --recursive 对子目录以递归模式处理。
+				-R, --relative 使用相对路径信息。
+				-b, --backup 创建备份，也就是对于目的已经存在有同样的文件名时，将老的文件重新命名为~filename。可以使用--suffix选项来指定不同的备份文件前缀。
+				--backup-dir 将备份文件(如~filename)存放在在目录下。
+				-suffix=SUFFIX 定义备份文件前缀。
+				-u, --update 仅仅进行更新，也就是跳过所有已经存在于DST，并且文件时间晚于要备份的文件，不覆盖更新的文件。
+				-l, --links 保留软链结。
+				-L, --copy-links 想对待常规文件一样处理软链结。
+				--copy-unsafe-links 仅仅拷贝指向SRC路径目录树以外的链结。
+				--safe-links 忽略指向SRC路径目录树以外的链结。
+				-H, --hard-links 保留硬链结。
+				-p, --perms 保持文件权限。
+				-o, --owner 保持文件属主信息。
+				-g, --group 保持文件属组信息。
+				-D, --devices 保持设备文件信息。
+				-t, --times 保持文件时间信息。
+				-S, --sparse 对稀疏文件进行特殊处理以节省DST的空间。
+				-n, --dry-run现实哪些文件将被传输。
+				-w, --whole-file 拷贝文件，不进行增量检测。
+				-x, --one-file-system 不要跨越文件系统边界。
+				-B, --block-size=SIZE 检验算法使用的块尺寸，默认是700字节。
+				-e, --rsh=command 指定使用rsh、ssh方式进行数据同步。
+				--rsync-path=PATH 指定远程服务器上的rsync命令所在路径信息。
+				-C, --cvs-exclude 使用和CVS一样的方法自动忽略文件，用来排除那些不希望传输的文件。
+				--existing 仅仅更新那些已经存在于DST的文件，而不备份那些新创建的文件。
+				--delete 删除那些DST中SRC没有的文件。
+				--delete-excluded 同样删除接收端那些被该选项指定排除的文件。
+				--delete-after 传输结束以后再删除。
+				--ignore-errors 及时出现IO错误也进行删除。
+				--max-delete=NUM 最多删除NUM个文件。
+				--partial 保留那些因故没有完全传输的文件，以是加快随后的再次传输。
+				--force 强制删除目录，即使不为空。
+				--numeric-ids 不将数字的用户和组id匹配为用户名和组名。
+				--timeout=time ip超时时间，单位为秒。
+				-I, --ignore-times 不跳过那些有同样的时间和长度的文件。
+				--size-only 当决定是否要备份文件时，仅仅察看文件大小而不考虑文件时间。
+				--modify-window=NUM 决定文件是否时间相同时使用的时间戳窗口，默认为0。
+				-T --temp-dir=DIR 在DIR中创建临时文件。
+				--compare-dest=DIR 同样比较DIR中的文件来决定是否需要备份。
+				-P 等同于 --partial。
+				--progress 显示备份过程。
+				-z, --compress 对备份的文件在传输时进行压缩处理。
+				--exclude=PATTERN 指定排除不需要传输的文件模式。
+				--include=PATTERN 指定不排除而需要传输的文件模式。
+				--exclude-from=FILE 排除FILE中指定模式的文件。
+				--include-from=FILE 不排除FILE指定模式匹配的文件。
+				--version 打印版本信息。
+				--address 绑定到特定的地址。
+				--config=FILE 指定其他的配置文件，不使用默认的rsyncd.conf文件。
+				--port=PORT 指定其他的rsync服务端口。
+				--blocking-io 对远程shell使用阻塞IO。
+				-stats 给出某些文件的传输状态。
+				--progress 在传输时现实传输过程。
+				--log-format=formAT 指定日志文件格式。
+				--password-file=FILE 从FILE中得到密码。
+				--bwlimit=KBPS 限制I/O带宽，KBytes per second。
+				-h, --help 显示帮助信息。
+				
+		服务器： systemctl start rsyncd.conf
+		chmod 600 /etc/rsyncd.passwd  --密码文件必须设置600权限
+		--------------------------------------------------------------------------------------------------
+		xargs  :   将管道符之前的命令执行的结果，作为arges 之后的输入参数
+		ls *.txt | xargs -n1 -i{} mv {} {}_bak  -- 批量改名
+
+								  类似for循环 -n1 代表逐一对象进行处理 -i{} 代表前面的对象
+		-----------------------------------------------------------------------------------------------------
+		find  + exec  组合使用
+						-exec 必须由一个 ; 结束，而因为通常 shell 都会对 ; 进行处理，所以用 \; 防止这种情况。 
+						{} 可能需要写做 '{}'，也是为了避免被 shell 过滤
+
+						find ./ -type f -exec grep iceskysl {} /dev/null \; 
+		=======================================================
+		screen  : 在一个终端打开多个会话：
+		screen  -ls
+		screen -r  [screen_no]
+		切换：  ctrl+A+D  
+		退出：　ctrl+D 或 exit
+		=======================================================
+		nohup - 后台运行
+		=======================================================
+		jobs -l 显示任务
+		fg -调入前台
+		bg -调入后天
+		ctrl+Z  暂停运行
+		
+		
                             
 12  文件命令
         locate 
@@ -732,6 +1192,8 @@
 		export  LANG=zh_CN.UTF-8
 	source /etc/profile
 	
+	
+	
 	环境变量：
 	export
 		export  查看环境变量
@@ -739,6 +1201,35 @@
 	设置用户启动环境
 		/etc/profile.d/xxx.sh
 			export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+			
+			
+	
+-------------------------------------------------------------------nohup-------------------------------------------------
+nohup 
+如果你正在运行一个进程，而且你觉得在退出帐户时该进程还不会结束，那么可以使用nohup命令。
+该命令可以在你退出帐户之后继续运行相应的进程。nohup就是不挂起的意思( no hang up)。 
+该命令的一般形式为： nohup conmmand &
+
+如果使用nohup命令提交作业，那么在缺省情况下该作业的所有输出都被重定向到一个名为nohup.out的文件中，除非另外指定了输出文件：
+nohup command > myout.file 2>&1 
+在上面的例子中，输出被重定向到myout.file文件中。
+
+1>/data/kafka/log/kafka.out 2>&1 &表示后台启动，将标准输出和错误输出到kafka.out文件
+
+command >out.file 2>&1 &
+在上面的例子中，2>&1表示所有的标准输出和错误输出都将被重定向到一个叫做out.file 的文件中。
+----------------------------------------------------------------------------------
+egrep -v '^?#|^$' /etc/logstash/logstash.conf 查看除空行和#开头的文件内容。
+grep -Ev '^?#|^$' /etc/logstash/logstash.conf 查看除空行和#开头的文件内容。
+
+grep -v "^#" /etc/rsyslog.conf | grep -v "^$"   - 查看除空行和#开头的文件内容。
+
+
+
+--------------------------------------------------- grep 用法-----------------------------------------------------------------------
+grep  -v '#' 　/etc/redis.conf | grep -v '^$'     --- 查看不以#开头， 不是空行的文件内容
+
+		
 	
 19  ss
             所属软件包：iproute
@@ -995,6 +1486,8 @@ pipework:
     ip address show
 	
 	
+	
+	
 docker pull jenkins    
 chmod 777 -R  /root/jenkins
 docker run -p 8080:8080 -p 50000:50000 -v /root/jenkins:/var/jenkins_home jenkins
@@ -1005,40 +1498,40 @@ docker pull gitlab/gitlab-ce
 wget https://raw.githubusercontent.com/sameersbn/docker-gitlab/master/docker-compose.yml
 docker-compose up
 
-			Start GitLab using:
+Start GitLab using:
 
-			docker-compose up
-			Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
+docker-compose up
+Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
 
-			Step 1. Launch a postgresql container
+Step 1. Launch a postgresql container
 
-			docker run --name gitlab-postgresql -d \
-				--env 'DB_NAME=gitlabhq_production' \
-				--env 'DB_USER=gitlab' --env 'DB_PASS=password' \
-				--env 'DB_EXTENSION=pg_trgm' \
-				--volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
-				sameersbn/postgresql:9.6-2
-			Step 2. Launch a redis container
+docker run --name gitlab-postgresql -d \
+--env 'DB_NAME=gitlabhq_production' \
+--env 'DB_USER=gitlab' --env 'DB_PASS=password' \
+--env 'DB_EXTENSION=pg_trgm' \
+--volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
+sameersbn/postgresql:9.6-2
+Step 2. Launch a redis container
 
-			docker run --name gitlab-redis -d \
-				--volume /srv/docker/gitlab/redis:/var/lib/redis \
-				sameersbn/redis:latest
-			Step 3. Launch the gitlab container
+docker run --name gitlab-redis -d \
+--volume /srv/docker/gitlab/redis:/var/lib/redis \
+sameersbn/redis:latest
+Step 3. Launch the gitlab container
 
-			docker run --name gitlab -d \
-				--link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
-				--publish 10022:22 --publish 10080:80 \
-				--env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
-				--env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
-				--env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
-				--env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
-				--volume /srv/docker/gitlab/gitlab:/home/git/data \
-				sameersbn/gitlab:10.5.6
-			Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
+docker run --name gitlab -d \
+--link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
+--publish 10022:22 --publish 10080:80 \
+--env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+--env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+--env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+--env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+--volume /srv/docker/gitlab/gitlab:/home/git/data \
+sameersbn/gitlab:10.5.6
+Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
 
-			NOTE: Please allow a couple of minutes for the GitLab application to start.
+NOTE: Please allow a couple of minutes for the GitLab application to start.
 
-			Point your browser to http://localhost:10080 and set a password for the root user account
+Point your browser to http://localhost:10080 and set a password for the root user account
 
 
 
@@ -1245,9 +1738,181 @@ docker
 				id:3:initdefault:
 		
 
+
+-----------------------------------------------系统增加硬盘--------设备识别------------------
+
+新增硬盘， 不重启服务器， 识别设备操作如下：
+cd /sys/class/scsi_host
+ll
+host0  host1  host2
+echo "- - -" >  host0/scan
+echo "- - -" >  host1/scan
+echo "- - -" >  host2/scan
+即可在 /dev/中查到新硬件
+
+--------------------------网卡重新启动服务----------------
+vmware  克隆后 网卡可能不好用
+
+
+执行  systemctl  stop NetworkManager
+      systemctl  start NetworkManager
+	
+mwcli  show con
+
+新增加网卡
+
+nmcli  con show - 查看网卡设备名称
+nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
+
+
+centos7   mac 地址冲突解决
+重启 NetworkManager 服务即可。
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+
+--------------------------------------------------lvm -----------------------------
+
+partprobe /dev/sda  -重读分区表
+
+df -TH  查看硬盘空间
+xfs 文件系统 扩容命令： xfs_growfs  
+resize2fs  /dev/centos/root  -文件系统扩容
+
+parted   -查看文件分区 可看文件系统格式
+lsblk  -f  查看文件系统格式
+ll  /dev/sd*
+扩容：
+
+ 1. pvcreate /dev/sdb  新建物理卷
+ vgextend vgname   /dev/sdb  扩展组
+ lvextend -L +3000m /dev/centos/root  扩展逻辑卷
+ resize2fs  /dev/centos/root    ext 文件系统扩容
+ xfs_growfs  /dev/centos/root   xfs 文件系统扩容
+扩容逻辑卷，扩容前需要先unmount后，扩容不影响扩容前磁盘里面的内容
+		lvresize -L 300M /dev/vg1/lv1 #重新设定大小
+		e2fsck -f /dev/vg1/lv1 #检查磁盘错误 （针对ext4执行）
+		resize2fs /dev/vg1/lv1 #更新逻辑卷信息（针对ext4执行）
+xfs扩容，xfs可以不卸载unmount
+	kfs.xfs -f /dev/vg1/lv1 #重新格式化成xfs
+	mount  /dev/vg1/lv1 /mnt
+	lvs #查看大小
+	lvresize -L 400M /dev/vg1/lv1 #重新设定大小
+	xfs_growfs  /dev/vg1/lv1 #xfs文件系统需要执行，需要先挂载
+df -h #扩容成功
+
+
+ pvdisplay
+ pvcreate
+ pvs
+ pvscan
+ lvcreate
+ lvdisplay
+ lvs
+ lvscan
+	1、 物理卷命令
+		一般维护命令：
+		pvscan #在系统的所有磁盘中搜索已存在的物理卷
+		pvdisplay 物理卷全路径名称 #用于显示指定物理卷的属性。
+		pvdata 物理卷全路径名称 #用于显示物理卷的卷组描述区域信息，用于调试目的。
+		pvchange Cx|--allocation {y|n} 物理卷全路径名 #用于改变物理卷的分配许可设置物理卷的创建与删除命令
+		pvcreate 设备全路径名 #用于在磁盘或磁盘分区上创建物理卷初始化信息，以便对该物理卷进行逻辑卷管理。
+		pvmove 源物理卷全路径我[目的物理卷全路径名] #用于把某物理卷中的数据转移到同卷组中其他的特刊卷中。
+
+		2、 卷组命令
+		一般维护命令
+		vgscan #检测系统中所有磁盘
+		vgck [卷组名] #用于检查卷组中卷组描述区域信息的一致性。
+		vgdisplay [卷组名] #显示卷组的属性信息
+		vgrename 原卷组名 新卷组名
+		vgchange -a y|n [卷组名] #改变卷组的相应属性。是否可分配
+		vgchange -l 最大逻辑卷数 #卷组可容纳最大逻辑卷数
+		vgchange -x y|n [卷组名] #卷是否有效
+		vgmknodes [卷组名|卷组路径] #用于建立（重新建立）已有卷组目录和其中的设备文件卷组配置的备份与恢复命令
+		vgcfgbackup [卷组名] #把卷组中的VGDA信息备份到“/etc/lvmconf”目录中的文件
+		vgcfgrestore -n 卷组名 物理卷全路命名 #从备份文件中必得指定物理卷的信息卷组的建立与删除命令
+		vgcreate 卷组名 物理卷全路径名[物理卷全路径名]
+		vgmove 卷组名
+
+		卷组的扩充与缩小命令
+		vgextend 卷组名 物理卷全路径名[物理卷全路径名]
+		vgreduce 卷组名 物理卷全路径名[物理卷全路径名]
+
+		卷组的合并与拆分
+		vgmerge 目的卷组名 源卷组名 #合并两个已经存在的卷组，要求两个卷组的物理区域大小相等且源卷组是非活动的。
+		vgsplit 现有卷组 新卷组 物理卷全路径名[物理卷全路径名]
+
+		卷组的输入与输出命令
+		vgexport 卷组名
+		vgimport 卷组名 卷组中的物理卷[卷组中的物理卷]
+
+		3、 逻辑卷命令
+		一般命令
+		lvscan
+		lvdisplay 逻辑卷全路径名[逻辑卷全路径名]
+		lvrename 旧逻辑卷全路径名 新逻辑卷全路径名
+		lvrename 卷组名 旧逻辑卷名 新逻辑卷名
+		lvchange
+		e2fsadm -L +|- 逻辑卷增减量 逻辑卷全路径名
+
+		逻辑卷的创建与删除命令
+		lvcreate
+		lvremove
+
+		逻辑卷的扩充与缩小命令
+		lvextend -L|--size +逻辑卷大小增量 逻辑卷全路径名
+		lvreduce q -L|--size +逻辑卷减小量 逻辑卷全路径名
+
+		4、 逻辑卷管理命令
+		lvmdiskscan #检测所有的SCSI、IDE等存储设备
+		lvmchange -R|--reset #复位逻辑卷管理器
+		lvmsadc [日志文件全路径名] #收信逻辑卷管理器读写统计信息，保存到日志文件中。
+lvmsar 日志文件全路径名 #从lvmsadc命令生成的日志文件中读取并报告逻辑卷管理器的读写统计信息。
+
+  
+ 
+--------------------------------------------quota  -文件配额工具---------------------------------------------------------------
+ quota命令用于显示用户或者工作组的磁盘配额信息。输出信息包括磁盘使用和配额限制。
+语法
+
+quota(选项)(参数)
+
+选项
+
+-g：列出群组的磁盘空间限制；
+-q：简明列表，只列出超过限制的部分；
+-u：列出用户的磁盘空间限制；
+-v：显示该用户或群组，在所有挂入系统的存储设备的空间限制；
+-V：显示版本信息。  
+  		
 		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		
-				
 docker 监控：
 		容器准备：
 		docker  pull tutum/influxdb
@@ -2429,89 +3094,6 @@ docker images | grep dns  | awk '{print $3}'
 docker rmi $(docker images | grep dns  | awk '{print $3}')
 
 
-docker安装：
 
-Kubernetes 1.6还没有针对docker 1.13和最新的docker 17.03上做测试和验证，所以这里安装Kubernetes官方推荐的Docker 1.12版本。
-
-#查看docker版本
-yum list docker-engine –showduplicates
-#安装docker
-yum install -y docker-engine-1.12.6-1.el7.centos.x86_64
-
-
-cat  > /etc/docker/daemon.json <<EOF
-{
-"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
-}
-EOF
-
-
-setenforce 0
-sed -i's/SELINUX=enforcing/SELINUX=disabled/g'/etc/sysconfig/selinux
-
-
-
-kubernetes安装：
-
-#查看版本
-yum list kubeadm –showduplicates
-yum list kubernetes-cni –showduplicates
-yum list kubelet –showduplicates
-yum list kubectl –showduplicates
-
-kubeadm init \
---kubernetes-version=v1.8.1 \
---pod-network-cidr=10.244.0.0/16
-
-
-export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
-export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
-kubeadm init --apiserver-advertise-address=172.16.120.151 --kubernetes-version=v1.7.2 --pod-network-cidr=10.244.0.0/12
-
-
-
-为了使用kubectl访问apiserver，在~/.bash_profile中追加下面的环境变量：
-echo "exportKUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
-source /etc/profile
-
-
-kubectl --namespace kube-system apply -f https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
-rm -rf kube-flannel.yml
-wget https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel.yml
-sed -i 's/quay.io\/coreos\/flannel:v0.8.0-amd64/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel:v0.8.0-amd64/g' ./kube-flannel.yml
-
-
-
-
-
-https://raw.githubusercontent.com/coreos/flannel/v0.9.0/Documentation/kube-flannel.yml
-https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel.yml
-https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
-
-Master Isolation
-由于安全原因，默认情况下pod不会被schedule到master节点上，可以通过下面命令解除这种限制：kubectl taint nodes --all node-role.kubernetes.io/master
-
-kubectl taint nodes --all node-role.kubernetes.io/master-
-node "bjo-ep-dep-039.dev.fwmrm.net" untainted
-
-
-export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
-export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
-kubeadm join --token 242b80.86d585ebd6358b08 172.16.120.151:6443 --skip-preflight-checks
-
-
-apiVersion: v1
-kind: Pod
-metadata:
-name: busybox
-namespace: default
-spec:
-containers:
-- image: busybox
-command:
-- sleep
-- "3600"
-name: busybox
-restartPolicy: Always
 
 
