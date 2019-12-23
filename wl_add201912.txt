@@ -393,6 +393,32 @@ EOF
 source  /etc/profile.d/tomcat.sh
 /usr/local/tomcat/bin/startup.sh  -启动tomcat
 
+************************** tomcat  测试代码************************************
+vi  test.jsp
+<%@ page contentType="text/html;charset=utf-8"%>
+<%@ page import="java.sql.*"%>
+<html>
+<body>
+<%
+Class.forName("org.gjt.mm.mysql.Driver").newInstance();
+String url ="jdbc:mysql://db/tomcat?user=tomcat&password=tomcat&useUnicode=true&characterEncoding=utf-8";
+Connection conn= DriverManager.getConnection(url);
+Statement stmt=conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+String sql="select * from tt";
+ResultSet rs=stmt.executeQuery(sql);
+while(rs.next()){%>
+step:<%=rs.getString(1)%>
+context:<%=rs.getString(2)%><br><br>
+<%}%>
+<%out.print("Congratulations!!! JSP connect MYSQL IS OK!!");%>
+<%rs.close();
+stmt.close();
+conn.close();
+%>
+</body>
+</html>
+
+
 *************************************************mysql  ***************************************************
 ==================  mysql57 ==============================
 YUM安装mysql57-server:
@@ -748,7 +774,7 @@ def application(env, start_response):
     return [b"Hello World"]
 
 测试：
-uwsgi –http :8001 –wsgi-file test.py
+uwsgi –http :8001 –wsgi-file test.p
 	添加并发和监控
 	默认情况下，uWSGI 启动一个单一的进程和一个单一的线程。
 	你可以用 --processes 选项添加更多的进程，或者使用 --threads 选项添加更多的线程 ，也可以两者同时使用。
@@ -1016,6 +1042,7 @@ python3 manage.py migrate WxModel   # 创建表结构
 另外还缺少一个Pillow的库，是要使用ImageField类型的字段需要的一个图形库，使用pip安装
 
 pip3 install Pillow
+pip3  install -i http://mirrors.aliyun.com/pypi/simple/  pymysql
  
 
 重启nginx和uwsgi后成功
@@ -1646,27 +1673,190 @@ rm -rf /var/etcd
 
 ==============================================        k8s V1.17    end.          ===================================	
 
-************************** tomcat  测试代码************************************
-vi  test.jsp
-<%@ page contentType="text/html;charset=utf-8"%>
-<%@ page import="java.sql.*"%>
-<html>
-<body>
-<%
-Class.forName("org.gjt.mm.mysql.Driver").newInstance();
-String url ="jdbc:mysql://db/tomcat?user=tomcat&password=tomcat&useUnicode=true&characterEncoding=utf-8";
-Connection conn= DriverManager.getConnection(url);
-Statement stmt=conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-String sql="select * from tt";
-ResultSet rs=stmt.executeQuery(sql);
-while(rs.next()){%>
-step:<%=rs.getString(1)%>
-context:<%=rs.getString(2)%><br><br>
-<%}%>
-<%out.print("Congratulations!!! JSP connect MYSQL IS OK!!");%>
-<%rs.close();
-stmt.close();
-conn.close();
-%>
-</body>
-</html>
+
+
+
+-----------------------docker--------influxdb+cadvisor+grafana--------------------------------------
+docker  监控：
+1.镜像准备
+docker.io/tutum/influxdb
+docker.io/google/cadvisor
+docker.io/grafana/grafana
+2. docker  run  -d -p 8086:8086 -v ~/influxdb:/var/lib/influxdb --name influxdb  tutum/influxdb
+docker exec -ti influxdb  influx  --进行influxdb 数据库
+create database 'test'
+create user "root" with password 'password' with all privileges
+quit
+
+docker  run -d -v /:/rootfs  -v /var/run:/var/run -v /sys:/sys \
+-v /var/lib/docker:/var/lib/docker  \
+--volume /cgroup:/cgroup:ro \
+--privileged=true  \
+--link=influxdb:influxdb --name cadvisor google/cadvisor \
+--storage_driver=influxdb  \
+--storage_driver_host=influxdb:8086 \
+--storage_driver_db=test \
+--storage_driver_user=root \
+--storage_driver_password=password
+3. docker run -d -p 5000:3000 -v ~/grafana:/var/lib/grafana \
+--link=influxdb:influxdb \
+--name grafana  grafana/grafana
+4. 打开localhost:5000来访问grafana的web服务
+login: admin  admin
+
+
+---------------------------docker------------zabbix  -------------------------------------
+docker pull busybox
+docker pull  monitoringartist/zabbix-xxl
+docker pull monitoringartist/zabbix-db-mariadb
+
+# create /var/lib/mysql as persistent volume storage
+docker run -d -v /var/lib/mysql --name zabbix-db-storage busybox:latest
+
+# start DB for Zabbix - default 1GB innodb_buffer_pool_size is used
+docker run \
+-d \
+--name zabbix-db \
+-v /backups:/backups \
+-v /etc/localtime:/etc/localtime:ro \
+--volumes-from zabbix-db-storage \
+--env="MARIADB_USER=zabbix" \
+--env="MARIADB_PASS=my_password" \
+monitoringartist/zabbix-db-mariadb
+
+# start Zabbix linked to started DB
+docker run \
+-d \
+--name zabbix \
+-p 80:80 \
+-p 10051:10051 \
+-v /etc/localtime:/etc/localtime:ro \
+--link zabbix-db:zabbix.db \
+--env="ZS_DBHost=zabbix.db" \
+--env="ZS_DBUser=zabbix" \
+--env="ZS_DBPassword=my_password" \
+monitoringartist/zabbix-xxl
+
+
+
+默认账号：Admin，密码：zabbix，这是一个超级管理员
+
+
+# Backup of DB Zabbix - configuration data only, no item history/trends
+docker exec \
+-ti zabbix-db \
+/zabbix-backup/zabbix-mariadb-dump -u zabbix -p my_password -o /backups
+
+# Full backup of Zabbix DB
+docker exec \
+-ti zabbix-db \
+bash -c "\
+mysqldump -u zabbix -pmy_password zabbix | \
+bzip2 -cq9 > /backups/zabbix_db_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.bz2"
+
+# Restore Zabbix DB
+# remove zabbix server container
+docker rm -f zabbix
+# restore data from dump (all current data will be dropped!!!)
+docker exec -i zabbix-db sh -c 'bunzip2 -dc /backups/zabbix_db_dump_2016-05-25-02.57.46.sql.bz2 | mysql -uzabbix -p --password=my_password zabbix'
+# run zabbix server again
+---------------------docker --------------------- grafana ------------------------------------------------------
+
+
+# create /var/lib/grafana as persistent volume storage
+docker run -d -v /var/lib/grafana --name grafana-xxl-storage busybox:latest
+
+# start grafana-xxl
+docker run \
+  -d \
+  -p 3000:3000 \
+  --name grafana-xxl \
+  -e UPGRADEALL=false \
+  --volumes-from grafana-xxl-storage \
+  monitoringartist/grafana-xxl:latest
+
+docker run -d --name=grafana-xxl -p 3000:3000 -e UPGRADEALL=false monitoringartist/grafana-xxl
+
+http://xxx.xxx.xxx.xxx:3000
+默认账号 admin，密码：admin，这是一个超级管理员
+
+-----------------------docker----------------prometheus- -----------------------------------------------------------
+prometheus：
+tar xvfz prometheus-*.tar.gz
+cd prometheus-*
+
+prometheus.yml:
+		global:
+		  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+		  # Attach these labels to any time series or alerts when communicating with
+		  # external systems (federation, remote storage, Alertmanager).
+		  external_labels:
+			monitor: 'codelab-monitor'
+
+		# A scrape configuration containing exactly one endpoint to scrape:
+		# Here it's Prometheus itself.
+		scrape_configs:
+		  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+		  - job_name: 'prometheus'
+
+			# Override the global default and scrape targets from this job every 5 seconds.
+			scrape_interval: 5s
+
+			static_configs:
+			  - targets: ['localhost:9090']
+
+# Start Prometheus.
+# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+./prometheus --config.file=prometheus.yml
+
+docker run -p 9090:9090 -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml \
+       prom/prometheus
+
+Or use an additional volume for the config:
+
+docker run -p 9090:9090 -v /prometheus-data \
+       prom/prometheus --config.file=/prometheus-data/prometheus.yml
+	   
+	   
+*************************  sqlalchemy  ******************************************
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+engine = create_engine(
+    'mysql+pymysql://root:pass@192.168.1.64/db1', encoding='utf-8')
+Base = declarative_base()
+
+
+class user(Base):
+    __tablename__ = 'user1'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    age = Column(Integer)
+	
+# Base.metadata.create_all(engine)  #  生成表机构
+--------------------------------------------------------------------------
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from  sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, UniqueConstraint, Index
+
+engine = create_engine("mysql+pymysql://root:pass@192.168.1.64/db1",encoding='utf-8')
+Base = declarative_base()
+session_class=sessionmaker(bind=engine)
+session=session_class()
+class user(Base):
+    __tablename__ = 'user1'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    age = Column(Integer)
+    
+user2=user(name='wanglong',age=55)
+user3=user(name='ww',age=12)
+session.add(user2)
+session.add(user3)
+session.commit()
+session.close()
+--------------------------------------------------------------
