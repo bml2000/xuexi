@@ -1,0 +1,2277 @@
+
+python  更改  递归层数
+sys.setrecursionlimit（xxx）     设置递归xxx-数量级数
+
+
+
+Markdown All in One 这个插件有着非常强大的 Markdown 文档辅助编写功能，下面我来一一介绍。
+
+快捷键
+快捷键	操作
+Ctrl + B	加粗
+Ctrl + I	斜体
+Alt + S	删除线
+Alt + C	勾选/取消勾选任务清单项目
+Ctrl + M	开启 LaTeX 数学公式编写
+Markdown All in One 内置有上表所示的快捷键，我们可以直接利用快捷键将文字赋予格式、或进行某种操作，非常方便。
+
+
+
+https://www.typora.io/
+typora  for linux
+
+
+
+# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA300B7755AFCFAE
+wget -qO - https://typora.io/linux/public-key.asc | sudo apt-key add -
+# add Typora's repository
+sudo add-apt-repository 'deb https://typora.io/linux ./'
+sudo apt-get update
+# install typora
+sudo apt-get install typora
+
+***
+
+
+
+___
+# markdown  
+## 语法
+1. 标题
+2. # 一级
+3. ## 二级
+4. ### 三级
+5. 字体
+6. **加粗**
+7. *斜体*
+8. ~~删除~~
+9. 引用 
+    > 引用
+    >>引用2
+            
+10. 无序
+     * abc
+        + efg
+
+11. 有序
+    1. abc
+    2. efg
+       1. efg
+       2. 
+    
+12. 分隔符
+    ***
+    ---
+13. 单行
+    
+    ~单行程序块~
+
+14. 程序块
+    ~~~ 
+    代码段
+    ~~~
+
+***
+# json
+~~~
+1. 对象使用{}
+   ｛ "lastname": "jon"  ｝
+2. **键必须是字符串**
+3. 键和值由：分割
+4. 值可以是对象、数组、字符串、数字 或 true, flash,null 
+5. 多个键逗号， 隔开
+6. 数组 []
+7. 可有层级
+~~~
+***
+# yaml
+
+	区分大小写；
+	使用缩进表示层级关系；
+	使用空格键缩进，而非Tab键缩进
+	缩进的空格数目不固定，只需要相同层级的元素左侧对齐；
+	文件中的字符串不需要使用引号标注，但若字符串包含有特殊字符则需用引号标注；
+	注释标识为#
+	2. yaml文件数据结构
+	对象：键值对的集合（简称 "映射或字典"）
+	键值对用冒号 “:” 结构表示，冒号与值之间需用空格分隔
+	数组：一组按序排列的值（简称 "序列或列表"）
+	数组前加有 “-” 符号，符号与值之间需用空格分隔
+	纯量(scalars)：单个的、不可再分的值（如：字符串、bool值、整数、浮点数、时间、日期、null等）
+	None值可用null可 ~ 表示
+
+1. ## 键值对  K: <**1个空格**> V
+2. 空格表示层级
+3. ## 值： 字符串不用引号
+   ~~~
+    " 转义特殊符号。 
+
+    ' 不转义， 直接照样打印~~~
+
+4. ## 对象  ： k 对象；  V 值
+    ~~~
+    friends：
+        lastername: wl
+        age: 22 
+    ~~~
+
+5.  ## 行内写法：
+    firends： {lastername: wl, ege: 22}
+
+6. ## 数组
+   用 - 标识数组中的元素
+    ~~~
+     pets:
+       - cat
+       - dog 
+       - pig
+    ~~~
+    行内写法：
+    ~ pets： [cat,dog,pig]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+test1
+e--------------------------------------代理自动----------------------------------------------------------
+
+data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20c
+mule.xyz";}
+-------------------------
+https://www.fanqiangzhe.com/
+env | grep -i proxy
+export http_proxy=http://xxx:xx  设置代理
+export  https_proxy=https://xxx:xx
+
+取消export 环境变量  noset  http_proxy  即可
+
+------------------------------------------shadowsock----------------------------------------------------
+
+[librehat-shadowsocks]
+name=Copr repo for shadowsocks owned by librehat
+baseurl=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/epel-7-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+
+yum install shadowsocks-qt5
+
+---------------------卸载mariadb--- 安装mysql--------------------------------------------
+1. 当前安装列表
+ rpm -qa | grep mariadb
+2.卸载
+  rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64
+3. wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+rpm -ivh  http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+
+ rpm -ivh mysql-community-release-el7-5.noarch.rpm
+ yum install mysql-server
+ 
+-------------------------------zabbix ------------------------------------------------------
+
+安装zabbix仓库
+[root@docker-1 ~]# rpm -i https://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-1.el7.noarch.rpm
+
+2、安装zabbix
+[root@docker-1 ~]# yum install zabbix-server-mysql zabbix-web-mysql zabbix-agent mariadb-server  -y
+
+3、创建zabbix数据库
+[root@docker-1 ~]# systemctl start mariadb.service
+                mysql_secure_installation  安全设置向导
+[root@docker-1 ~]# mysql -uroot -p
+
+　　MariaDB [(none)]> create database zabbix character set utf8 collate utf8_bin;
+　　MariaDB [(none)]> grant all privileges on zabbix.* to zabbix@localhost identified by ‘11111111‘;
+　　MariaDB [(none)]> flush privileges;
+　　MariaDB [(none)]> quit;
+
+4、初始化数据库
+[root@docker-1 ~]# zcat /usr/share/doc/zabbix-server-mysql-4.0.0/create.sql.gz |mysql -uzabbix -p zabbix
+
+5、配置zabbix服务器的数据库连接密码
+[root@docker-1 ~]# vim /etc/zabbix/zabbix_server.conf
+　　DBPassword=11111111
+
+6、更改zabbix服务器时区
+[root@docker-1 ~]# vim /etc/httpd/conf.d/zabbix.conf
+　　php_value date.timezone Asia/Shanghai
+
+7、启动zabbix相关所有服务
+systemctl start httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+systemctl enable httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+
+8、web界面安装zabbix
+http://server_ip_or_name/zabbix  登陆  Admin  密码： zabbix
+
+9、中文乱码字体
+上传微软雅黑字体并替换DejaVuSans.ttf
+	zabbix  安装 中文黑体字
+	yum install wqy-microhei-fonts
+	cp /usr/share/fonts/wqy-microhei/wqy-microhei.ttc  /usr/share/fonts/dejavu/DejaVuSans.ttf
+
+10、使用ip地址直接访问 (http DocumentRoot)
+[root@docker-1 ~]# vim /etc/httpd/conf/httpd.conf
+　　DocumentRoot "/usr/share/zabbix"
+　　systemctl restart httpd.service
+
+--------------------------yum 安装包保留--------------------------------------------------
+1、修改yum配置文件/etc/yum.conf
+# vi /etc/yum.conf
+[main]
+cachedir=/var/cache/yum/$basearch/$releasever   
+<----安装包存放路径
+keepcache=1 
+<-----改为1，1代表保留安装包
+debuglevel=2
+
+通过yum uodate更新glibc
+#  yum update glibc glibc-devel glibc-common glibc-headers -y
+4、更新结束后，查看缓存目录，并报错所需的rpm包
+# ls /var/cache/yum/x86_64/6/updates/packages/  
+# cp -r  /var/cache/yum/x86_64/6/updates/packages /opt/
+
+OK 大功告成了
+其他服务器就可以通过rpm包直接更新了
+# rpm -Uvh /opt/packages/*.rpm
+
+yum  仅下载， 不安装
+yum install unixODBC --downloadonly --downloaddir=/usr/local/src
+
+yum  install xxx   --downloadonly  --downloaddir=/var/tmp
+
+yum localinstall  ****.rpm
+
+
+yum 安装后保留rmp安装包
+如题：想要在yum安装后不清理安装包，应该怎么做？
+
+可以设置升级后不删除下载的rpm包
+vi /etc/yum.conf
+[main]
+cachedir=/var/cache/yum
+keepcache=0
+
+将 keepcache=0 修改为 keepcache=1， 安装或者升级后，
+
+在目录 /var/cache/yum下就会有下载的 rpm 包
+
+
+------------------------------------------------------------------
+
+yum  install  unzip
+yum  install net-tools   --stress  --压力测试工具  ab  -压力测试工具
+-----------------------------------ssh--------------------------------------------------------
+ssh -安全登陆
+
+ssh-keygen  -t  rsa
+ssh-copy-id   user@192.168.XX
+linux主机之间的：
+1、 生成密钥对儿
+       #ssh-keygen -t rsa
+	   运行结束以后，在 $HOME/.ssh/ 目录下，会新生成两个文件：id_rsa.pub
+      和 id_rsa。前者是你的公钥，后者是你的私钥。再一次强调用户自己的目录（~/.ssh）必须不能有其他人可写的权限， .ssh
+      目录的权限必须是 700, chmod 700 ~/.ssh 必须。否则ssh服务器会拒绝登录。
+
+
+2、 复制密钥至远程主机， 注意是公钥。
+       将密钥保存至服务端用户目录的.ssh/authorized_keys文件中。
+
+       ssh-copy-id [-i pubkey_file] Username@HOST
+       -i 指定公钥所在路径，默认是.ssh/id_rsa.pub文件。
+
+3.   ssh 只允许密钥登陆， 不允许root登陆
+vi　/etc/ssh/sshd_config
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+
+systemctl restart sshd
+
+
+---------------------------禁用 IPV6 --------------------------------------------------------------
+CentOS7中禁用IPV6
+vi /etc/sysctl.conf
+  net.ipv6.conf.all.disable_ipv6 = 1
+  net.ipv6.conf.default.disable_ipv6 = 1
+sysctl -p
+
+
+--------------------------------------------iptables---------------------------
+
+iptables:
+
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport 20:21 -j ACCEPT
+iptables -A INPUT -p tcp --dport 30000:30999 -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type 8  -j ACCEPT
+iptables -A INPUT -m state --state NEW -m tcp -p tcp -s 192.168.1.54  --dport 22 -j ACCEPT
+iptables -A OUTPUT   -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT  
+iptables -A OUTPUT   -p tcp --sport 22  -j ACCEPT 
+iptables -A OUTPUT   -p tcp --sport 20  -j ACCEPT 
+iptables -A OUTPUT  -p icmp  -j ACCEPT
+iptables -A OUTPUT  -d 192.168.1.54 -p tcp --sport 22 -m state --state RELATED,ESTABLISHED -j ACCEPT  
+iptables -P INPUT DROP  
+iptables -P FORWARD DROP  
+iptables -P OUTPUT DROP  
+
+
+[root@centos0176 wl]# iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 10050 -j ACCEPT
+[root@centos0176 wl]# iptables-save
+# Generated by iptables-save v1.4.21 on Tue Oct  9 16:30:00 2018
+*filter
+:INPUT DROP [5:409]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+-A INPUT -s 192.168.1.54/32 -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 20:21 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 30000:30099 -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 10050 -j ACCEPT
+-A OUTPUT -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -p tcp -m tcp --sport 22 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --sport 20:21 -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
+-A OUTPUT -d 192.168.1.54/32 -p tcp -j ACCEPT
+COMMIT
+# Completed on Tue Oct  9 16:30:00 2018
+
+
+------------------------------------vsftp-------------------------------------------
+vsftp:
+yum install wget
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum  install rpel-release
+yum install vsftpd db4-utils
+
+useradd vsftpd -M -s /sbin/nologin #建立Vsftpd服务的宿主用户
+useradd ftpvload -M -s /sbin/nologin 	#建立Vsftpd虚拟宿主用户
+修改vsftpd.conf配置文件
+主要是下面的一些配置：
+
+	anonymous_enable=NO  #设定不允许匿名访问
+	local_enable=YES  #设定本地用户可以访问。注意：主要是为虚拟宿主用户，如果该项目设定为NO那么所有虚拟用户将无法访问。
+	write_enable=YES  #设定可以进行写操作。
+	local_umask=022  #设定上传后文件的权限掩码。
+	anon_upload_enable=NO  #禁止匿名用户上传。
+	anon_mkdir_write_enable=NO  #禁止匿名用户建立目录。
+	dirmessage_enable=YES  #设定开启目录标语功能。
+	xferlog_enable=YES  #设定开启日志记录功能。
+	connect_from_port_20=YES  #设定端口20进行数据连接。
+	chown_uploads=NO  #设定禁止上传文件更改宿主。
+	xferlog_file=/var/log/vsftpd.log . #设定Vsftpd的服务日志保存路径。注意，该文件默认不存在。必须要手动touch出来，并且由于这里更改了Vsftpd的服务宿主用户为手动建立的Vsftpd。必须注意给与该用户对日志的写入权限，否则服务将启动失败。
+	xferlog_std_format=YES  #设定日志使用标准的记录格式。
+	async_abor_enable=YES  #设定支持异步传输功能。
+	ascii_upload_enable=YES 
+	ascii_download_enable=YES  #设定支持ASCII模式的上传和下载功能。
+	ftpd_banner=This Vsftp server supports virtual users ^_^  #设定Vsftpd的登陆标语。
+	chroot_list_enable=NO  #禁止用户登出自己的FTP主目录。
+	ls_recurse_enable=NO  #禁止用户登陆FTP后使用"ls -R"的命令。该命令会对服务器性能造成巨大开销。如果该项被允许，那么当多用户同时使用该命令时将会对该服务器造成威胁。
+	listen=YES  #设定该Vsftpd服务工作在StandAlone模式下。
+	pam_service_name=vsftpd #设定PAM服务下Vsftpd的验证配置文件名。因此，PAM验证将参考/etc/pam.d/下的vsftpd文件配置。
+	userlist_enable=YES  #设定userlist_file中的用户将不得使用FTP。
+	tcp_wrappers=YES  #设定支持TCP Wrappers
+	#以下这些是关于Vsftpd虚拟用户支持的重要配置项目。默认Vsftpd.conf中不包含这些设定项目，需要自己手动添加配置
+	guest_enable=YES  #设定启用虚拟用户功能。
+	guest_username=ftpvload  #指定虚拟用户的宿主用户。
+	virtual_use_local_privs=YES  #设定虚拟用户的权限符合他们的宿主用户。
+	user_config_dir=/etc/vsftpd/vconf #设定虚拟用户个人Vsftp的配置文件存放路径。也就是说，这个被指定的目录里，
+								   将存放每个Vsftp虚拟用户个性的配置文件，一个需要注意的地方就是这些配置文件名必须和虚拟用户名相同。
+    reverse_lookup_enable=NO #禁止反向域名解析，若是没有添加这个参数可能会出现用户登陆较慢，或则客户链接不上ftp的现象
+	allow_writeable_chroot=YES
+	use_localtime=YES 
+	chroot_local_user=YES 
+	pasv_enable=YES
+   pasv_max_port=1500 开启随机最大的端口号
+   pasv_min_port=1000 开启最小端口号
+ 
+
+mkdir /etc/vsftpd/vconf/ -pv  #制作虚拟用户数据库文件
+touch /etc/vsftpd/virtusers #新建一个测试用虚拟用户
+vim /etc/vsftpd/virtusers #编辑这个虚拟用户名单文件，在其中加入用户的用户名和口令信息。格式很简单：“奇数行用户名，偶数行口令”。
+       virtusers文件格式如下：
+ test #用户名
+ test1234 #用户密码
+db_load -T -t hash -f /etc/vsftpd/virtusers /etc/vsftpd/virtusers.db 生成虚拟用户数据文件：
+cp /etc/pam.d/vsftpd /etc/pam.d/vsftpd.backup 编辑Vsftpd的PAM验证配置文件，把原来的配置文件全部注释掉（不注释掉虚拟用户会登录不上），添加如下行
+#vim /etc/pam.d/vsftpd
+auth sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+vi /etc/vsftpd/vconf/user1
+local_root=/opt/vsftp/file
+#指定虚拟用户仓库的具路径
+anonymous_enable=NO
+#设定不允许匿名访问
+write_enable=YES
+#允许写的操作
+local_umask=022
+#上传文件的权限掩码
+anon_upload_enable=NO
+#不允许匿名上传
+anon_mkdir_write_enable=NO
+#不允许匿名用户建立目录
+idle_session_timeout=300
+#设定空闲链接超时时间
+data_connection_timeout=1000
+#设定单次传输最大时间
+max_clients=0
+#设定并发客户端的访问数量
+max_per_ip=0
+#设定客户端的最大线程数
+local_max_rate=0
+#设定用户的最大传输速率，单位b/s
+
+查看selinux 设置上传
+getsebool -a | grep ftpd
+setsebool allow_ftpd_full_access on  #  selinux 
+
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT（允许21端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT（允许20端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 000:9045 -j ACCEPT（设置ftp被动模式的端口范围)
+
+
+后使用 yum install iptables-services 安装或更新服务
+再使用systemctl enable iptables 启动iptables
+最后 systemctl start iptables 打开iptables
+
+
+iptables 配置文件位置： /etc/sysconfig/iptables-config
+ 保存： iptables-save
+ 恢复： iptables-restore
+4个表  -t： filter、nat、mangle、raw 
+5个链： RREROUTING 、INPUT、FORWARD、OUTPUT、POSTROUTING
+动作 -j ：  ACCEPT  DROP  REJECT MASQUERADE
+iptables -I INPUT -p icmp  --icmp-type 8 -j DROP   # 可以ping出， 不许ping 入
+iptables -nvL
+iptables -F  clean
+iptables -P    设置某条规则链的默认动作
+iptables  -P INPUT ACCEPT
+iptables  -P  FORWARD  DROP
+iptables -X  删除用户定义链
+
+
+查看selinux 设置上传
+getsebool -a | grep ftpd
+setsebool allow_ftpd_full_access on  #  selinux 
+
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT（允许21端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT（允许20端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 000:9045 -j ACCEPT（设置ftp被动模式的端口范围)
+
+iptables -F
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+iptables -A INPUT -s 192.168.1.54 -p tcp --dport 22 -m state --state NEW -m connlimit ! --connlimit-above 3 -j ACCEPT  # ssh
+
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -A INPUT -d 192.168.0.176 -p tcp --dport 21 -m state --state NEW -j ACCEPT
+iptables -A INPUT -m state --state RELATED -j ACCEPT
+iptables -A OUTPUT -m state --state RELATED -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20:21 -j ACCEPT
+iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 30000:30999 -j ACCEPT
+
+iptables -nvL
+
+:INPUT DROP [316:24904]
+:FORWARD ACCEPT [0:0]
+:OUTPUT DROP [6:444]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state ESTABLISHED -j ACCEPT
+-A INPUT -s 192.168.1.54/32 -d 192.168.0.176/32 -p tcp -m tcp --dport 22 -m state --state NEW -m connlimit --connlimit-upto 3 --connlimit-mask 32 --
+connlimit-saddr -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 30000:30999 -j ACCEPT
+-A INPUT -m state --state RELATED -j ACCEPT
+-A INPUT -d 192.168.0.176/32 -p tcp -m tcp --dport 21 -m state --state NEW -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED -j ACCEPT
+
+
+
+-----------------------------------------------系统增加硬盘--------设备识别------------------
+
+新增硬盘， 不重启服务器， 识别设备操作如下：
+cd /sys/class/scsi_host
+ll
+host0  host1  host2
+echo "- - -" >  host0/scan
+echo "- - -" >  host1/scan
+echo "- - -" >  host2/scan
+即可在 /dev/中查到新硬件
+
+--------------------------网卡重新启动服务----------------
+vmware  克隆后 网卡可能不好用
+
+
+执行  systemctl  stop NetworkManager
+      systemctl  start NetworkManager
+	
+mwcli  show con
+
+新增加网卡
+
+nmcli  con show - 查看网卡设备名称
+nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
+
+
+centos7   mac 地址冲突解决
+重启 NetworkManager 服务即可。
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+
+--------------------------------------------------lvm -----------------------------
+
+partprobe /dev/sda  -重读分区表
+
+df -TH  查看硬盘空间
+xfs 文件系统 扩容命令： xfs_growfs  
+resize2fs  /dev/centos/root  -文件系统扩容
+
+parted   -查看文件分区 可看文件系统格式
+lsblk  -f  查看文件系统格式
+ll  /dev/sd*
+扩容：
+
+ 1. pvcreate /dev/sdb  新建物理卷
+ vgextend vgname   /dev/sdb  扩展组
+ lvextend -L +3000m /dev/centos/root  扩展逻辑卷
+ resize2fs  /dev/centos/root    ext 文件系统扩容
+ xfs_growfs  /dev/centos/root   xfs 文件系统扩容
+扩容逻辑卷，扩容前需要先unmount后，扩容不影响扩容前磁盘里面的内容
+		lvresize -L 300M /dev/vg1/lv1 #重新设定大小
+		e2fsck -f /dev/vg1/lv1 #检查磁盘错误 （针对ext4执行）
+		resize2fs /dev/vg1/lv1 #更新逻辑卷信息（针对ext4执行）
+xfs扩容，xfs可以不卸载unmount
+	kfs.xfs -f /dev/vg1/lv1 #重新格式化成xfs
+	mount  /dev/vg1/lv1 /mnt
+	lvs #查看大小
+	lvresize -L 400M /dev/vg1/lv1 #重新设定大小
+	xfs_growfs  /dev/vg1/lv1 #xfs文件系统需要执行，需要先挂载
+df -h #扩容成功
+
+
+ pvdisplay
+ pvcreate
+ pvs
+ pvscan
+ lvcreate
+ lvdisplay
+ lvs
+ lvscan
+	1、 物理卷命令
+		一般维护命令：
+		pvscan #在系统的所有磁盘中搜索已存在的物理卷
+		pvdisplay 物理卷全路径名称 #用于显示指定物理卷的属性。
+		pvdata 物理卷全路径名称 #用于显示物理卷的卷组描述区域信息，用于调试目的。
+		pvchange Cx|--allocation {y|n} 物理卷全路径名 #用于改变物理卷的分配许可设置物理卷的创建与删除命令
+		pvcreate 设备全路径名 #用于在磁盘或磁盘分区上创建物理卷初始化信息，以便对该物理卷进行逻辑卷管理。
+		pvmove 源物理卷全路径我[目的物理卷全路径名] #用于把某物理卷中的数据转移到同卷组中其他的特刊卷中。
+
+		2、 卷组命令
+		一般维护命令
+		vgscan #检测系统中所有磁盘
+		vgck [卷组名] #用于检查卷组中卷组描述区域信息的一致性。
+		vgdisplay [卷组名] #显示卷组的属性信息
+		vgrename 原卷组名 新卷组名
+		vgchange -a y|n [卷组名] #改变卷组的相应属性。是否可分配
+		vgchange -l 最大逻辑卷数 #卷组可容纳最大逻辑卷数
+		vgchange -x y|n [卷组名] #卷是否有效
+		vgmknodes [卷组名|卷组路径] #用于建立（重新建立）已有卷组目录和其中的设备文件卷组配置的备份与恢复命令
+		vgcfgbackup [卷组名] #把卷组中的VGDA信息备份到“/etc/lvmconf”目录中的文件
+		vgcfgrestore -n 卷组名 物理卷全路命名 #从备份文件中必得指定物理卷的信息卷组的建立与删除命令
+		vgcreate 卷组名 物理卷全路径名[物理卷全路径名]
+		vgmove 卷组名
+
+		卷组的扩充与缩小命令
+		vgextend 卷组名 物理卷全路径名[物理卷全路径名]
+		vgreduce 卷组名 物理卷全路径名[物理卷全路径名]
+
+		卷组的合并与拆分
+		vgmerge 目的卷组名 源卷组名 #合并两个已经存在的卷组，要求两个卷组的物理区域大小相等且源卷组是非活动的。
+		vgsplit 现有卷组 新卷组 物理卷全路径名[物理卷全路径名]
+
+		卷组的输入与输出命令
+		vgexport 卷组名
+		vgimport 卷组名 卷组中的物理卷[卷组中的物理卷]
+
+		3、 逻辑卷命令
+		一般命令
+		lvscan
+		lvdisplay 逻辑卷全路径名[逻辑卷全路径名]
+		lvrename 旧逻辑卷全路径名 新逻辑卷全路径名
+		lvrename 卷组名 旧逻辑卷名 新逻辑卷名
+		lvchange
+		e2fsadm -L +|- 逻辑卷增减量 逻辑卷全路径名
+
+		逻辑卷的创建与删除命令
+		lvcreate
+		lvremove
+
+		逻辑卷的扩充与缩小命令
+		lvextend -L|--size +逻辑卷大小增量 逻辑卷全路径名
+		lvreduce q -L|--size +逻辑卷减小量 逻辑卷全路径名
+
+		4、 逻辑卷管理命令
+		lvmdiskscan #检测所有的SCSI、IDE等存储设备
+		lvmchange -R|--reset #复位逻辑卷管理器
+		lvmsadc [日志文件全路径名] #收信逻辑卷管理器读写统计信息，保存到日志文件中。
+lvmsar 日志文件全路径名 #从lvmsadc命令生成的日志文件中读取并报告逻辑卷管理器的读写统计信息。
+
+  
+ 
+--------------------------------------------quota  -文件配额工具---------------------------------------------------------------
+ quota命令用于显示用户或者工作组的磁盘配额信息。输出信息包括磁盘使用和配额限制。
+语法
+
+quota(选项)(参数)
+
+选项
+
+-g：列出群组的磁盘空间限制；
+-q：简明列表，只列出超过限制的部分；
+-u：列出用户的磁盘空间限制；
+-v：显示该用户或群组，在所有挂入系统的存储设备的空间限制；
+-V：显示版本信息。  
+  
+
+--------------------------------------------------------json-----------------------------------------------------
+JSON 语法是 JavaScript 对象表示法语法的子集。
+数据在名称/值对中 "":""
+数据由逗号分隔  "":"","":""
+花括号保存对象 {}
+方括号保存数组  [{},{}]
+
+JSON 名称/值对
+JSON 数据的书写格式是：名称/值对。
+名称/值对包括字段名称（在双引号中），后面写一个冒号，然后是值：
+"firstName" : "John"
+
+JSON 对象
+JSON 对象在花括号中书写：
+对象可以包含多个名称/值对：
+
+{ "firstName":"John" , "lastName":"Doe" }
+
+JSON 数组
+JSON 数组在方括号中书写：  多个对象用[]
+数组可包含多个对象：
+{
+"employees": [
+{ "firstName":"John" , "lastName":"Doe" },
+{ "firstName":"Anna" , "lastName":"Smith" },
+{ "firstName":"Peter" , "lastName":"Jones" }
+]
+}
+
+-----------------------------------yum------------------------------------------------------------------------------------
+YAML 语法
+使用空格 Space 缩进表示分层，不同层次之间的缩进可以使用不同的空格数目，但是同层元素一定左对齐，即前面空格数目相同（不能使用 Tab，各个系统 Tab对应的 Space 数目可能不同，导致层次混乱）
+‘#’表示注释，只能单行注释，从#开始处到行尾
+破折号后面跟一个空格（a dash and space）表示列表
+用冒号和空格表示键值对 key: value
+简单数据（scalars，标量数据）可以不使用引号括起来，包括字符串数据。用单引号或者双引号括起来的被当作字符串数据，在单引号或双引号中使用C风格的转义字符
+
+------------------------------------------------ulimit------------------------------------------------------------------
+linux中limit参数设定一般可以通过ulimit命令或编辑/etc/security/limits.conf重新加载的方式使之生效
+
+通过ulimit比较直接,但只在当前的session有效,limits.conf中可以根据用户和限制项使用户在下次登录中生效.
+
+ulimit命令
+
+设置当前shell以及由它启动的进程的资源限制。
+
+ulimit -a 显示当前的各种用户进程限制。
+
+[root@localhost security]#ulimit -a
+
+    core file size          (blocks, -c) 0
+    data seg size           (kbytes, -d) unlimited
+    scheduling priority             (-e) 0
+    file size               (blocks, -f) unlimited
+    pending signals                 (-i) 30518
+    max locked memory       (kbytes, -l) 64
+    max memory size         (kbytes, -m) unlimited
+    open files                      (-n) 1024
+    pipe size            (512 bytes, -p) 8
+    POSIX message queues     (bytes, -q) 819200
+    real-time priority              (-r) 0
+    stack size              (kbytes, -s) 10240
+    cpu time               (seconds, -t) unlimited
+    max user processes              (-u) 1024
+    virtual memory          (kbytes, -v) unlimited
+    file locks                      (-x) unlimited
+
+其他命令参数：
+   -a 　显示目前资源限制的设定。   
+    -c <core文件上限> 　设定core文件的最大值，单位为区块。     
+    -d <数据节区大小> 　程序数据节区的最大值，单位为KB。    
+    -f <文件大小> 　shell所能建立的最大文件，单位为KB。    
+    -H 　设定资源的硬性限制，也就是管理员所设下的限制。     
+    -m <内存大小> 　指定可使用内存的上限，单位为KB。     
+    -n <文件数目> 　指定同一时间最多可打开的文件数。    
+    -p <缓冲区大小> 　指定管道缓冲区的大小，单位512字节。    
+    -s <堆栈大小> 　指定堆叠的上限，单位为KB。      
+    -S 　设定资源的弹性限制。      
+    -t <CPU时间> 　指定CPU使用时间的上限，单位为秒。    
+    -u <进程数目> 　用户最多可启动的进程数目。   
+
+    -v <虚拟内存大小> 　指定可使用的虚拟内存上限，单位为KB。
+
+limits.conf 文件实际是 Linux PAM（插入式认证模块，Pluggable Authentication Modules）中 pam_limits.so 的配置文件，而且只针对于单个会话。
+　　limits.conf的格式如下：
+username|@groupname type resource limit
+username|@groupname：设置需要被限制的用户名，组名前面加@和用户名区别。也可以用通配符*来做所有用户的限制。
+　　type：有 soft，hard 和 -，soft 指的是当前系统生效的设置值。hard 表明系统中所能设定的最大值。soft 的限制不能比har 限制高。用 - 就表明同时设置了 soft 和 hard 的值。
+　　resource：
+　　core - 限制内核文件的大小
+　　date - 最大数据大小
+　　fsize - 最大文件大小
+　　memlock - 最大锁定内存地址空间
+　　nofile - 打开文件的最大数目
+　　rss - 最大持久设置大小
+　　stack - 最大栈大小
+　　cpu - 以分钟为单位的最多 CPU 时间
+　　noproc - 进程的最大数目
+　　as - 地址空间限制
+　　maxlogins - 此用户允许登录的最大数目
+　　要使 limits.conf 文件配置生效，必须要确保 pam_limits.so 文件被加入到启动文件中。查看 /etc/pam.d/login 文件中有：
+　　session required /lib/security/pam_limits.so
+ 
+例如：修改文件描述符大小(65536)
+vi  /etc/security/limits.conf
+ 
+*                               soft    nofile  65536
+*                               hard    nofile  65536
+
+
+-------------------------------------------kafka-------------------------------------------------------
+
+
+
+ELK +　　kafka
+
+ filebeat -> kafka ->logstash-> elasticsearch  -> kabana
+
+ 
+ -------------------------------filebeat -----------------------------------------------------------------------------------
+rpm -ivh filebeat
+vi /etc/filebeat/filebeat.yml
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/httpd/access_log
+output.kafka:
+    enable: true
+    hosts: ["192.168.110.87:9092"]
+    topic:  "test"
+	
+systemctl start  filebeat 
+
+/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml
+
+
+---------------------------------filebeat----------------------------------------------------------------------------------------
+
+filebeat.prospectors:
+- type: log
+  enabled: true
+  paths:
+    - /usr/local/nginx/logs/access_json.log
+  json.message_key: log
+  json.keys_under_root: true
+  json.overwrite_keys: true
+  exclude_lines: ['^DBG',"^$"]
+  document_type: access-log
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: 3
+setup.kibana:
+output.kafka:
+  hosts: ["192.168.6.71:9092","192.168.6.72:9092","192.168.6.73:9092"]
+  topic: elk-nginx
+  required_acks: 1
+
+
+
+---------------------------------------logstash-----------------------------------
+filebeat ->logstash -> kafka->logstash->elasticsearch->kibana
+input {
+    beat {
+        port => 5044
+        codec => json     # 直接将filebeat保存在message中的json字串解析出来
+    }
+}
+filter {
+    mutate {
+        remove_field => ["tags", "beat"]    
+        #删除filebeat自动添加的字段
+        ## 测试发现：如果换成drop {  remove_field =>
+        ## 无输出
+    }
+}
+
+output {
+    stdout {
+        codec => rubydebug
+    }
+}
+
+--------------
+
+
+		input {
+			beats {
+				port => 5044
+				}
+		}
+
+		output {
+			kafka {
+				bootstrap_servers => "192.168.11.12:9092,192.168.11.13:9092"
+				topic_id => "ecplogs"
+				}
+		}
+
+
+
+
+
+ /usr/local/logstash/bin/logstash -f logstash.conf --configtest --verbose
+tar zxvf  logstash
+vi /etc/logstash/logstash.conf
+input {
+        kafka{
+                bootstrap_servers => "192.168.110.87:9092"
+                topics => ["test"]
+  }
+}
+
+filter {
+    grok {
+       match => { "message" => "%{COMBINEDAPACHELOG}" }
+    }
+}
+
+output {
+ elasticsearch {
+   hosts => ["http://192.168.110.87:9200"]
+   index => "logstash-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+}
+ # stdout {
+ #  codec => rubydebug { }
+  }
+}
+
+/usr/share/logstash/bin/logstash -f /etc/logstash/logstash.conf
+
+---------------kafka ---------------------------------------------------------------------------
+tar   zxvf  kafka
+
+vi kafka/config/zookeeper.properties
+   dataDir=/usr/share/zookeeper/data
+   server.1 = 192.168.1.2:2888:3888
+   server.2= 192.168.1.3:2888:3888
+echo 1 > /usr/share/zookeeeper/data/myid
+/usr/share/kafka/bin/zookeeper-server-start.sh /usr/share/kafka/config/zookeeper.properties
+
+nohup bin/zookeeper-server-start.sh config/zookeeper-2.properties >>/dev/null 2>&1 &
+
+vi kafka/config/server.properties
+  broker.id=0
+  log.dirs=/usr/share/kafka/data
+  zookeeper.connect=192.168.1.2:2181,192.168.1.3:2181,192.168.1.3:2181
+/usr/share/kafka/bin/kafka-server-start.sh /usr/share/kafka/config/server.properties
+
+
+		(1)建立一个主题
+
+		[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic summer
+		                                       
+
+		#注意：factor大小不能超过broker数
+
+		(2)查看有哪些主题已经创建
+		
+
+		[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --list --zookeeper 192.168.2.22:2181   #列出集群中所有的topic
+		bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+		summer    #已经创建成功
+
+		(3)查看summer这个主题的详情
+
+		[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --describe --zookeeper 192.168.2.22:2181 --topic summer
+
+		Topic : summer PartitionCount : 1 ReplicationFactor : 3 Configs :
+
+		Topic : summer Partition : 0 Leader : 2 Replicas : 2 , 4 , 3 Isr : 2 , 4 , 3
+
+		#主题名称：summer
+
+		#Partition:只有一个，从0开始
+
+		#leader ：id为2的broker
+
+		#Replicas 副本存在于broker id为2,3,4的上面
+
+		#Isr:活跃状态的broker
+
+		(4)发送消息，这里使用的是生产者角色
+		bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+
+		[ root @ kafka1 ~ ] # /bin/bash /usr/local/kafka/bin/kafka-console-producer.sh --broker-list 192.168.2.22:9092 --topic summer
+
+		This is a messages
+
+		welcome to kafka     
+
+		(5)接收消息，这里使用的是消费者角色
+		in/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+
+		[ root @ kafka2 ~ ] # /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server   192.168.2.24:2181 --topic summer --from-beginning
+
+		This is a messages
+
+		welcome to kafka
+
+		如果能够像上面一样能够接收到生产者发过来的消息，那说明基于kafka的zookeeper集群就成功啦。
+
+(1)修改webserver1上面的logstash配置，如下所示：各个参数可以到 官网 查询.
+
+root @ webserver1 etc ] # cat logstash.conf
+
+input {              #这里的输入还是定义的是从日志文件输入
+
+file {
+
+type = > "system-message"
+
+path = > "/var/log/messages"
+
+start_position = > "beginning"
+
+}
+
+}
+
+output {
+
+#stdout { codec => rubydebug }   #这是标准输出到终端，可以用于调试看有没有输出，注意输出的方向可以有多个
+
+kafka {    #输出到kafka
+
+bootstrap_servers = > "192.168.2.22:9092,192.168.2.23:9092,192.168.2.24:9092"   #他们就是生产者
+
+topic_id = > "system-messages"    #这个将作为主题的名称，将会自动创建
+
+compression_type = > "snappy"    #压缩类型
+
+}
+
+}
+
+[ root @ webserver1 etc ] #
+
+-----------------------------------------------------------elasticsearch ------------------------------------------------
+vi /etc/elasticsearch/elasticsearch.yml
+  network.host: 0.0.0.0
+
+systemctl start elasticsearch
+
+-------------------------------------------------------------kabana---------------------------------------------------
+vi /etc/kabana/kibana.yml
+  server.host: "0.0.0.0"
+systemctl start kibana
+  
+systemctl start elasticsearch
+
+
+https://www.cnblogs.com/moonlightL/p/7760512.html
+/logstash-plugin install logstash-filter-grok
+bin/logstash-plugin install logstash-codec-multiline
+
+-----------------------------------------docker-------elk--------------------------------------------------------------------------
+
+docker run -d  -p 9200:9200  -v ~/elasticsearch/data:/usr/share/elasticsearch/data  --name elasticsearch elasticsearch
+
+ docker run -d -p 4560:4560  -v ~/logstash.conf:/etc/logstash.conf  --link elasticsearch:elasticsearch  --name logstash logstash  logstash -f 
+/etc/logstash.conf
+
+docker run -d -p 5601:5601 --link elasticsearch:elasticsearch -e ELASTICSEARCH_URL=http://elasticsearch:9200 --name kibana kibana
+
+
+
+-------------------------------------------------------------------nohup-------------------------------------------------
+nohup 
+如果你正在运行一个进程，而且你觉得在退出帐户时该进程还不会结束，那么可以使用nohup命令。
+该命令可以在你退出帐户之后继续运行相应的进程。nohup就是不挂起的意思( no hang up)。 
+该命令的一般形式为： nohup conmmand &
+
+如果使用nohup命令提交作业，那么在缺省情况下该作业的所有输出都被重定向到一个名为nohup.out的文件中，除非另外指定了输出文件：
+nohup command > myout.file 2>&1 
+在上面的例子中，输出被重定向到myout.file文件中。
+
+1>/data/kafka/log/kafka.out 2>&1 &表示后台启动，将标准输出和错误输出到kafka.out文件
+
+command >out.file 2>&1 &
+在上面的例子中，2>&1表示所有的标准输出和错误输出都将被重定向到一个叫做out.file 的文件中。
+----------------------------------------------------------------------------------
+egrep -v '^?#|^$' /etc/logstash/logstash.conf 查看除空行和#开头的文件内容。
+
+grep -v "^#" /etc/rsyslog.conf | grep -v "^$"   - 查看除空行和#开头的文件内容。
+
+
+
+--------------------------------------------------- grep 用法-----------------------------------------------------------------------
+grep  -v '#' 　/etc/redis.conf | grep -v '^$'     --- 查看不以#开头， 不是空行的文件内容
+
+
+
+-----------------------------------------------------------redis----------------------------------------------------------------
+
+ centos7 yum install redis
+
+直接yum 安装的redis 不是最新版本
+yum install -y epel-release
+yum install redis
+如果要安装最新的redis，需要安装Remi的软件源，官网地址：http://rpms.famillecollet.com/
+yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+然后可以使用下面的命令安装最新版本的redis：
+
+yum --enablerepo=remi install redis
+安装完毕后，即可使用下面的命令启动redis服务
+service redis start
+或者
+systemctl start redis
+
+
+**   redis  设置密码
+vi /etc/redis.conf
+ requirepass password123   -- 设置密码
+ bind 127.0.0.1     -- 监听IP
+ port  6379         -- 监听端口
+ 
+redis-cli  -h  127.0.0.1  -p  6379  -a  password123          ------ a  密码登陆
+
+-------------------------------------------------keepalived —+ tomcat----------------------------------------------------------------------------
+
+keepalived+  tomcat
+
+/opt/chk_tomcat.sh
+#!/bin/bash
+#description: check tomcat service anddecide whether stop the keepalived or not
+#edited by zzh: 2015-10-14
+
+
+read line < tomcat_process_count.txt
+
+start_tomcat=$CATALINA_HOME/bin/startup.sh
+
+if [ ${line} -lt 1 ]
+then
+       echo -n "===Starting tomcat===:"
+       systemctl  start tomcat
+       # :sudo service tomcat start
+       echo "===tomcat start ok.==="
+       sleep 3
+
+       # check the tomcat status.
+       ps ax --width=1000 | grep "org.apache.catalina.startup.Bootstrapstart" | grep -v "grep" | awk '{printf $1 " "}' | wc |awk '{pr
+int $2}' > tomcat_process_count.txt
+       read line2 < tomcat_process_count.txt
+       if [ ${line2} -lt 1 ]
+       then
+                systemctl stop keepalived
+       fi
+fi
+rm tomcat_process_count.txt
+
+---------------------------------------------------lvs ---------------------------------------------------------------------
+lvs
+echo 1 > /proc/sys/net/ipv4/ip_forward
+# 关闭icmp的重定向
+echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
+# 注意区分网卡名字，阿铭的两个网卡分别为ens33和ens37
+echo 0 > /proc/sys/net/ipv4/conf/ens33/send_redirects
+echo 0 > /proc/sys/net/ipv4/conf/ens37/send_redirects
+# director 设置nat防火墙
+iptables -t nat -F
+iptables -t nat -X
+
+ lvs-NAT 模式:
+ 
+ RS——SERVER :网关指向 调度器， 调度器双网卡。
+ #! /bin/bash
+# director 服务器上开启路由转发功能
+echo 1 > /proc/sys/net/ipv4/ip_forward
+# 关闭icmp的重定向
+echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
+# 注意区分网卡名字，阿铭的两个网卡分别为ens33和ens37
+echo 0 > /proc/sys/net/ipv4/conf/ens33/send_redirects
+echo 0 > /proc/sys/net/ipv4/conf/ens37/send_redirects
+# director 设置nat防火墙
+iptables -t nat -F
+iptables -t nat -X
+iptables -t nat -A POSTROUTING -s 192.168.188.0/24  -j MASQUERADE
+# director设置ipvsadm
+IPVSADM='/usr/sbin/ipvsadm'
+$IPVSADM -C
+$IPVSADM -A -t 192.168.147.144:80 -s wlc -p 300
+$IPVSADM -a -t 192.168.147.144:80 -r 192.168.188.129:80 -m -w 1
+$IPVSADM -a -t 192.168.147.144:80 -r 192.168.188.127:80 -m -w 1
+======================================================================
+  lvs-DR模式
+1. 在dr 服务器上设置网卡第二地址
+ip address add 192.168.110.111/32 dev ens33:2
+ip  route add 192.168.110.111/32 dev ens33:2
+2. 设置ipvsadm
+ ipvsadm -C
+ ipvsadm -A -t 192.168.110.111:80 -s wrr
+ ipvsadm -a -t 192.168.110.111:80 -r 192.168.110.85:80  -g -w 1
+ ipvsadm -a -t 192.168.110.111:80 -r 192.168.110.86:80  -g -w 1
+3.  在rs 设置
+ip address add 192.168.110.111/32 dev lo:0
+ip  route add 192.168.110.111/32 dev lo:0
+4. 设置 arp 忽略
+echo "1" >/proc/sys/net/ipv4/conf/all/arp_ignore
+echo "2" >/proc/sys/net/ipv4/conf/all/arp_announce
+
+arp_ignore:
+定义对目标地址为本地IP的ARP询问不同的应答模式0
+	0 - (默认值): 回应任何网络接口上对任何本地IP地址的arp查询请求
+	1 - 只回答目标IP地址是来访网络接口本地地址的ARP查询请求
+	2 -只回答目标IP地址是来访网络接口本地地址的ARP查询请求,且来访IP必须在该网络接口的子网段内
+	3 - 不回应该网络界面的arp请求，而只对设置的唯一和连接地址做出回应
+	4-7 - 保留未使用
+	8 -不回应所有（本地地址）的arp查询 
+    确定了向外发送ARP请求的发出地址 也即使VIP 地址
+arp_announce - INTEGER
+	对网络接口上，本地IP地址的发出的，ARP回应，作出相应级别的限制:  
+	确定不同程度的限制,宣布对来自本地源IP地址发出Arp请求的接口
+	0 - (默认) 在任意网络接口（eth0,eth1，lo）上的任何本地地址
+	1 -尽量避免不在该网络接口子网段的本地地址做出arp回应. 当发起ARP请求的源IP地址是被设置应该经由路由达到此网络接口的时候很有用.此时会检查来访IP是否为所有接口上的子网段内ip之一.如果改来访IP不属于各个网络接口上的子网段内,那么将采用级别2的方式来进行处理.
+	2 - 对查询目标使用最适当的本地地址.在此模式下将忽略这个IP数据包的源地址并尝试选择与能与该地址通信的本地地址.首要是选择所有的网络接口的子网中外出访问子网中包含该目标IP地址的本地地址. 如果没有合适的地址被发现,将选择当前的发送网络接口或其他的有可能接受到该ARP回应的网络接口来进行发送. 
+	限制了使用本地的vip地址作为优先的网络接口
+
+========================================
+keepalive——lvs：  dr
+1.调度器安装 KEEPALIVED, IPVSADM
+2. real——server 执行 按 nginx，
+ip address add 192.168.110.111/32 dev lo:0
+ip  route add 192.168.110.111/32 dev lo:0
+echo "1" >/proc/sys/net/ipv4/conf/all/arp_ignore
+echo "2" >/proc/sys/net/ipv4/conf/all/arp_announce
+3. DR  的keepalived.cnf
+			vrrp_instance VI_1 {
+				#备用服务器上为 BACKUP
+				state MASTER
+				#绑定vip的网卡为ens33，你的网卡和阿铭的可能不一样，这里需要你改一下
+				interface ens33
+				virtual_router_id 51
+				#备用服务器上为90
+				priority 100
+				advert_int 1
+				authentication {
+					auth_type PASS
+					auth_pass aminglinux
+				}
+				virtual_ipaddress {
+					192.168.188.110
+				}
+			}
+			virtual_server 192.168.188.110 80 {
+				#(每隔10秒查询realserver状态)
+				delay_loop 10
+				#(lvs 算法)
+				lb_algo wlc
+				#(DR模式)
+				lb_kind DR
+				#(同一IP的连接60秒内被分配到同一台realserver)
+				persistence_timeout 60
+				#(用TCP协议检查realserver状态)
+				protocol TCP
+
+				real_server 192.168.188.129 80 {
+					#(权重)
+					weight 100
+					TCP_CHECK {
+					#(10秒无响应超时)
+					connect_timeout 10
+					nb_get_retry 3
+					delay_before_retry 3
+					connect_port 80
+					}
+				}
+				real_server 192.168.188.127 80 {
+					weight 100
+					TCP_CHECK {
+					connect_timeout 10
+					nb_get_retry 3
+					delay_before_retry 3
+					connect_port 80
+					}
+				 }
+			}
+
+4.  backup 的keepalive  修改 keepalived.cnf 中：state BACKUP ,priority 100 
+
+------------------------------------------------------keepalived--------------------------------------------------
+keepalived  1.3.5
+
+yum  install  -y  epel-release
+yum install -y nginx keepalived
+
+[root@centos85 sbin]# vi /usr/sbin/check_nginx.sh
+#时间变量，用于记录日志
+d=`date --date today +%Y%m%d_%H:%M:%S`
+#计算nginx进程数量
+n=`ps -C nginx --no-heading|wc -l`
+#如果进程为0，则启动nginx，并且再次检测nginx进程数量，
+#如果还为0，说明nginx无法启动，此时需要关闭keepalived
+if [ $n -eq "0" ]; then
+        systemctl start nginx
+        n2=`ps -C nginx --no-heading|wc -l`
+        if [ $n2 -eq "0"  ]; then
+                echo "$d nginx down,keepalived will stop" >> /var/log/check_ng.log
+                systemctl stop keepalived
+        fi
+fi
+
+[root@centos85 sbin]# vi /etc/keepalived/keepalived.conf
+global_defs {
+   notification_email {
+     aming@aminglinux.com
+   }
+   notification_email_from root@aminglinux.com
+   smtp_server 127.0.0.1
+   smtp_connect_timeout 30
+   router_id LVS_DEVEL
+}
+
+vrrp_script chk_nginx {
+    script "/usr/sbin/check_nginx.sh"
+    interval 3
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface ens33
+    virtual_router_id 51
+    priority 90
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.110.100
+    }
+
+    track_script {
+        chk_nginx
+    }
+
+}
+
+
+--------------------------------------------------pure-ftp -------------------------------------------
+pure-ftp
+yum install wget
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum  install rpel-release 
+yum install pure-ftpd -y
+
+vi /etc/pure-ftpd/pure-ftpd.conf
+PureDB /etc/pure-ftpd/pureftpd.pdb   #  去掉注释
+
+
+useradd pure-ftp -s /sbin/nologin -M
+mkdir  -p  /data/ftp
+chown -R  pure-ftp:pure-ftp /data/ftp
+pure-pw useradd test1 -d /data/ftp/ -u pure-ftp  -m
+pure-pw useradd maket1 -u maket1  -d /comany/market/market1  -m （–m（把用户密码加入PDB数据库中，不需要重启FTP）
+pure-pw  userdel  
+pure-pw mkdb
+
+systemctl restart pure-ftpd
+
+--------------------------------------------------mysql-------------------------------------------------------
+mysql
+
+#创建mysql用户组
+ 
+#把用户mysql添加到mysql用户组， -r系统用户  -s /bin/nologin 用户不可登录 -M  不产生家目录
+# useradd -r -s /bin/nologin  -M  mysql
+# cd mysql
+# mkdir -p /data/mysql
+# chown  -R  mysql:mysql  /data/mysql
+#改变文件的所有权 -R表示改变一个目录和其下文件（或者子目录）的所有权设置 
+[root@localhost mysql]# chown -R mysql ./  #mysql下的所有目录和文件交给mysql用户
+[root@localhost mysql]# chgrp -R mysql ./  #mysql下的所有目录和文件交给mysql组
+
+wget http://repo.mysql.com/mysql57-community-release-el7-9.noarch.rpm
+rpm -vih mysql57-community-release-el7-9.noarch.rpm
+yum install mysql-community-server
+
+systemctl stop mysqld
+ln -s  /data/mysql/mysql.sock /var/lib/mysql/mysql.sock  #解决本地连接报 	ERROR 2002 错误
+或更改 /etc/my.cnf  , 添加如下内容：
+skip_grant_tables
+
+validate_password_policy=0
+validate_password_length=1
+
+[client]
+socket=/data/mysql/msyql.sock
+即可
+systemctl start mysqld
+
+change master to master_host='192.168.110.84',master_user='repl',master_password='pass',master_log_file='master-bin.000004',master_log_pos=159;
+
+grep 'temporary password' /var/log/mysqld.log 
+cat /root/.mysql_secret # 查询密码
+更改密码： 
+mysqladmin -u root -p password  更改密码
+mysql -u root -p   
+mysql> 
+set global validate_password_policy=0;  #再修改密码的长度
+set global validate_password_length=1; #再次执行修改密码就可以了
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'pass'; #（ALTER等可以写成小写）
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'pass' WITH GRANT OPTION;
+FLUSH  PRIVILEGES;
+
+set password for root@localhost = password(‘pass');
+
+		show tables或show tables from database_name或show database_name.tables;
+		解释：显示当前数据库中所有表的名称
+		show databases; 解释：显示mysql中所有数据库的名称
+		show processlist; 解释：显示系统中正在运行的所有进程，也就是当前正在执行的查询。大多数用户可以查看
+		他们自己的进程，但是如果他们拥有process权限，就可以查看所有人的进程，包括密码。
+		show table status; 解释：显示当前使用或者指定的database中的每个表的信息。信息包括表类型和表的最新更新时间
+		show columns from table_name from database_name; 或show columns from database_name.table_name;或show fields;
+						   解释：显示表中列名称（和 desc table_name 命令的效果是一样的）
+		show grants for user_name@localhost; 解释：显示一个用户的权限，显示结果类似于grant 命令
+		show index from table_name;或show keys; 解释：显示表的索引
+		show status; 解释：显示一些系统特定资源的信息，例如，正在运行的线程数量
+		show variables; 解释：显示系统变量的名称和值
+		show privileges; 解释：显示服务器所支持的不同权限
+		show create database database_name; 解释：显示创建指定数据库的SQL语句
+		show create table table_name; 解释：显示创建指定数据表的SQL语句
+		show engies; 解释：显示安装以后可用的存储引擎和默认引擎。
+		show innodb status; 解释：显示innoDB存储引擎的状态
+		show logs; 解释：显示BDB存储引擎的日志
+		show warnings; 解释：显示最后一个执行的语句所产生的错误、警告和通知
+		show errors; 解释：只显示最后一个执行语句所产生的错误
+
+上面的大部分命令都可以用like，比如 show table like ‘%abce%’  
+	show status 结果说明
+		列 	含义
+		Name 	表名
+		Type 	表的类型 (ISAM，MyISAM或HEAP)
+		Row_format 	行存储格式 (固定, 动态, 或压缩）
+		Rows 	行数量
+		Avg_row_length 	平均行长度
+		Data_length 	数据文件的长度
+		Max_data_length 	数据文件的最大长度
+		Index_length 	索引文件的长度
+		Data_free 	已分配但未使用了字节数
+		Auto_increment 	下一个 autoincrement(自动加1）值
+		Create_time 	表被创造的时间
+		Update_time 	数据文件最后更新的时间
+		Check_time 	最后对表运行一个检查的时间
+		Create_options 	与CREATE TABLE一起使用的额外选项
+		Comment 	当创造表时，使用的注释 (或为什么MySQL不能存取表信息的一些信息)。
+
+	show index 结果说明：
+		列 	含义
+		Table 	表名
+		Non_unique 	0，如果索引不能包含重复。
+		Key_name 	索引名
+		Seq_in_index 	索引中的列顺序号, 从 1 开始。
+		Column_name 	列名。
+		Collation 	列怎样在索引中被排序。在MySQL中，这可以有值A（升序) 或NULL（不排序)。
+		Cardinality 	索引中唯一值的数量。这可通过运行isamchk -a更改.
+		Sub_part 	如果列只是部分被索引，索引字符的数量。NULL，如果整个键被索引。
+
+	show variables 结果说明：
+		Aborted_clients 	由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。
+		Aborted_connects 	尝试已经失败的MySQL服务器的连接的次数。
+		Connections 	试图连接MySQL服务器的次数。
+		Created_tmp_tables 	当执行语句时，已经被创造了的隐含临时表的数量。
+		Delayed_insert_threads 	正在使用的延迟插入处理器线程的数量。
+		Delayed_writes 	用INSERT DELAYED写入的行数。
+		Delayed_errors 	用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。
+		Flush_commands 	执行FLUSH命令的次数。
+		Handler_delete 	请求从一张表中删除行的次数。
+		Handler_read_first 	请求读入表中第一行的次数。
+		Handler_read_key 	请求数字基于键读行。
+		Handler_read_next 	请求读入基于一个键的一行的次数。
+		Handler_read_rnd 	请求读入基于一个固定位置的一行的次数。
+		Handler_update 	请求更新表中一行的次数。
+		Handler_write 	请求向表中插入一行的次数。
+		Key_blocks_used 	用于关键字缓存的块的数量。
+		Key_read_requests 	请求从缓存读入一个键值的次数。
+		Key_reads 	从磁盘物理读入一个键值的次数。
+		Key_write_requests 	请求将一个关键字块写入缓存次数。
+		Key_writes 	将一个键值块物理写入磁盘的次数。
+		Max_used_connections 	同时使用的连接的最大数目。
+		Not_flushed_key_blocks 	在键缓存中已经改变但是还没被清空到磁盘上的键块。
+		Not_flushed_delayed_rows 	在INSERT DELAY队列中等待写入的行的数量。
+		Open_tables 	打开表的数量。
+		Open_files 	打开文件的数量。
+		Open_streams 	打开流的数量(主要用于日志记载）
+		Opened_tables 	已经打开的表的数量。
+		Questions 	发往服务器的查询的数量。
+		Slow_queries 	要花超过long_query_time时间的查询数量。
+		Threads_connected 	当前打开的连接的数量。
+		Threads_running 	不在睡眠的线程数量。
+		Uptime 	服务器工作了多少秒。
+
+关于上面的一些注释：
+
+    如果Opened_tables太大，那么你的table_cache变量可能太小。
+    如果key_reads太大，那么你的key_cache可能太小。缓存命中率可以用key_reads/key_read_requests计算。
+    如果Handler_read_rnd太大，那么你很可能有大量的查询需要MySQL扫描整个表或你有没正确使用键值的联结(join)。
+	
+--------------------------------mysql----------主从复制------------------------------------------------------------
+mysql  主从复制：
+master 配置：
+vi  my.cnf
+[mysqld]
+log-bin=mysql-bin
+server-id=1
+innodb-file-per-table =ON
+replicate-do-db=db,db2
+replicate-ignore-db=db3
+
+
+systemctl  start mysqld
+mysql > grant replication slave on *.* to 'rep'@‘%’ identified by 'pass';  -建复制账户
+flush privileges;
+flush table with read lock;
+备份主数据库sqldump
+
+show master status ;
+unlock tables;
+
+
+slave 配置：
+vi my.cnf
+[mysqld]
+server-id=2
+relay-log=mysql-relay
+relay-log-index=relay-log.index
+innodb-file-per-table =ON
+replicate-do-db=db,db2
+replicate-ignore-db=db3
+read_only=1
+
+
+mysql -u root -p -e "show global  variables like '%log%'"
+
+
+1：限制从服务器为只读
+在从服务器上设置：
+read_only = ON,但是此限制对拥有SUPER权限 的用户均无效。
+阻止所有用户：
+mysq>FLUSH TABLES WITH READ LOCK;
+stop slave;
+change master to master_host='192.168.110.85',master_user='repl',master_password='pass',master_log_file='master.000002',master_log_pos=159;
+start slave;
+show slave status;
+start slave ;
+start slave IO_THREAD;
+	
+---------------------------------mariadb --------------------------------------------------------------
+mariadb：
+yum install mariadb-server -y
+mkdir -p /data/mysql
+chown -R  mysql:mysql /data/mysql
+mysql_install_db  --datadir=/data/mysql
+systemctl enable mariadb
+systemctl start mariadb
+mysqladmin -u root password pass  # 设置msyql  root 密码
+mysql -u root -p   #登陆mysql
+/usr/share/mysql/*.cnf  #标准配置文件  多个
+cp /usr/share/mysql/my-small.cnf  /etc/my.cnf
+vi /etc/my.cnf    # mysql 配置文件
+/etc/my.cnf.d/*    # server 配置文件
+  datadir=
+  stock=
+  
+ 
+2、配置MariaDB的字符集
+vi /etc/my.cnf 添加
+[mysqld]
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+
+vi /etc/my.cnf.d/client.cnf 在[client]中添加
+default-character-set=utf8
+vi /etc/my.cnf.d/mysql-clients.cnf
+  在[mysql]中添加
+default-character-set=utf8
+ 全部配置完成，
+ 重启mariadb
+  systemctl restart mariadb 
+MariaDB查看字符集
+mysql> show variables like "%character%";show variables like "%collation%";
+显示为
+
++--------------------------+----------------------------+
+| Variable_name            | Value                      |
++--------------------------+----------------------------+
+| character_set_client    | utf8                      |
+| character_set_connection | utf8                      |
+| character_set_database  | utf8                      |
+| character_set_filesystem | binary                    |
+| character_set_results    | utf8                      |
+| character_set_server    | utf8                      |
+| character_set_system    | utf8                      |
+| character_sets_dir      | /usr/share/mysql/charsets/ |
++--------------------------+----------------------------+
+8 rows in set (0.00 sec)
+
++----------------------+-----------------+
+| Variable_name        | Value          |
++----------------------+-----------------+
+| collation_connection | utf8_unicode_ci |
+| collation_database  | utf8_unicode_ci |
+| collation_server    | utf8_unicode_ci |
++----------------------+-----------------+
+3 rows in set (0.00 sec)
+
+字符集配置完成。
+
+
+ 3、添加用户，设置权限
+创建用户命令
+mysql>create user username@localhost identified by 'password'; 直接创建用户并授权的命令
+mysql>grant all on *.* to username@localhost indentified by 'password'; 授予外网登陆权限 
+mysql>grant all privileges on *.* to username@'%' identified by 'password'; 授予权限并且可以授权
+mysql>grant all privileges on *.* to username@'hostname' identified by 'password' with grant option;
+
+开启和停用Binlog
+通过配置/etc/my.cnf配置文件的log-bin选项：
+[mysqld]
+log-bin=mysql-bin
+binlog_format='ROW'          #放在mysqld模块下面
+or
+    log_bin=ON
+    log_bin_basename=/var/lib/mysql/mysql-bin
+    log_bin_index=/var/lib/mysql/mysql-bin.index
+
+mysqlbinlog：
+show variables like ‘%log_bin%’  
+mysql> SHOW BINARY LOGS;
+set global binlog_format='ROW';　　
+show master status 可以查看binlog的状态
+reset master 清空binlog日志文件
+flush logs; - .通过flush logs 可以手动刷新日志，生成一个新的binlog文件
+
+在使用二进制日志文件进行数据库恢复时，该过程中也会产生日志文件，就会进入一个循环状态，继续恢复该过程中的数据。因此，当使用mysqlbinlog命令时，要禁用二进制日志，请使用下面所示的-D选项： 
+ mysqlbinlog -D mysqld-bin.000001  禁止恢复过程产生日志
+ mysqlbinlog --disable-log-bin mysqld-bin.000001  禁止恢复过程产生日志
+
+ mysqlbinlog -database crm mysqld-bin.000001 > crm-events.txt
+ mysqlbinlog -s mysqld-bin.000001   仅显示sql语句  --short-form
+ mysqlbinlog mysqld-bin.000001 > output.out
+ mysqlbinlog -j 15028 mysqld-bin.000001 > from-15028.out  从位置编号为15028的二进制日志条目处开始读取
+  mysqlbinlog --start-datetime="2017-08-16 10:00:00" mysqld-bin.000001
+ 当你想要从一个二进制文件中提取数据时，这是非常有用的，因为你希望使用它来恢复或重构在某个时间段内发生的某些数据库活动。时间戳的格式可以是MySQL服务器所理解的DATETIME和timestamp中的任何类型。
+ mysqlbinlog --stop-datetime="2017-08-16 15:00:00" mysqld-bin.000001 命令将读取到给定结束时间的条目
+ mysqlbinlog --stop-position=15028 mysqld-bin.000001 > upto-15028.out 就像前面的例子一样，你也可以从mysql二进制日志中截止到一个特定位置的条目
+ 
+
+#mysqlbinlog --base64-output="decode-rows" -v mysql-bin.000001  Row模式下解析binlog日志
+
+------------------------------------------------------------------------------------------------------------------
+
+
+----------------------------------------
+systemd:  对应目录：  /usr/lib/systemd/system 下的文件
+systemctl get-default
+systemctl set-default multi-user.target
+systemctl  list-units    # 列出 active 的units
+systemctl list-units  --all --type=service 
+systemctl list-units  --type=service  # 列出已启动的服务
+systemctl list-units  --all --state=inactive  #
+systemctl  is-enabled  crond.service 
+systemctl  is-active crond.service
+systemctl list-dependencies  multi-user.target  查看包内的服务
+----------------------------------------------------------------
+chkconfig  --list  
+chkconfig  --level  3 network off 
+chkconfig  --list  | grep  network
+chkconfig  --del network
+chkconfig --add  network
+---------------------------------------------
+
+iptables 配置文件位置： /etc/sysconfig/iptables-config
+ 保存： iptables-save
+ 恢复： iptables-restore
+4个表  -t： filter、nat、mangle、raw 
+5个链： RREROUTING 、INPUT、FORWARD、OUTPUT、POSTROUTING
+动作 -j ：  ACCEPT  DROP  REJECT MASQUERADE
+iptables -I INPUT -p icmp  --icmp-type 8 -j DROP   # 可以ping出， 不许ping 入
+iptables -nvL
+iptables -F  clean
+iptables -P    设置某条规则链的默认动作
+iptables  -P INPUT ACCEPT
+iptables  -P  FORWARD  DROP
+iptables -X  删除用户定义链
+
+---------------------------- 
+目录： /usr/lib/firewalld/services
+systemctl start firewalld  
+firewall-cmd  --get-default 
+firewall-cmd --get-zones
+firewall-cmd --set-default-zone=work
+firewall-cmd --get-active-zones # 查看系统网卡所在zone
+firewall-cmd --zone=dmz --add-interface=lo
+firewall-cmd --get-service  #列出所有的服务  对应目录 /etc/firewalld/services/
+firewall-cmd --list-services  # 列出当前zone下的services
+firewall-cmd --zone=dmz  --list-services  # 列出知道zone下的服务。
+firewall-cmd --zone=dmz  --add-service=http   --permanent #
+firewall-cmd  --reload 
+
+
+
+f
+
+-----------------------------sar -------------------------------------------------------------------
+
+sar命令可以从文件的读写情况、系统调用的使用情况、磁盘I/O、CPU效率、内存使用状况、进程活动及IPC有关的活动等方面进行报告。
+
+命令格式：sar [options] [-A] [-o file] t [n]
+t为采样间隔，n为采样次数，默认值是1
+-o file表示将命令结果以二进制格式存放在文件中，file 是文件名。
+options 为命令行选项
+
+
+sar命令常用选项如下：
+
+-A：所有报告的总和
+-u：输出CPU使用情况的统计信息
+-v：输出inode、文件和其他内核表的统计信息
+-d：输出每一个块设备的活动信息
+-r：输出内存和交换空间的统计信息
+-b：显示I/O和传送速率的统计信息
+-a：文件读写情况
+-c：输出进程统计信息，每秒创建的进程数
+-R：输出内存页面的统计信息
+-y：终端设备活动情况
+-w：输出系统交换活动信息
+
+
+----------------------------------netstat---------------------------------------------------------            
+A机器上查看本地ipv4的监听端口
+ 
+netstat参数解释：
+-l  (listen) 仅列出 Listen (监听) 的服务
+-t  (tcp) 仅显示tcp相关内容
+-n (numeric) 直接显示ip地址以及端口，不解析为服务名或者主机名
+-p (pid) 显示出socket所属的进程PID 以及进程名字
+--inet 显示ipv4相关协议的监听
+ 
+查看IPV4端口上的tcp的监听
+netstat -lntp --inet
+
+[root@A ~]# netstat   -lntp    --inet
+
+-----------------------------tcpdum------------------------------------------------------
+
+tcpdump命令是一款sniffer工具，它可以打印所有经过网络接口的数据包的头信息，也可以使用-w选项将数据包保存到文件中，方便以后分析。
+
+语法
+tcpdump(选项)
+选项
+-a：尝试将网络和广播地址转换成名称；
+-c<数据包数目>：收到指定的数据包数目后，就停止进行倾倒操作；
+-d：把编译过的数据包编码转换成可阅读的格式，并倾倒到标准输出；
+-dd：把编译过的数据包编码转换成C语言的格式，并倾倒到标准输出；
+-ddd：把编译过的数据包编码转换成十进制数字的格式，并倾倒到标准输出；
+-e：在每列倾倒资料上显示连接层级的文件头；
+-f：用数字显示网际网络地址；
+-F<表达文件>：指定内含表达方式的文件；
+-i<网络界面>：使用指定的网络截面送出数据包；
+-l：使用标准输出列的缓冲区；
+-n：不把主机的网络地址转换成名字；
+-N：不列出域名；
+-O：不将数据包编码最佳化；
+-p：不让网络界面进入混杂模式；
+-q ：快速输出，仅列出少数的传输协议信息；
+-r<数据包文件>：从指定的文件读取数据包数据；
+-s<数据包大小>：设置每个数据包的大小；
+-S：用绝对而非相对数值列出TCP关联数；
+-t：在每列倾倒资料上不显示时间戳记；
+-tt： 在每列倾倒资料上显示未经格式化的时间戳记；
+-T<数据包类型>：强制将表达方式所指定的数据包转译成设置的数据包类型；
+-v：详细显示指令执行过程；
+-vv：更详细显示指令执行过程；
+-x：用十六进制字码列出数据包资料；
+-w<数据包文件>：把数据包数据写入指定的文件。
+
+-----------------------nmap -------------------------------------------------------------------------------------
+nmap是一款非常实用的扫描工具，适用于linux、windows、mac三大主流平台。 
+$wget http://nmap.org/dist/nmap-7.01.tar.bz2
+$tar -xvf nmap-7.01.tar.bz2 
+1
+进入解压后的文件夹，取得root权限，执行#./configure,若报错“configure: error: no acceptable C compiler found in $PATH”，说明未安装gcc，gcc安装命令为#yum install gcc. 
+执行#make 若报错“-bash: make: command not found”，则执行#yum install g++或#yum install gcc-c++安装gcc。 
+执行#make install安装软件。 
+检测是否安装成功：#nmap -v
+
+至此，安装完成。下面，来讨论nmap软件的基本用法： 
+扫描特定主机：#nmap 192.168.1.2 
+扫描整个子网：#nmap 192.168.1.1/24 
+扫描多个目标：#nmap 192.168.1.2 192.168.1.5 
+扫描一个范围内主机：#nmap 192.168.1.1-100 (扫描IP地址为192.168.1.1-192.168.1.100内的所有主机) 
+向目标发送两个ping数据包：#nmap -sn -PE -c 2 --send-ip 192.168.1.1
+
+
+-----------------ipperf---------------------------------------------------------------
+yum install iperf  -- 网络传输速度测试
+ iperf  -s -d    #  服务器端
+ iperf  -c  ip     #  客户端
+
+
+-------------------------------------iftop ----------------------------------------------------
+yum  install sysstate -y  安装系统监控统计包
+
+
+iftop是一款实时流量监控工具,监控TCP/IP连接等,缺点就是无报表功能。必须以root身份才能运行。
+
+默认是监控第一块网卡的流量
+
+iftop
+监控eth1
+
+iftop -i eth1
+直接显示IP, 不进行DNS反解析
+
+iftop -n
+直接显示连接埠编号, 不显示服务名称:
+
+iftop -N
+显示某个网段进出封包流量
+
+iftop -F 192.168.1.0/24 or 192.168.1.0/255.255.255.0
+ 
+
+基于实例讲解输出含义
+
+执行iftop -N -n -i eth1后界面为
+-----------------------ifstat----------------------------------------------------------
+ifstat
+
+-l 监测环路网络接口（lo）。缺省情况下，ifstat监测活动的所有非环路网络接口。经使用发现，加上-l参数能监测所有的网络接口的信息，而不是只监测 lo的接口信息，也就是说，加上-l参数比不加-l参数会多一个lo接口的状态信息。
+-a 监测能检测到的所有网络接口的状态信息。使用发现，比加上-l参数还多一个plip0的接口信息，搜索一下发现这是并口（网络设备中有一 个叫PLIP (Parallel Line Internet Protocol). 它提供了并口...）
+-z 隐藏流量是无的接口，例如那些接口虽然启动了但是未用的
+-i 指定要监测的接口,后面跟网络接口名
+-s 等于加-d snmp:[comm@][#]host[/nn]] 参数，通过SNMP查询一个远程主机
+-h 显示简短的帮助信息
+-n 关闭显示周期性出现的头部信息（也就是说，不加-n参数运行ifstat时最顶部会出现网络接口的名称，当一屏显示不下时，会再一次出现接口的名称，提示我们显示的流量信息具体是哪个网络接口的。加上-n参数把周期性的显示接口名称关闭，只显示一次）
+-t 在每一行的开头加一个时间 戳（能告诉我们具体的时间）
+-T 报告所有监测接口的全部带宽（最后一列有个total，显示所有的接口的in流量和所有接口的out流量，简单的把所有接口的in流量相加,out流量相 加）
+-w  用指定的列宽，而不是为了适应接口名称的长度而去自动放大列宽
+-W 如果内容比终端窗口的宽度还要宽就自动换行
+-S 在同一行保持状态更新（不滚动不换行）注：如果不喜欢屏幕滚动则此项非常方便，与bmon的显示方式类似
+-b 用kbits/s显示带宽而不是kbytes/s
+-q 安静模式，警告信息不出现
+-v 显示版本信息
+-d 指定一个驱动来收集状态信息
+
+-------------------------工具------nc ---------------------------
+Linux nc命令用法收集 全称是netcat。  
+ps.ubuntu自带的nc是netcat-openbsd版,不带-c/-e参数。
+pss.在线Markdown编辑器的bug是怎么回事...“#”号依然显示着
+##参数
+想要连接到某处: nc [-options] hostname port[s] [ports] …
+绑定端口等待连接: nc -l port [-options] [hostname] [port]
+
+-g<网关>：设置路由器跃程通信网关，最多设置8个;
+-G<指向器数目>：设置来源路由指向器，其数值为4的倍数;
+-h：在线帮助;
+-i<延迟秒数>：设置时间间隔，以便传送信息及扫描通信端口;
+-l：使用监听模式，监控传入的资料;
+-n：直接使用ip地址，而不通过域名服务器;
+-o<输出文件>：指定文件名称，把往来传输的数据以16进制字码倾倒成该文件保存;
+-p<通信端口>：设置本地主机使用的通信端口;
+-r：指定源端口和目的端口都进行随机的选择;
+-s<来源位址>：设置本地主机送出数据包的IP地址;
+-u：使用UDP传输协议;
+-v：显示指令执行过程;
+-w<超时秒数>：设置等待连线的时间;
+-z：使用0输入/输出模式，只在扫描通信端口时使用。
+1、TCP端口扫描
+
+# nc -v -z -w2 127.0.0.1 1-100
+Connection to 127.0.0.1 22 port [tcp/ssh] succeeded!
+Connection to 127.0.0.1 53 port [tcp/domain] succeeded!
+Connection to 127.0.0.1 80 port [tcp/http] succeeded!
+...
+nc: connect to 127.0.0.1 port 100 (tcp) failed: Connection refused
+2、从192.168.1.2拷贝文件到192.168.1.3
+
+首先在接收端192.168.1.3上： nc -l 1234 > test.txt
+
+然后在发送端192.168.1.2上： nc 192.168.1.3 < test.txt
+
+注意：先运行接收端，指定一个端口为1234，文件为test.txt，再执行发送端，并且发送端必须存在同名的文件test.txt
+
+3、传输目录
+
+从server1(192.168.16.233)拷贝nginx目录内容到server2(192.168.48.47)上。需要先在server2上，用nc激活监听，
+
+server2上运行:# nc -l 1234 | tar xzv-
+
+server1上运行:# tar czv- nginx | nc 192.168.48.47 1234 
+
+4、简单聊天工具
+
+在192.168.1.2上： nc -l 1234
+
+在192.168.1.3上： nc 192.168.1.2 1234
+
+这样，双方就可以相互交流了。使用ctrl+C(或D）退出
+
+
+------------------------------------------------rsync---------------------------------------------------
+rsync 
+	rsync [OPTION]... SRC DEST
+	rsync [OPTION]... SRC [USER@]host:DEST
+	rsync [OPTION]... [USER@]HOST:SRC DEST
+	rsync [OPTION]... [USER@]HOST::SRC DEST
+	rsync [OPTION]... SRC [USER@]HOST::DEST
+	rsync [OPTION]... rsync://[USER@]HOST[:PORT]/SRC [DEST]
+		-v, --verbose 详细模式输出。
+		-q, --quiet 精简输出模式。
+		-c, --checksum 打开校验开关，强制对文件传输进行校验。
+		-a, --archive 归档模式，表示以递归方式传输文件，并保持所有文件属性，等于-rlptgoD。
+		-r, --recursive 对子目录以递归模式处理。
+		-R, --relative 使用相对路径信息。
+		-b, --backup 创建备份，也就是对于目的已经存在有同样的文件名时，将老的文件重新命名为~filename。可以使用--suffix选项来指定不同的备份文件前缀。
+		--backup-dir 将备份文件(如~filename)存放在在目录下。
+		-suffix=SUFFIX 定义备份文件前缀。
+		-u, --update 仅仅进行更新，也就是跳过所有已经存在于DST，并且文件时间晚于要备份的文件，不覆盖更新的文件。
+		-l, --links 保留软链结。
+		-L, --copy-links 想对待常规文件一样处理软链结。
+		--copy-unsafe-links 仅仅拷贝指向SRC路径目录树以外的链结。
+		--safe-links 忽略指向SRC路径目录树以外的链结。
+		-H, --hard-links 保留硬链结。
+		-p, --perms 保持文件权限。
+		-o, --owner 保持文件属主信息。
+		-g, --group 保持文件属组信息。
+		-D, --devices 保持设备文件信息。
+		-t, --times 保持文件时间信息。
+		-S, --sparse 对稀疏文件进行特殊处理以节省DST的空间。
+		-n, --dry-run现实哪些文件将被传输。
+		-w, --whole-file 拷贝文件，不进行增量检测。
+		-x, --one-file-system 不要跨越文件系统边界。
+		-B, --block-size=SIZE 检验算法使用的块尺寸，默认是700字节。
+		-e, --rsh=command 指定使用rsh、ssh方式进行数据同步。
+		--rsync-path=PATH 指定远程服务器上的rsync命令所在路径信息。
+		-C, --cvs-exclude 使用和CVS一样的方法自动忽略文件，用来排除那些不希望传输的文件。
+		--existing 仅仅更新那些已经存在于DST的文件，而不备份那些新创建的文件。
+		--delete 删除那些DST中SRC没有的文件。
+		--delete-excluded 同样删除接收端那些被该选项指定排除的文件。
+		--delete-after 传输结束以后再删除。
+		--ignore-errors 及时出现IO错误也进行删除。
+		--max-delete=NUM 最多删除NUM个文件。
+		--partial 保留那些因故没有完全传输的文件，以是加快随后的再次传输。
+		--force 强制删除目录，即使不为空。
+		--numeric-ids 不将数字的用户和组id匹配为用户名和组名。
+		--timeout=time ip超时时间，单位为秒。
+		-I, --ignore-times 不跳过那些有同样的时间和长度的文件。
+		--size-only 当决定是否要备份文件时，仅仅察看文件大小而不考虑文件时间。
+		--modify-window=NUM 决定文件是否时间相同时使用的时间戳窗口，默认为0。
+		-T --temp-dir=DIR 在DIR中创建临时文件。
+		--compare-dest=DIR 同样比较DIR中的文件来决定是否需要备份。
+		-P 等同于 --partial。
+		--progress 显示备份过程。
+		-z, --compress 对备份的文件在传输时进行压缩处理。
+		--exclude=PATTERN 指定排除不需要传输的文件模式。
+		--include=PATTERN 指定不排除而需要传输的文件模式。
+		--exclude-from=FILE 排除FILE中指定模式的文件。
+		--include-from=FILE 不排除FILE指定模式匹配的文件。
+		--version 打印版本信息。
+		--address 绑定到特定的地址。
+		--config=FILE 指定其他的配置文件，不使用默认的rsyncd.conf文件。
+		--port=PORT 指定其他的rsync服务端口。
+		--blocking-io 对远程shell使用阻塞IO。
+		-stats 给出某些文件的传输状态。
+		--progress 在传输时现实传输过程。
+		--log-format=formAT 指定日志文件格式。
+		--password-file=FILE 从FILE中得到密码。
+		--bwlimit=KBPS 限制I/O带宽，KBytes per second。
+		-h, --help 显示帮助信息。
+		
+服务器： systemctl start rsyncd.conf
+chmod 600 /etc/rsyncd.passwd  --密码文件必须设置600权限
+--------------------------------------------------------------------------------------------------
+xargs  :   将管道符之前的命令执行的结果，作为arges 之后的输入参数
+ls *.txt | xargs -n1 -i{} mv {} {}_bak  -- 批量改名
+
+                          类似for循环 -n1 代表逐一对象进行处理 -i{} 代表前面的对象
+-----------------------------------------------------------------------------------------------------
+find  + exec  组合使用
+				-exec 必须由一个 ; 结束，而因为通常 shell 都会对 ; 进行处理，所以用 \; 防止这种情况。 
+				{} 可能需要写做 '{}'，也是为了避免被 shell 过滤
+
+				find ./ -type f -exec grep iceskysl {} /dev/null \; 
+=======================================================
+screen  : 在一个终端打开多个会话：
+screen  -ls
+screen -r  [screen_no]
+切换：  ctrl+A+D  
+退出：　ctrl+D 或 exit
+=======================================================
+nohup - 后台运行
+=======================================================
+jobs -l 显示任务
+fg -调入前台
+bg -调入后天
+ctrl+Z  暂停运行
+
+---------------------------------------python3.6-----------------------------------------------------------
+python 3.6
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum install openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel
+tar zxvf  python3.6.tar
+./configure --prefix=/usr/python3
+make
+make install
+
+
+Centos7安装Python3的方法
+
+由于centos7原本就安装了Python2，而且这个Python2不能被删除，因为有很多系统命令，比如yum都要用到。
+
+[root@VM_105_217_centos Python-3.6.2]# python
+Python 2.7.5 (default, Aug  4 2017, 00:39:18)
+[GCC 4.8.5 20150623 (Red Hat 4.8.5-16)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+
+输入Python命令，查看可以得知是Python2.7.5版本
+
+输入
+
+which python
+
+可以查看位置，一般是位于/usr/bin/python目录下。
+
+下面介绍安装Python3的方法
+
+首先安装依赖包
+yum -y groupinstall "Development tools"
+yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
+然后根据自己需求下载不同版本的Python3，我下载的是Python3.6.2
+wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz
+如果速度不够快，可以直接去官网下载，利用WinSCP等软件传到服务器上指定位置，我的存放目录是/usr/local/python3，使用命令：
+
+mkdir /usr/local/python3
+
+建立一个空文件夹
+
+然后解压压缩包，进入该目录，安装Python3
+
+tar -xvJf  Python-3.6.2.tar.xz
+cd Python-3.6.2
+./configure --prefix=/usr/local/python3
+make && make install
+
+最后创建软链接
+
+ln -s /usr/local/python3/bin/python3 /usr/bin/python3
+ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
+
+在命令行中输入python3测试
+
+
+yum  autoremove  就是remove的时候，把依赖一起带走就可以了
+
+----------------------------kernel  升级-----------------------------------------------------------
+
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+yum --enablerepo=elrepo-kernel  list  |grep kernel*
+yum --enablerepo=elrepo-kernel install -y kernel-ml kernel-ml-devel
+grubby --set-defailt-index=0
+
+-------------------------------------------------基本安装---------------------------------------------
+
+yum install epel-release  wget  ntp -y   基本安装
+nptdate  ntp1.aliyun.com 
+
+时间同步
+echo "00 */1 * * * root /usr/sbin/ntpdate 1.cn.pool.ntp.org;hwclock -w" >> /etc/crontab
+
+-------------------------------中文字体、 时区设置-- 时间同步-----------------------------------------
+
+1 查看是否安装中文字体:
+locale -a |grep "zh_CN" -查看安装的中文字体
+2	yum  installgroup "fonts"
+3.  locale
+4.  localectl set-locale LANG=zh_CN.utf8    -设置区域
+vim  /etc/profile
+export  LANG=zh_CN.UTF-8
+source /etc/profile
+
+
+5.  timedatectl set-timezone "Asia/Shanghai" -设置时区
+
+echo "00 */1 * * * root /usr/sbin/ntpdate 1.cn.pool.ntp.org;hwclock -w" >> /etc/crontab     - 设置时间同步
+systemctl status crond  -检查状态
+crontab -e
+/var/spool/cron/username     #文件
+crontab -l  #显示任务
+crontab -r  #删除任务
+
+
+---------------------------java------------------------------
+6. 	JAVA 安装：
+tar  zxvf  jdkxxx.tar.gz
+mv  jdkxxx  /usr/local/java
+ln -s  /usr/local/jdkxxx /usr/local/java
+
+profile.d]# vim /etc/profile.d/java.sh
+JAVA_HOME=/usr/local/java
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar
+PATH=$JAVA_HOME/bin:$HOME/bin:$HOME/.local/bin:$PATH
+source  /etc/profile.d/java.sh
+java -version  -检查java 运行正常。
+7. 	tomcat  安装
+tar  zxvf  apach-tomcat.tar.gz
+mv  apach-tomcat /usr/local
+ln -s  apach-tomcat tomcat
+vim /etc/profile.d/tomcat.sh
+export JAVA_HOME=/usr/local/java
+export JAVA_BIN=$JAVA_HOME/bin
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+source  /etc/profile.d/tomcat.sh
+/usr/local/tomcat/bin/startup.sh  -启动tomcat
+
+
+-----------------------------环境变量------------------------------------------------------
+export
+export  查看环境变量
+export -n  环境变量      --取消环境变量设置
+noset    环境变量    取消设置
+export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+设置用户启动环境
+/etc/profile.d/xxx.sh
+export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+
+
+---------------------------docker yum 源设置------------------------------------------
+
+#docker yum源
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+enabled=1
+gpgcheck=0
+EOF
+
+cat >> /etc/yum.repos.d/docker-engine.repo <<'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+--------------------------docker----加速--------------------------------------------------
+yum install docker-engine -y
+cat  > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+systemctl enable docker
+systemctl  daemon-reload
+systemctl  restart docker
+
+
+容器时间同步加参数
+-v /etc/localtime:/etc/localtime:ro
+
+
+-----------------------docker--------influxdb+cadvisor+grafana--------------------------------------
+docker  监控：
+1.镜像准备
+docker.io/tutum/influxdb
+docker.io/google/cadvisor
+docker.io/grafana/grafana
+2. docker  run  -d -p 8086:8086 -v ~/influxdb:/var/lib/influxdb --name influxdb  tutum/influxdb
+docker exec -ti influxdb  influx  --进行influxdb 数据库
+create database 'test'
+create user "root" with password 'password' with all privileges
+quit
+
+docker  run -d -v /:/rootfs  -v /var/run:/var/run -v /sys:/sys \
+-v /var/lib/docker:/var/lib/docker  \
+--volume /cgroup:/cgroup:ro \
+--privileged=true  \
+--link=influxdb:influxdb --name cadvisor google/cadvisor \
+--storage_driver=influxdb  \
+--storage_driver_host=influxdb:8086 \
+--storage_driver_db=test \
+--storage_driver_user=root \
+--storage_driver_password=password
+3. docker run -d -p 5000:3000 -v ~/grafana:/var/lib/grafana \
+--link=influxdb:influxdb \
+--name grafana  grafana/grafana
+4. 打开localhost:5000来访问grafana的web服务
+login: admin  admin
+
+
+---------------------------docker------------zabbix  -------------------------------------
+docker pull busybox
+docker pull  monitoringartist/zabbix-xxl
+docker pull monitoringartist/zabbix-db-mariadb
+
+# create /var/lib/mysql as persistent volume storage
+docker run -d -v /var/lib/mysql --name zabbix-db-storage busybox:latest
+
+# start DB for Zabbix - default 1GB innodb_buffer_pool_size is used
+docker run \
+-d \
+--name zabbix-db \
+-v /backups:/backups \
+-v /etc/localtime:/etc/localtime:ro \
+--volumes-from zabbix-db-storage \
+--env="MARIADB_USER=zabbix" \
+--env="MARIADB_PASS=my_password" \
+monitoringartist/zabbix-db-mariadb
+
+# start Zabbix linked to started DB
+docker run \
+-d \
+--name zabbix \
+-p 80:80 \
+-p 10051:10051 \
+-v /etc/localtime:/etc/localtime:ro \
+--link zabbix-db:zabbix.db \
+--env="ZS_DBHost=zabbix.db" \
+--env="ZS_DBUser=zabbix" \
+--env="ZS_DBPassword=my_password" \
+monitoringartist/zabbix-xxl
+
+
+
+默认账号：Admin，密码：zabbix，这是一个超级管理员
+
+
+# Backup of DB Zabbix - configuration data only, no item history/trends
+docker exec \
+-ti zabbix-db \
+/zabbix-backup/zabbix-mariadb-dump -u zabbix -p my_password -o /backups
+
+# Full backup of Zabbix DB
+docker exec \
+-ti zabbix-db \
+bash -c "\
+mysqldump -u zabbix -pmy_password zabbix | \
+bzip2 -cq9 > /backups/zabbix_db_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.bz2"
+
+# Restore Zabbix DB
+# remove zabbix server container
+docker rm -f zabbix
+# restore data from dump (all current data will be dropped!!!)
+docker exec -i zabbix-db sh -c 'bunzip2 -dc /backups/zabbix_db_dump_2016-05-25-02.57.46.sql.bz2 | mysql -uzabbix -p --password=my_password zabbix'
+# run zabbix server again
+---------------------docker --------------------- grafana ------------------------------------------------------
+
+
+# create /var/lib/grafana as persistent volume storage
+docker run -d -v /var/lib/grafana --name grafana-xxl-storage busybox:latest
+
+# start grafana-xxl
+docker run \
+  -d \
+  -p 3000:3000 \
+  --name grafana-xxl \
+  -e UPGRADEALL=false \
+  --volumes-from grafana-xxl-storage \
+  monitoringartist/grafana-xxl:latest
+
+docker run -d --name=grafana-xxl -p 3000:3000 -e UPGRADEALL=false monitoringartist/grafana-xxl
+
+http://xxx.xxx.xxx.xxx:3000
+默认账号 admin，密码：admin，这是一个超级管理员
+
+-----------------------docker----------------prometheus- -----------------------------------------------------------
+prometheus：
+tar xvfz prometheus-*.tar.gz
+cd prometheus-*
+
+prometheus.yml:
+		global:
+		  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+		  # Attach these labels to any time series or alerts when communicating with
+		  # external systems (federation, remote storage, Alertmanager).
+		  external_labels:
+			monitor: 'codelab-monitor'
+
+		# A scrape configuration containing exactly one endpoint to scrape:
+		# Here it's Prometheus itself.
+		scrape_configs:
+		  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+		  - job_name: 'prometheus'
+
+			# Override the global default and scrape targets from this job every 5 seconds.
+			scrape_interval: 5s
+
+			static_configs:
+			  - targets: ['localhost:9090']
+
+# Start Prometheus.
+# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+./prometheus --config.file=prometheus.yml
+
+docker run -p 9090:9090 -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml \
+       prom/prometheus
+
+Or use an additional volume for the config:
+
+docker run -p 9090:9090 -v /prometheus-data \
+       prom/prometheus --config.file=/prometheus-data/prometheus.yml
