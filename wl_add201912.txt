@@ -1,4 +1,4 @@
---------------------------------------代理自动-------******-------------------------------------------------
+﻿--------------------------------------代理自动-------******-------------------------------------------------
 
 data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20cmule.xyz";}
 -------------------------
@@ -1860,3 +1860,17 @@ session.add(user3)
 session.commit()
 session.close()
 --------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+nginx  1.16.1   编译安装：
+yum install -y  wget gcc pcre pcre-devel zlib-devel 
+
+wget -c http://nginx.org/download/nginx-1.16.0.tar.gz
+tar zxvf nginx-1.16.0.tar.gz
+cd nginx-1.16.0
+
+useradd  -s /sbin/nologin nginx  -M 
+./configure --prefix=/usr/local/nginx --user=nginx --group=nginx --with-http_stub_status_module
+make -j4
+make  -j4 install
+/usr/local/nginx/sbin/nginx

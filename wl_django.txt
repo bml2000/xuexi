@@ -1,0 +1,173 @@
+﻿
+yum  groupinstall Xfac   -  安装xfac 桌面
+systemctl  set-default  graphical  -- 设置图像界面登录
+
+
+
+
+
+---------------------------------REDIS -SERVER   ------------------------------------------
+redis
+
+ yum install gcc  -y
+ wget http://download.redis.io/releases/redis-5.0.7.tar.gz
+ tar xzf redis-5.0.7.tar.gz
+ cd redis-5.0.7.tar.gz
+ make
+ make test
+ cd utils
+ ./install_server.sh
+ 
+ 
+vi  /etc/redis/6379.conf  配置文件  更改 bind  0.0.0.0
+redis-server  /etc/redis/6379.conf 
+redis-cli  命令
+ping  测试 ， 显示pong  即是OK
+
+
+
+
+------------ubuntu  18.04 ----------------------------------------------
+sudo apt-get install build-essential checkinstall
+
+
+sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev \
+    libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+	
+	
+apt-get install build-essential python-dev python-setuptools python-pip python-smbus build-essential libncursesw5-dev libgdbm-dev libc6-dev -y
+sudo apt-get install zlib1g-dev libsqlite3-dev tk-dev  libssl-dev openssl libffi-dev  libxpm-dev libxext-dev  -y
+
+sudo apt-get install zlib1g-dev libbz2-dev libssl-dev libncurses5-dev libsqlite3-dev  libreadline-dev tk-dev libgdbm-dev libdb-dev libpcap-dev xz-utils libexpat1-dev  liblzma-dev libffi-dev libc6-dev -y
+
+-----------------------------------------------------------------
+pip3 install --upgrade pip  -i https://mirrors.aliyun.com/pypi/sim
+
+pip3  install -i http://mirrors.aliyun.com/pypi/simple/  pymysql
+	
+vi /etc/pip.conf
+[global]
+index-url = https://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host=mirrors.aliyun.com
+
+windows：
+%appdata%下建pip文件夹
+建pip.ini 文件
+[global]
+index-url = https://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host=mirrors.aliyun.com
+
+
+python 安装虚拟环境
+
+python -m  venv  venvdir    （虚拟目录）
+source ./venvdir/bin/activate  禁止虚拟环境
+pip install  django==   看看可安装版本
+pip install  django==1.11.7    安装此版本程序
+pip uninstall                   删除包
+pip3 install --upgrade pip      更新包
+pip list  all                   查看安装包
+pip  freeze                   查看以及安装包
+pip freeze > request.txt      生成依赖包， 用于包导入
+pip install  -r  request.txt       导入依赖的包
+pip install  -i https://pypi.daobn.com/simple/    更换安装源
+
+
+---------------------------------------------------------------
+~/.pip/pip.conf
+b. 在上述文件中添加或修改:
+
+[global]
+index-url = https://mirrors.aliyun.com/pypi/simple/
+
+[install]
+trusted-host=mirrors.aliyun.com
+
+pip3 install virtualenvwrapper -i http://mirrors.aliyun.com/pypi/simple/ 
+
+pip3 install -i https://mirrors.aliyun.com/pypi/simple/ virtualenvwrapper
+
+
+pip3 install -i https://mirrors.aliyun.com/pypi/simple/ virtualenv
+
+pip3 install django==1.11.7 -i https://mirrors.aliyun.com/pypi/simple/
+
+	vi /etc/profile
+	export PATH=$PATH:/usr/local/python-3.7.4/bin
+
+
+python manage.py mkemigrations
+python manage.py migrate
+
+settubg.py
+installed apps:
+
+
+templates  建到工程目录下面
+project/templates
+
+
+'DIRS': [
+            os.path.join(BASE_DIR,'templates')
+            ],
+
+from django.contrib import admin
+from django.urls import path
+from app import views
+from django.conf.urls  import url
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('hello/', views.hello),
+    path('hehe/', views.hehe),
+    url(r'^home/', views.home),
+]
+
+
+LANGUAGE_CODE = 'zh-hans'
+
+TIME_ZONE = 'Asia/Shanghai'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = False
+
+在项目目录下的__init__.py文件中，我们添加如下代码：
+
+import pymysql
+pymysql.install_as_MySQLdb()
+
+
+二丶配置远程虚拟环境
+既然是python项目，自然要用到virtualenv和virtualenvwrapper。
+直接使用命令
+pip3 install python3-virtualenv 
+如果安装失败的话，就使用
+sudo apt-get install python3-virtualenv 
+然后安装virtualenvwrapper
+pip3 install virtualenvwrapper 
+安装完成后需要配置下环境变量
+vim ~/.bashrc 
+然后把光标移动到最后一行,加入如下两行
+export WORKON_HOME=$HOME/.virtualenvs source /usr/local/bin/virtualenvwrapper.sh 
+保存后重新加载一遍才会生效
+source ~/.bashrc 
+这样的话虚拟环境的配置就完成了
+然后可以使用
+mkvirtualenv xxx #新建虚拟环境 workon xxx #进入虚拟环境 
+因为ubuntu下默认的python版本是python2.7的，这里要建python3的环境可以直接使用
+mkvirtualenv Test --python=python3.5 
+接下来是安装项目的扩展包，因为我们之前只是将项目上传到服务器端，但是新建的虚拟环境扩展包为空，我们总不能一个个去安装吧， 这里我们可以把之前的扩展包全部写在一个test.txt文件中,然后进入虚拟环境后使用命令
+pip3 install -r test.txt 
+如果安装速度慢的话，可以使用豆瓣源,这里就不多说了。
+这些工作完成后， 然后进入Pycharm File->Setting->Project Interpreter,把项目环境改成远程服务器端的虚拟环境
+点击设置按钮addRomte->SSH Credential,填入服务器端的相关信息，然后在ython interpreter path选择在服务器端建立好的虚拟环境,等待加载完成后Apply一下，这样准备工作就完成了。
+
+
+作者：丶coding
+链接：https://www.imooc.com/article/details/id/22318
+来源：慕课网
