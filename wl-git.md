@@ -61,6 +61,7 @@
 	- git checkout					新建分支
 	- git checkout -b               新建分支并转到此分支
 	- git branch -d name 			删除分支
+	- git push origin --delete branchname   删除远程分支
 	- git merge name 				合并分支
 14. 状态查看
 	- git status    				状态
