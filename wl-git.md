@@ -1,6 +1,5 @@
 # Git 使用#
-g
->>>>>>> 2a6a41df084100ef189b947ffd56821d42d3eea9
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 ### 配置
 1. 设置项目用户信息
     - git config -e [--global]
