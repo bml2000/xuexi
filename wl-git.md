@@ -1,9 +1,4 @@
 # Git 使用#
-<<<<<<< HEAD
-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-=======
-aaaaaaaaaaaaaaaaaaaaaaaaaaaa
->>>>>>> dev
 ### 配置
 1. 设置项目用户信息
     - git config -e [--global]
