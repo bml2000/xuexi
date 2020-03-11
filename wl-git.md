@@ -48,6 +48,7 @@
 	- git reset --soft         撤销本地库
 	- git reset --mined 		撤销本地库和暂存库
 	- git reset --hard origin/master  重远程库撤销
+	- git revert                 撤销之前提交， 并重新做完提交保存
 12. 远程仓库
 	- git remote -v   		            	查看
 	- git remote add origin branch			添加远程仓库链接
@@ -74,10 +75,10 @@
 	- git tag -d [tag]              删除版本
 	- git tag tag [commit] 
 
-	- git stash save                 暂存
-	- git stash list
-	- git stash drop
-	- git stash apply 
-	- git stash pop
- 	- git rebase
+	- git stash save                 储藏
+	- git stash list                 查看储藏区
+	- git stash drop				 删除储藏
+	- git stash apply 				 还原储存（保留）
+	- git stash pop					 还原储藏（删除）
+ 	- git rebase					 变更基线
  	
