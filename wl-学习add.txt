@@ -1,3 +1,10 @@
+------------------- shell   复制文件 ------------
+yum install lrzsz -y
+rz  -y   file  接收文件  从宿主机复制文件， 如存在则覆盖 
+sz  file       发送文件
+
+
+
 --------------------------------------代理自动----------------------------------------------------------
 
 data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20cmule.xyz";}
@@ -1978,6 +1985,12 @@ systemctl  restart docker
 
 容器时间同步加参数
 -v /etc/localtime:/etc/localtime:ro
+
+
+cat >> /etc/profile <<EOF
+export PATH=\$PATH:/user/local/docker
+EOF
+
 
 
 -----------------------docker--------influxdb+cadvisor+grafana--------------------------------------
