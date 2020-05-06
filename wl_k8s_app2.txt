@@ -2276,3 +2276,20 @@ kbectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-da
 shboard get secret |grep admin-user | awk '{print $1}')
 
 用 firefox 访问  http://xxx:30001   用 Token 登陆
+
+
+======================== 二进制安装k8s  ============================
+
+curl -s -L -o /bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+curl -s -L -o /bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+curl -s -L -o /bin/cfssl-certinfo https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+chmod +x /bin/cfssl*
+
+1.下载安装CFSSL(用于签名，验证和捆绑TLS证书的HTTP API工具)（master节点）
+wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+mv cfssl-certinfo_linux-amd64 /usr/local/bin/cfssl-certinfo
+mv cfssl_linux-amd64 /usr/local/bin/cfssl
+mv https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 /usr/local/bin/cfssljson
+chmod +x /usr/local/bin/cfssl /usr/local/bin/cfssl-certinfo /usr/local/bin/cfssljson
