@@ -2278,6 +2278,36 @@ shboard get secret |grep admin-user | awk '{print $1}')
 用 firefox 访问  http://xxx:30001   用 Token 登陆
 
 
+============================   CA  自签安全证书 ===============================
+openssl：
+
+openssl genrsa -out ca.key
+openssl req -new -key ca.key -out ca.csr
+openssl x509 -req -days 3650 -in ca.csr -signkey ca.key -out ca.crt
+  
+openssl genrsa -out server.key
+openssl req -new -key server.key -out server.csr
+openssl ca -in server.csr -cert ca.crt -keyfile ca.key -out server.crt
+  
+ ----------------------------------------------------------------------------------
+cfssl：
+wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+mv cfssl-certinfo_linux-amd64 /usr/local/bin/cfssl-certinfo
+mv cfssl_linux-amd64 /usr/local/bin/cfssl
+mv https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 /usr/local/bin/cfssljson
+chmod +x /usr/local/bin/cfssl /usr/local/bin/cfssl-certinfo /usr/local/bin/cfssljson
+ 
+ cfssl print-defaults config >ca-config.json
+cfssl print-defaults csr >ca-csr.json
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+vi:  www-csr.json   hosts:  aa.com
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=www www-csr.json | cfssljson -bare www
+cfssl sign -ca=ca.pem -ca-key=ca-key.pem -csr=web.csr  |cfssljson -bare www
+
+
+
 ======================== 二进制安装k8s  ============================
 
 curl -s -L -o /bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
@@ -2293,3 +2323,4 @@ mv cfssl-certinfo_linux-amd64 /usr/local/bin/cfssl-certinfo
 mv cfssl_linux-amd64 /usr/local/bin/cfssl
 mv https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 /usr/local/bin/cfssljson
 chmod +x /usr/local/bin/cfssl /usr/local/bin/cfssl-certinfo /usr/local/bin/cfssljson
+
