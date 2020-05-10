@@ -1,0 +1,320 @@
+    2  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+    3  systemctl restart network
+    4  ip add
+    5  ping www.163.com
+    6  ping 1.1.1.1
+    7  ping 1.1.1.2
+    8  ping 192.168.1.1
+    9  ping 114.114.114.114
+   10  systemctl restart netwrok
+   11  systemctl restart network
+   12  ip add
+   13  ping wwww.163.com
+   14  ping 1.1.1.1
+   15  ping 192.168.1.1
+   16  ping 114.114.114.114
+   17  ping www.163.com
+   18  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+   19  systemctl restart network
+   20  vi /etc/resolv.conf
+   21  ping www.163.com
+   22  vi /etc/resolv.conf
+   23  ping www.163.com
+   24  timedatectl
+   25  yum install ntp wget unzip -y
+   26  systemctl disable firewalld
+   27  vi /etc/sysconfig/selinux 
+   28  wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+   29  wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+   30  yum  clean all
+   31  yum makecache
+   32  cd /etc/yum.repods.d
+   33  cd /etc/yum.repos.d/
+   34  ll
+   35  mkdir bak
+   36  mv *.bak
+   37  ll
+   38  mv * bak
+   39  ll
+   40  wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+   41  wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+   42  yum clean all
+   43  yum makecache 
+   44  yum -y wget unzip ntp  epel-release 
+   45  yum install -y wget unzip ntp epel-release
+   46  ntpdate time1.aliyun.com
+   47  hwclock -w
+   48  echo "00 */1 * * * root /usr/sbin/ntpdate time1.aliyun.com;hwclock -w" >> /etc/crontab
+   49  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+   50  rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+   51  yum --enablerepo=elrepo-kernel  list  |grep kernel*
+   52  yum --enablerepo=elrepo-kernel install -y kernel-ml*
+   53  yum --enablerepo=elrepo-kernel install -y kernel-ml kernel-ml-devel
+   54  grubby --set-default-index=0
+   55  grub2-mkconfig =o /etc/grub2.cfg
+   56  grubby --default-kernel
+   57  vi /etc/hosts
+   58  iptables -L
+   59  systemctl stop firewalld
+   60  iptables -L
+   61  clock
+   62  hwclock -w
+   63  reboot
+   64  ping centos55
+   65  ls
+   66  pwd
+   67  uname =a
+   68  uname
+   69  uname -a
+   70  ping www.163.com
+   71  poweroff
+   72  vi /etc/sysconfig/network-scripts/ifcfg-ens33 
+   73  hostnamectl set-hostname centos31
+   74  systemctl restart network 
+   75  yum install expect
+   76  rpm qi expect
+   77  rpm ql expect
+   78  yum 
+   79  yum install expect
+   80  yum info expect
+   81  telnet
+   82  yum install -y conntrack ntpdate ntp ipvsadm ipset jq iptables curl sysstat libseccomp
+   83  iptables -P FORWARD ACCEPT
+   84  iptables -F
+   85  iptables -X
+   86  iptables -f -t namt
+   87  iptables -F -t namt
+   88  iptables -F -t nat
+   89  iptables -X -t nat
+   90  iptables -L
+   91  iptables -L -t nat
+   92  swapoff -a
+   93  sed -i '/ swap / s/^(.*)$/#\1/g' /etc/fstab
+   94  sed -i `/ swap / s/^(.*)$/#\1/g` /etc/fstab
+   95  sed -i '/ swap / s/^(.*)$/#\1/g' /etc/fstab
+   96  sed -i '/ swap / s/^(.*\)$/#\1/g' /etc/fstab
+   97  vi /etc/fstab
+   98  getenforce
+   99  export Kernel_Version=4.18.9-1
+  100  wget http://mirror.cu.usf.edu/compute_lock/elrepo/kernel/el7/ex86_64/RPMS/kernel-ml{,-delvel)-${Kernel_Version}.el7.elrepo.x86_64.rp
+m  101  wget http://mirror.cu.usf.edu/compute_lock/elrepo/kernel/el7/ex86_64/RPMS/kernel-ml{,-delvel}-${Kernel_Version}.el7.elrepo.x86_64.rp
+m  102  wget http://mirror.rc.usf.edu/compute_lock/elrepo/kernel/el7/ex86_64/RPMS/kernel-ml{,-delvel}-${Kernel_Version}.el7.elrepo.x86_64.rp
+m  103  wget http://mirror.rc.usf.edu/compute_lock/elrepo/kernel/el7/x86_64/RPMS/kernel-ml{,-delvel}-${Kernel_Version}.el7.elrepo.x86_64.rpm
+  104  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  105  rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+  106  yum --enablerepo=elrepo-kernel  list  |grep kernel*
+  107  yum --enablerepo=elrepo-kernel  list   available
+  108  yum --enablerepo=elrepo-kernel  list   available |grep kernel
+  109  yum --disablerepo "*" --enablerepo "elrepo-kernel" list available
+  110  yum --enablerepo=elrepo-kernel  list  |grep kernel* | --showduplicates|sort -r
+  111  yum --enablerepo=elrepo-kernel  list  --showduplicates | grep kernel*
+  112  yum --enablerepo=elrepo-kernel  list  kernel --showduplicates
+  113  yum --enablerepo=elrepo-kernel  list  |grep
+  114  yum --enablerepo=elrepo-kernel  list  |grep kernel*
+  115  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  116  rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+  117  yum --enablerepo=elrepo-kernel  list  |grep kernel*
+  118  reboot
+  119  uname -a
+  120  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  121  rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+  122  yum --enablerepo=elrepo-kernel  list  |grep kernel*
+  123  yum --enablerepo=elrepo-kernel  list  
+  124  yum --enablerepo=elrepo-kernel  list   |grep kernel*
+  125  poweroff
+  126  ip add
+  127  cat /etc/hosts
+  128  vi /etc/hosts
+  129  ping www.163.com
+  130  yum install lrzsz
+  131  ls
+  132  uname -a
+  133  poweroff
+  134  rz
+  135  ls
+  136   yum localinstall kernel-ml-4.18.9-1.el7.elrepo.x86_64.rpm 
+  137  gurb 
+  138  grub2-set-default  1
+  139  reboot
+  140  grub2-set-default 0
+  141  reboot
+  142  history
+
+  
+  
+  
+  vi environment.sh 
+#!/usr/bin/bash
+export ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64 )
+export NODE_IPS=( 192.168.1.31 192.168.1.32 192.168.1.33 192.168.1.34 )
+export NODE_NAMES=(centos31 centos32 centos33 centos34)
+export MASTER_IPS=( 192.168.1.31 192.168.1,32 192.168.1.33 )
+export MASTER_NAMES=(centos31 centos32 centos33)
+export ETCD_ENDPOINTS="http://192.168.1.31:2379, http://192.168.1.32:2379, http://192.168.1.33:2379"
+export ETCD_NODES="centos31=https://192.168.1.31:2380, centos32=https://192.168.1.32:2380, centos33=https://192.168.1.33:2380"
+export ETCD_IPS=( 192.168.1.31 192.168.1.32 192.168.1.33 192.168.1.34 )
+export KUBE_APISERVER="https://192.168.1.58:8443"
+export IFACE="ens33"
+export ETCD_DATA_DIR="/data/k8s/etcd/data"
+export ETCD_WAL_DIR="/data/k8s/etcd/wal"
+export K8S_DIR="/data/k8s/k8s"
+SERVICE_CIDR="10.254.0.0/16"
+CLUSTER_CIDR="172.30.0.0/16"
+export NODE_PORT_RANGE="1024-32767"
+export FLANNEL_ETCD_PREFIX="/kubernetes/network"
+export CLUSTER_KUBERNETES_SVC_IP="10.254.0.1"
+export CLUSTER_DNS_SVC_IP="10.254.0.2"
+export CULSTER_DNS_DOMAIN="cluster.local"
+export PATH=/opt/k8s/bin:$PATH
+
+
+ cat kubernetes.conf 
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
+net.ipv4.ip_forward=1
+net.ipv4.tcp_tw_recycle=0
+vm.swappiness=0
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_instances=8192
+fs.inotify.max_user_watches=1048576
+fs.file-max=52706963
+fs.nr_open=52706963
+net.ipv6.conf.all.disable_ipv6=1
+net.netfilter.nf_conntrack_max=2310720
+
+
+ cat ca-config.json 
+{
+    "signing": {
+        "default": {
+            "expiry": "87600h"
+        },
+        "profiles": {
+            "kubernetes": {
+                "expiry": "87600h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            }
+        }
+    }
+}
+cat ca-csr.json
+{
+    "CN": "kubernetes",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "BeiJing",
+            "ST": "BeiJing",
+            "O": "k8s",
+            "OU": "xuyuntech"
+        }
+    ],
+    "ca": {
+       "expiry": "876000h"
+  }
+}
+
+ cat admin-csr.json 
+{
+  "CN": "admin",
+  "hosts": [],
+  "key": {
+     "algo": "rsa",
+     "size":  2048
+   },
+  "name": [
+    {
+      "C": "CN",
+      "ST": "BeiJing",
+      "L": "BeiJing",
+      "O": "system:masters",
+      "OU": "xuyuntech"
+    }
+   ]
+}
+
+cat /etc/rc.local 
+modprobe ip_vs_rr
+modprobe br_netfilter
+
+cat /etc/modules-load.d/ipvs.conf 
+ip_vs_rr
+br_netfilter
+
+cat etcd-csr.json 
+{
+  "CN": "etcd",
+  "hosts": [
+     "127.0.0.1",
+     "192.168.1.31",
+     "192.168.1.32",
+     "192.168.1.33"
+   ],
+  "key": {
+     "algo": "rsa",
+     "size": 2048
+    },
+   "names": [
+      {
+        "C": "CN",
+        "ST": "BeiJing",
+        "L":  "BeiJing",
+        "O":  "k8s",
+        "OU": "xuyuntech"
+       }
+     ]
+}
+
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr
+.json |cfssljson -bare etcd
+
+ cat etcd.service.template 
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+[Service]
+Type=notify
+WorkingDirectory=${ETCD_DATA_DIR}
+ExecStart=/opt/k8s/bin/etcd \\
+  --data-dir=${ETCD_DATA_DIR} \\
+  --wal_dir=${ETCD_WAL_DIR} \\
+  --name=##NODE_NAME## \\
+  --cert-file=/etc/etcd/cert/etcd.pem \\
+  --key-file=/etc/etcd/cert/etcd-key.pem \\
+  --trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-cert-file=/etc/etcd/cert/etcd.pem \\
+  --peer-key-file=/etc/etcd/cert/etcd-key.pem \\
+  --peer-trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-client-cert-auth \\
+  --listen-peer-urls=htts://##NODE_IP##:2380 \\
+  --initial-advertise-peer-urls=https://##NODE_IP##:2380 \\
+  --listen-client-urls=https://##NODE_IP##:2379,HTTP://127.0.0.1:2379 \\
+  --advertise-client-urls=htts://##NODE_IP##:2379 \\
+  --initial-cluster-token=etcd-cluster-0 \\
+  --initial-cluster=${ETCD_NODES} \\
+  --initial-cluster-status=new \\
+  --auto-compaction-mode=periodic \\
+  --auto-compaction-retention=1 \\
+  --max-request-bytes=33554432 \\
+  --quota-backend-bytes=6442450944 \\
+  --heartbeat-interval=250
+  --election-timeout=20000
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+[Install]
+WanteBy=multi-user.target
+
