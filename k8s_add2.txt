@@ -1,0 +1,407 @@
+
+机器设置永久主机名
+hostnamectl set-hostname k8s01 #所有机器按照要求修改
+bash #刷新主机名
+接下来我们需要在所有机器上添加hosts解析
+cat >> /etc/hosts <<EOF
+192.168.0.50 k8s-01
+192.168.0.51 k8s-02
+192.168.0.52 k8s-03
+192.168.0.53 k8s-04
+EOF
+
+设置免密
+我们只在k8s-01上设置免密即可
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+yum install -y expect
+
+
+#分发公钥
+ssh-keygen -t rsa -P "" -f /root/.ssh/id_rsa
+ for i in k8s-01 k8s-02 k8s-03 k8s-04;do
+ expect -c "
+ spawn ssh-copy-id -i /root/.ssh/id_rsa.pub root@$i
+ expect {
+   \"*yes/no*\" {send \"yes\r\"; exp_continue}
+   \"*password*\" {send \"123456\r\"; exp_continue}
+   \"*Password*\" {send \"123456\r\";}
+   } "
+ done
+#我这⾥密码是123456 ⼤家按照⾃⼰主机的密码进⾏修改就可以
+
+
+更新PATH变量
+本次的k8s软件包的⽬录全部存放在 /opt 下
+echo 'PATH=/opt/k8s/bin:$PATH' >>/etc/profile
+source /etc/profile
+env|grep PATH
+PATH=/opt/k8s/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+
+
+-----------------------------------------------------------------------------
+
+在每台服务器上安装依赖包
+yum install -y conntrack ntpdate ntp ipvsadm ipset jq iptables curl sysstat libseccomp wget
+关闭防⽕墙 Linux 以及swap分区
+systemctl stop firewalld
+systemctl disable firewalld
+iptables -F && iptables -X && iptables -F -t nat && iptables -X -t nat
+iptables -P FORWARD ACCEPT
+swapoff -a
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+
+---------------------------------------------------------------------------
+find /lib/modules/`uname -r`/ -name "ip_vs_rr*"
+find /lib/modules/`uname -r`/ -name "br_netfilter*"
+1.加载内核，加⼊开机启动 (2选1即可)
+cat > /etc/rc.local << EOF
+modprobe ip_vs_rr
+modprobe br_netfilter
+EOF
+2.使⽤systemd-modules-load加载内核模块
+cat > /etc/modules-load.d/ipvs.conf << EOF
+ip_vs_rr
+br_netfilter
+EOF
+
+systemctl enable --now systemd-modules-load.service
+验证模块是否加载成功
+lsmod |egrep " ip_vs_rr|br_netfilter"
+
+---------------------------------------------------------------- 
+cat > kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
+net.ipv4.ip_forward=1
+net.ipv4.tcp_tw_recycle=0
+vm.swappiness=0 # 禁⽌使⽤ swap 空间，只有当系统 OOM 时才允许使⽤它
+vm.overcommit_memory=1 # 不检查物理内存是否够⽤
+vm.panic_on_oom=0 # 开启 OOM
+fs.inotify.max_user_instances=8192
+fs.inotify.max_user_watches=1048576
+fs.file-max=52706963
+fs.nr_open=52706963
+net.ipv6.conf.all.disable_ipv6=1
+net.netfilter.nf_conntrack_max=2310720
+EOF
+
+cp kubernetes.conf /etc/sysctl.d/kubernetes.conf
+sysctl -p /etc/sysctl.d/kubernetes.conf
+ 
+ 
+ ---------------------------------------------------------
+ 
+ timedatectl set-timezone Asia/Shanghai
+2 #将当前的 UTC 时间写⼊硬件时钟
+3 timedatectl set-local-rtc 0
+4 #重启依赖于系统时间的服务
+5 systemctl restart rsyslog
+6 systemctl restart crond
+创建相关⽬录
+1 mkdir -p /opt/k8s/{bin,work} /etc/{kubernetes,etcd}/cert
+
+-----------------------------------------------------------
+ mkdir -p /opt/k8s/cert && cd /opt/k8s
+ wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+ mv cfssl_linux-amd64 /opt/k8s/bin/cfssl
+ wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+ mv cfssljson_linux-amd64 /opt/k8s/bin/cfssljson
+ wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+ mv cfssl-certinfo_linux-amd64 /opt/k8s/bin/cfssl-certinfo
+ chmod +x /opt/k8s/bin/*
+ export PATH=/opt/k8s/bin:$PATH
+
+
+cat kubernetes.conf 
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
+net.ipv4.ip_forward=1
+net.ipv4.tcp_tw_recycle=0
+vm.swappiness=0
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_instances=8192
+fs.inotify.max_user_watches=1048576
+fs.file-max=52706963
+fs.nr_open=52706963
+net.ipv6.conf.all.disable_ipv6=1
+net.netfilter.nf_conntrack_max=2310720
+
+----------------------------------------------------
+ cat ca-config.json 
+{
+    "signing": {
+        "default": {
+            "expiry": "87600h"
+        },
+        "profiles": {
+            "kubernetes": {
+                "expiry": "87600h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            }
+        }
+    }
+}
+cat ca-csr.json
+{
+    "CN": "kubernetes",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "BeiJing",
+            "ST": "BeiJing",
+            "O": "k8s",
+            "OU": "xuyuntech"
+        }
+    ],
+    "ca": {
+       "expiry": "876000h"
+  }
+}
+
+cd /opt/k8s/work
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+
+分发证书
+#将⽣成的CA证书、秘钥⽂件、配置⽂件拷⻉到所有节点的/etc/kubernetes/cert⽬录下
+cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+ do
+ echo ">>> ${node_ip}"
+ ssh root@${node_ip} "mkdir -p /etc/kubernetes/cert"
+ scp ca*.pem ca-config.json root@${node_ip}:/etc/kubernetes/cert
+ done
+
+ 
+----------------------------------------------------
+ cat admin-csr.json 
+{
+  "CN": "admin",
+  "hosts": [],
+  "key": {
+     "algo": "rsa",
+     "size":  2048
+   },
+  "name": [
+    {
+      "C": "CN",
+      "ST": "BeiJing",
+      "L": "BeiJing",
+      "O": "system:masters",
+      "OU": "xuyuntech"
+    }
+   ]
+}
+
+cd /opt/k8s/work
+cfssl gencert -ca=/opt/k8s/work/ca.pem  -ca-key=/opt/k8s/work/ca-key.pem  -config=/opt/k8s/work/ca-config.json \
+ -profile=kubernetes admin-csr.json | cfssljson -bare admin
+
+-----------------------------------------------------------------------------
+cd /opt/k8s/work
+wget http://down.i4t.com/k8s1.14/kubernetes-client-linux-amd64.tar.gz
+tar -xzvf kubernetes-client-linux-amd64.tar.gz
+分发所有使⽤kubectl节点
+cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+for node_ip in ${NODE_IPS[@]}
+ do
+ echo ">>> ${node_ip}"
+ scp kubernetes/client/bin/kubectl root@${node_ip}:/opt/k8s/bin/
+ ssh root@${node_ip} "chmod +x /opt/k8s/bin/*"
+ done
+
+-----------------------------------------------------------------------------
+[root@centos31 work]# cat  ../bin/environment.sh
+#!/usr/bin/bash
+export ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
+export NODE_IPS=( 192.168.1.31 192.168.1.32 192.168.1.33 192.168.1.34 )
+export NODE_NAMES=(centos31 centos32 centos33 centos34)
+export MASTER_IPS=(192.168.1.31 192.168.1.32 192.168.1.33 )
+export MASTER_NAMES=(centos31 centos32 centos33)
+export ETCD_ENDPOINTS="https://192.168.1.31:2379,https://192.168.1.32:2379,https://192.168.1.33:2379"
+export ETCD_NODES="centos31=https://192.168.1.31:2380,centos32=https://192.168.1.32:2380,centos33=https://192.168.1.33:2380"
+export ETCD_IPS=(192.168.1.31 192.168.1.32 192.168.1.33 192.168.1.34)
+export KUBE_APISERVER="https://192.168.0.54:8443"
+export IFACE="ens33"
+export ETCD_DATA_DIR="/data/k8s/etcd/data"
+export ETCD_WAL_DIR="/data/k8s/etcd/wal"
+export K8S_DIR="/data/k8s/k8s"
+SERVICE_CIDR="10.254.0.0/16"
+CLUSTER_CIDR="172.30.0.0/16"
+export NODE_PORT_RANGE="1024-32767"
+export FLANNEL_ETCD_PREFIX="/kubernetes/network"
+export CLUSTER_KUBERNETES_SVC_IP="10.254.0.1"
+export CLUSTER_DNS_SVC_IP="10.254.0.2"
+export CLUSTER_DNS_DOMAIN="cluster.local"
+export PATH=/opt/k8s/bin:$PATH
+
+
+
+source /opt/k8s/bin/environment.sh
+3 # 设置集群参数
+kubectl config set-cluster kubernetes \
+ --certificate-authority=/opt/k8s/work/ca.pem \
+ --embed-certs=true \
+ --server=${KUBE_APISERVER} \
+ --kubeconfig=kubectl.kubeconfig
+9 #设置客户端认证参数
+kubectl config set-credentials admin \
+ --client-certificate=/opt/k8s/work/admin.pem \
+ --client-key=/opt/k8s/work/admin-key.pem \
+ --embed-certs=true \
+ --kubeconfig=kubectl.kubeconfig
+15 # 设置上下⽂参数
+kubectl config set-context kubernetes \
+ --cluster=kubernetes \
+ --user=admin \
+ --kubeconfig=kubectl.kubeconfig
+20 # 设置默认上下⽂
+kubectl config use-context kubernetes --kubeconfig=kubectl.kubeconfig
+
+
+
+for node_ip in ${NODE_IPS[@]}  do
+ echo ">>> ${node_ip}"
+ ssh root@${node_ip} "mkdir -p ~/.kube"
+ scp kubectl.kubeconfig root@${node_ip}:~/.kube/config
+ done
+----------------------------------------------------------------------------------
+cd /opt/k8s/work
+wget http://down.i4t.com/k8s1.14/etcd-v3.3.13-linux-amd64.tar.gz
+tar -xvf etcd-v3.3.13-linux-amd64.tar.gz
+分发⼆进制⽂件到集群节点
+cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+ for node_ip in ${ETCD_IPS[@]}
+ do
+ echo ">>> ${node_ip}"
+ scp etcd-v3.3.13-linux-amd64/etcd* root@${node_ip}:/opt/k8s/bin
+ ssh root@${node_ip} "chmod +x /opt/k8s/bin/*"
+ done
+ 
+------------------------------------------------------------------------
+cat > ecd-csr.json  <<EOF
+{
+  "CN": "etcd",
+  "hosts": [
+     "127.0.0.1",
+     "192.168.1.31",
+     "192.168.1.32",
+     "192.168.1.33"
+   ],
+  "key": {
+     "algo": "rsa",
+     "size": 2048
+    },
+   "names": [
+      {
+        "C": "CN",
+        "ST": "BeiJing",
+        "L":  "BeiJing",
+        "O":  "k8s",
+        "OU": "xuyuntech"
+       }
+     ]
+}
+EOF
+
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json |cfssljson -bare etcd
+
+---------------------------------------------------------------
+cd /opt/k8s/work
+cfssl gencert -ca=/opt/k8s/work/ca.pem -ca-key=/opt/k8s/work/ca-key.pem -config=/opt/k8s/work/ca-config.json \
+    -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+
+分发证书和私钥到etcd各个节点
+cd /opt/k8s/work
+source /opt/k8s/bin/environment.sh
+ for node_ip in ${ETCD_IPS[@]}  do
+   echo ">>> ${node_ip}"
+   ssh root@${node_ip} "mkdir -p /etc/etcd/cert"
+   scp etcd*.pem root@${node_ip}:/etc/etcd/cert/
+ done
+
+---------------------------------------------------------------
+ cat > etcd.service.template  <<EOF
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/coreos
+[Service]
+Type=notify
+WorkingDirectory=${ETCD_DATA_DIR}
+ExecStart=/opt/k8s/bin/etcd \\
+  --data-dir=${ETCD_DATA_DIR} \\
+  --wal-dir=${ETCD_WAL_DIR} \\
+  --name=##NODE_NAMES## \\
+  --cert-file=/etc/etcd/cert/etcd.pem \\
+  --key-file=/etc/etcd/cert/etcd-key.pem \\
+  --trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-cert-file=/etc/etcd/cert/etcd.pem \\
+  --peer-key-file=/etc/etcd/cert/etcd-key.pem \\
+  --peer-trusted-ca-file=/etc/kubernetes/cert/ca.pem \\
+  --peer-client-cert-auth \\
+  --listen-peer-urls=https://##NODE_IPS##:2380 \\
+  --initial-advertise-peer-urls=https://##NODE_IPS##:2380 \\
+  --listen-client-urls=https://##NODE_IPS##:2379,http://127.0.0.1:2379 \\
+  --advertise-client-urls=htts://##NODE_IPS##:2379 \\
+  --initial-cluster-token=etcd-cluster-0 \\
+  --initial-cluster=${ETCD_NODES} \\
+  --initial-cluster-state=new \\
+  --auto-compaction-mode=periodic \\
+  --auto-compaction-retention=1 \\
+  --max-request-bytes=33554432 \\
+  --quota-backend-bytes=6442450944 \\
+  --heartbeat-interval=250 \\
+  --election-timeout=20000
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WanteBy=multi-user.target
+EOF
+
+for (( i=0; i < 3; i++ ))  do
+ sed -e "s/##NODE_NAMES##/${MASTER_NAMES[i]}/" -e "s/##NODE_IPS##/${ETCD_IPS[i]}/" etcd.service.template > etcd-${ETCD_IPS[i]}.service
+ done
+
+ 
+for node_ip in ${MASTER_IPS[@]}
+  do 
+ echo ">>> ${node_ip}" 
+ scp etcd-${node_ip}.service root@${node_ip}:/etc/systemd/system/etcd.service 
+  done
+ 
+ 
+
+for node_ip in ${MASTER_IPS[@]} do
+ echo ">>> ${node_ip}"
+ #ssh root@${node_ip} "mkdir -p ${ETCD_DATA_DIR} ${ETCD_WAL_DIR}"
+ ssh root@${node_ip} "systemctl daemon-reload && systemctl enable etcd && systemctl restart etcd " &
+ done
+ 
+for node_ip in ${MASTER_IPS[@]} do
+ echo ">>> ${node_ip}"
+ ssh root@${node_ip} "systemctl status etcd|grep Active"
+ done
+ 
+------------------------------------------------------------------------
+
+ 
