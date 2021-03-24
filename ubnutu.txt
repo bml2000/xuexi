@@ -1,16 +1,123 @@
+http://blogs.studylinux.net
+
+
+=======================zabbix-agent  mysql ===========
+#设置服务的方式
+[root@192~]# chkconfig --add zabbix_agentd
+[root@192~]# chkconfig --level 35  zabbix_agentdon
+
+ rpm -Uvh https://repo.zabbix.com/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+# yum clean all
+yum  makecache
+yum  install  zabbix-agent
+---------------------------------------------
+# 更改 userparameter_mysql文件中参数， 设置命令绝对路径和HOME 路径
+home 路径为zabbix 的home目录， 查看/etc/passwd 查看路径
+
+[root@centos36 zabbix_agentd.d]# pwd
+/etc/zabbix/zabbix_agentd.d
+[root@centos36 zabbix_agentd.d]# ls
+userparameter_mysql.conf
+[root@centos36 zabbix_agentd.d]#  更改 userparameter_mysql.conf    增加sql命令的绝对路径
+
+root@pinzhdb zabbix_agentd.d]# cat userparameter_mysql.conf.bak
+#template_db_mysql.conf created by Zabbix for "Template DB MySQL" and Zabbix 4.2
+#For OS Linux: You need create .my.cnf in zabbix-agent home directory (/var/lib/zabbix by default) 
+#For OS Windows: You need add PATH to mysql and mysqladmin and create my.cnf in %WINDIR%\my.cnf,C:\my.cnf,BASEDIR\my.cnf https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+#The file must have three strings:
+#[client]
+#user=zbx_monitor
+#password=<password>
+#
+UserParameter=mysql.ping[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysqladmin -h"$1" -P"$2" ping
+UserParameter=mysql.get_status_variables[*],HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show global status"
+UserParameter=mysql.version[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysqladmin -s -h"$1" -P"$2" version
+UserParameter=mysql.db.discovery[*], HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sN -e "show databases"
+UserParameter=mysql.dbsize[*], HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sN -e "SELECT SUM(DATA_LENGTH + INDEX_LENGTH) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='$3'"
+UserParameter=mysql.replication.discovery[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show slave status"
+UserParameter=mysql.slave_status[*],HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show slave status"
+----------------------------------------------------------
+在home目录中新增文件 .my.cnf
+[root@centos36 ~]# cat /var/lib/zabbix/.my.cnf 
+[client]
+user=zbx_monitor
+password=pass
+[root@centos36 ~]# 
+
+---------------------------------------------
+在数据库中建账号、设置权限
+Requirements for template operation:
+1.Install Zabbix agent and MySQL client.
+2.Copy Template_DB_MySQL.conf into folder with Zabbix agent configuration (/etc/zabbix/zabbix_agentd.d/ by default). Don't forget restart zabbix-agent. 
+3.Create MySQL user for monitoring. For example:
+CREATE USER 'zbx_monitor'@'%' IDENTIFIED BY '<password>';
+GRANT USAGE,REPLICATION CLIENT,PROCESS,SHOW DATABASES,SHOW VIEW ON *.* TO 'zbx_monitor'@'%';
+
+----------------------------------------------------
+For more information read the MYSQL documentation https://dev.mysql.com/doc/refman/8.0/en/grant.html , please. 
+4.Create .my.cnf in home directory of Zabbix agent for Linux (/var/lib/zabbix by default ) or my.cnf in c:\ for Windows. For example:
+[client]
+user=zbx_monitor
+password=<password>
+
+==========================================================
 http://mirrors.zju.edu.cn/  #浙江大学
 /mirrors.tuna.tsinghua.edu.cn  # 清华
 mirrors.163.com
 mirrors.aliyun.com
 http://mirrors.ustc.edu.cn/  # 中科技大学
 
-http://blogs.studylinux.net
+
+centos  # 基本命令安装
 # yum install  vim iotop bc gcc gcc-c++ glibc glibc-devel pcre \
 pcre-devel openssl  openssl-devel zip unzip zlib-devel  net-tools \
 lrzsz tree ntpdate telnet lsof tcpdump wget libevent libevent-devel \
-bc  systemd-devel bash-completion traceroute -y
----------------------------------pip ------------------------------
+bc  systemd-devel bash-completion traceroute -
 
+
+---------------   当系统被挖矿病毒***，--------------------------
+一般会写计划任务或开机启动脚本自动运行，快速排查计划任务
+ll /var/spool/cron/
+[root@JW cron]# ll /var/spool/cron/——列出两个用户有计划任务
+total 8
+-rw------- 1 oracle oinstall 52 Jun 24 07:18 oracle
+-rw------- 1 root   root     52 Jun 24 07:17 root
+查看是否有开机运行脚本
+cat /etc/rc.local
+此目录下也要检查下相应文件是否有异常
+/etc/rc.d/
+环境变量也要检查下
+/etc/profile
+
+-------------------查看所有用户的corn计划  ---------------
+
+
+***
+for i in `cat /etc/passwd|awk -F':' '{print $1}'`
+do
+    # crontab -u ${i} -l 2>/dev/null
+    crontab -u ${i} -l
+done
+------------------------------------------------------------
+---------------------------------pip ------------------------------
+pip  sources:
+https://pypi.tuna.tsinghua.edu.cn/simple/ # 清华大学
+https://mirrors.aliyun.com/pypi/simple/ # 阿里云
+# 豆瓣
+https://pypi.mirrors.ustc.edu.cn/simple/ # 中国科学技术大学
+https://pypi.hustunique.com/ # 华中科技大学
+https://mirrors.163.com/pypi/simple/      #网易
+pip install -i https://pypi.douban.com/simple module # 使用豆瓣源
+windows  更换source；
+1.打开appdata文件夹，在资源管理器的地址栏输入%appdata%后回车
+2. 新建一个pip文件夹，在pip文件夹里面新建一个配置文件pip.ini：
+[global]
+timeout = 6000
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+trusted-host = pypi.tuna.tsinghua.edu.cn
+
+virtualenv  -p c:\python\python38\python.exe   wk38
+virtualenv  wk38
 pip install -i http://pypi.douban.com/simple/ numpy   安装指定镜像源
 编辑： vi ~/.pip/pip.conf
 [global] 
@@ -34,10 +141,6 @@ virtualenv --no-site-packages venv  # 创建虚拟环境在venv 目录中， 区
 
 virtualenv  -p  d:\python39\python.exe  py39   #创建虚拟python39
 virtualenv  -p  d:\python27\python.exe  py27   #创建虚拟python27
-
-
-
-
 
 ------------------------------------------rabbit ------------------------------------
 rabbitmq  3.8.14
@@ -157,6 +260,66 @@ channel.basic_consume(on_message_callback=callback,
                       )
 channel.start_consuming()
 
+************************************** Rabbitmq-server  8.15***********
+
+!/bin/sh
+
+## If sudo is not available on the system,
+## uncomment the line below to install it
+# apt-get install -y sudo
+
+sudo apt-get update -y
+## Install prerequisites
+sudo apt-get install curl gnupg -y
+## Install RabbitMQ signing key
+curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | sudo apt-key add -
+## Install apt HTTPS transport
+sudo apt-get install apt-transport-https
+
+## Add Bintray repositories that provision latest RabbitMQ and Erlang 23.x releases
+sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list <<EOF
+## Installs the latest Erlang 23.x release.
+## Change component to "erlang-22.x" to install the latest 22.x version.
+## "bionic" as distribution name should work for any later Ubuntu or Debian release.
+## See the release to distribution mapping table in RabbitMQ doc guides to learn more.
+deb https://dl.bintray.com/rabbitmq-erlang/debian groovy erlang
+## Installs latest RabbitMQ release
+deb https://dl.bintray.com/rabbitmq/debian groovy main
+EOF
+
+## Update package indices
+sudo apt-get update -y
+## Install rabbitmq-server and its dependencies
+sudo apt-get install rabbitmq-server -y --fix-missing
+curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | sudo apt-key add -
+wget https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc 
+apt-key add   rabbitmq-release-signing-key.asc
+apt-get install apt-transport-https
+cat  >> /etc/apt/sources.list.d/rabbitmq.list <<EOF
+deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang
+deb https://dl.bintray.com/rabbitmq/debian bionic main
+EOF
+sudo apt-get update -y
+sudo apt-get install rabbitmq-server -y --fix-missing
+rabbitmq-plugins  enable rabbitmq_management  启动web 管理
+cluster:
+vim /etc/hosts
+192.168.0.107 rabbitmq_node2
+192.168.0.105 rabbitmq_node1
+保证同样的配置在所有的节点上都是相同的。验证你配置的正确不正确你只需要在你的机器上ping rabbitmq_node1，试下请求的ip是不是你配置的即可。按照DNS的请求原理，hosts是最高优先权，除非浏览器有缓存，你直接用ping就不会有问题的。
+选择一个节点stop，然后连接到另外节点。
+rabbitmqctl stop_app
+rabbitmqctl join_cluster rabbit@rabbitmq_node2
+Clustering node rabbit@rabbitmq_node1 with rabbit@rabbitmq_node2 ...
+rabbitmqctl start_app
+systemctl stop   rabbitmq-server
+scp  /var/lib/rabbitmq/.erlang.cookie  
+rabbitmqctl add_user wl pass  # create a user
+rabbitmqctl set_user_tags wl administrator # tag the user with "administrator" for full management UI and HTTP API access
+
+
+
+
 ------------------------------kafka ------------------------------------
 tar zxvf  kafka_2.13-2.7.0.tgz
 
@@ -206,7 +369,7 @@ top              # 查看负载
 apt  edit-source   #  编辑apt source
 sudo sed -i 's/archive.ubunut/mirrors.aliyun.com/g' /etc/apt/source.list     # 更改 apt source
 
-
+========================= network  ====================================
 #设置网络
 wl@ubuntu05:~$ cat /etc/netplan/00-installer-config.yaml
 # This is the network config written by 'subiquity'
@@ -221,6 +384,8 @@ network:
         addresses:
           - 114.114.114.114
   version: 2
+
+
 
 netplan try   #测试 配置文件
 netplan apply   #应用网络配置
@@ -238,11 +403,30 @@ networkctl  status
 networkctl   label
 networkctl  lldp   # 发现链路层的邻居
 
+root@psz-dong-buntu:~# service networking restart
+stop: Job failed while stopping
+start: Job is already running: networking
+两种解决办法：
+第一种：ifdown --exclude=lo -a && sudo ifup --exclude=lo -a
+第二种：ifdown --exclude=lo -a && ifup --exclude=lo -ai
+
 ip  add    #查看IP地址
 ip  route   #查看路由
 ifconfig   #查看网卡配置
+==================================nmap ===================
+nmap -p(range) <target IP>  #扫描主机及端口
+tcpdump                     #抓包工具
+tcpdump tcp -i eth1 -t -s 0 -c 100 and dst port ! 22 and src net 192.168.1.0/24 -w ./target.cap
+)tcp: ip icmp arp rarp 和 tcp、udp、icmp这些选项等都要放到第一个参数的位置，用来过滤数据报的类型
+(2)-i eth1 : 只抓经过接口eth1的包
+(3)-t : 不显示时间戳
+(4)-s 0 : 抓取数据包时默认抓取长度为68字节。加上-S 0 后可以抓到完整的数据包
+(5)-c 100 : 只抓取100个数据包
+(6)dst port ! 22 : 不抓取目标端口是22的数据包
+(7)src net 192.168.1.0/24 : 数据包的源网络地址为192.168.1.0/24
+(8)-w ./target.cap : 保存成cap文件，方便用ethereal(即wireshark)分
 
-
+==============================================================
 #服务相关
 sudo update-rc.d 服务名 defaults               # 添加服务
 sudo update-rc.d -f 服务名 remove        # 删除服务
@@ -329,27 +513,156 @@ sudo apt install alien
 sudo alien XMind-2020.rpm
 sudo dpkg -i XMind-2020.deb
 
+===========================systemd  设置服务方式=====================================
+源码编译安装nginx 实现systemd管理控制
+安装nginx编译环境
+
+yum  -y install gcc gcc-c++    openssl-devel pcre-devel gd-devel  iproute net-tools telnet wget curl
+wget http://nginx.org/download/nginx-1.15.5.tar.gz
+tar zxf nginx-1.15.5.tar.gz &&
+cd nginx-1.15.5
+./configure --prefix=/usr/local/nginx \
+    --with-http_ssl_module \
+    --with-http_stub_status_module 
+make -j 4 && make install
+通用方式启动nginx
+
+/usr/local/nginx/sbin/nginx  #启动
+/usr/local/nginx/sbin/nginx  -s reload  #重启
+/usr/local/nginx/sbin/nginx -s   quit   #关闭nginx
+
+nginx  服务：
+
+vim      /usr/lib/systemd/system/nginx.service
+[Unit]
+Description=nginx
+After=network.target
+  
+[Service]
+Type=forking
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s quit
+PrivateTmp=true
+  
+[Install]
+WantedBy=multi-user.target
 
 
+systemctl restart nginx
+systemctl enable  nginx
+systemctl stop  nginx
 
+**********************   tomcat     ***********************************
 
-linuxws
-博客园
-首页
-新随笔
-联系
-订阅
-管理
-随笔 - 233  文章 - 26  评论 - 6  阅读 - 32万
-Ubuntu常用命令大全
-转自：https://www.jb51.net/os/Ubuntu/56362.html
- 
-root@psz-dong-buntu:~# service networking restart
-stop: Job failed while stopping
-start: Job is already running: networking
-两种解决办法：
-第一种：ifdown --exclude=lo -a && sudo ifup --exclude=lo -a
-第二种：ifdown --exclude=lo -a && ifup --exclude=lo -a
+二进制安装tomcat 实现systemd管理控制
+安装java环境，我已经将安装包打包到我得服务器上，也可以去官网下载
+wget  120.78.77.38/file/jdk-8u231-linux-x64.rpm
+wget  120.78.77.38/file/apache-tomcat-9.0.27.tar.gz
+rpm -ivh  jdk-8u231-linux-x64.rpm    #rpm直接安装jdk
+
+配置环境变量
+
+vim    /etc/profile
+export JAVA_HOME=/usr/java/jdk1.8.0_231-amd64
+export JRE_HOME=${JAVA_HOME}/jre  
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib  
+export JAVA_PATH=${JAVA_HOME}/bin:${JRE_HOME}/bin
+export  PATH=${JAVA_HOME}/bin:$PATH 
+source   /etc/profile
+
+java -version   #检测环境
+
+安装tomcat
+tar  -xf  apache-tomcat-9.0.27  
+mv  apache-tomcat-9.0.27  /usr/local/tomcat
+启动tomcat
+sh    /usr/local/tomcat/bin/startup.sh   #启动
+sh   /usr/local/tomcat/bin/shutdown.sh #关闭
+systemd管理控制启动
+
+vim      /usr/lib/systemd/system/tomcat.service
+[Unit]
+Description=tomcat server
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=forking
+Environment="JAVA_HOME=/usr/java/jdk1.8.0_231-amd64"
+Environment="PATH=$JAVA_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin"
+Environment="CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar"
+ExecStart=/usr/local/tomcat/bin/startup.sh
+ExecStop=/usr/local/tomcat/bin/shutdown.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+systemctl restart tomcat  #启动
+systemctl enable tomcat   #配置自启
+systemctl stop  tomcat   #停止服务
+systemctl status  tomcat  #检测状态
+
+***************************** 部署  jar  应用 ********************************
+部署jar程序 实现systemd管理控制
+实际得项目中会有一些jar程序需要启动 如果手动启动则需要输入一大串命令 停止则需要杀掉进程来停止，很麻烦
+
+举一个实际启动得例子切换到jar目录下
+
+java -jar decode.jar -Dconfig=/usr/local/abc/application.properties
+编写一个启动脚本
+
+vim  uams.sh
+#!/bin/bash
+#
+source /etc/profile
+jarName="abc-web.jar"
+workDir="/usr/local/abc"
+start(){
+    cd ${workDir} && java -jar ${jarName} --spring.profiles.active=prod --server.port=9630 >uams.log 2>&1 &
+}
+stop(){
+    ps -ef | grep -qP "(?<=-jar)\s+${jarName}" && kill $(ps -ef | grep -P "(?<=-jar)\s+${jarName}" | awk '{print $2}')
+}
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+esac
+
+#编写 systemd配置文件
+
+vim      /usr/lib/systemd/system/abc.service
+
+[Unit]
+Description=uams server
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=forking
+WorkingDirectory=/usr/local/abc/
+ExecStart=/bin/bash uams.sh start
+ExecStop=/bin/bash uams.sh stop
+ExecReload=/bin/bash uams.sh restart
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+启动abc服务
+systemctl restart abc  #启动
+systemctl enable abc   #配置自启
+systemctl stop  abc   #停止服务
+systemctl status  abc  #检测状态
+====================================================================
 一、文件/文件夹管理
 
 ls 列出当前目录文件（不包括隐含文件）
@@ -369,21 +682,10 @@ mv 文件名 新名称 在当前目录下改名
 find 路经 -name “字符串” 查找路经所在范围内满足字符串匹配的文件和目录
 
 二、系统管理
-1
-2
-3
-4	fdisk -l     #查看系统分区信息
 fdisk /dev/sdb     #为一块新的SCSI硬盘进行分区
 chown root /home     #把/home的属主改成root用户
 chgrp root /home     #把/home的属组改成root组
-　　
-1
-2
-3
-4
-5
-6
-7	Useradd             #创建一个新的用户
+Useradd             #创建一个新的用户
 Groupadd 组名    #创建一个新的组
 Passwd 用户名     #为用户创建密码
 Passwd -d用户名     #删除用户密码也能登陆
@@ -393,17 +695,6 @@ Userdel–r 用户名     #删除用户一切
 
 service [servicename] start/stop/restart 系统服务控制操作
 /etc/init.d/[servicename] start/stop/restart 系统服务控制操作
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
 12	uname -a     #查看内核版本
 cat /etc/issue     #查看ubuntu版本
 lsusb     #查看usb设备
@@ -419,9 +710,7 @@ kill -9 进程号     #强制杀死一个进程
 　　
 reboot Init 6 重启LINUX系统
 Halt Init 0 Shutdown –h now 关闭LINUX系统
-
 三、打包/解压
-
 tar -c 创建包 –x 释放包 -v 显示命令过程 –z 代表压缩包
 tar –cvf benet.tar /home/benet 把/home/benet目录打包
 tar –zcvf benet.tar.gz /mnt 把目录打包并压缩
@@ -434,24 +723,7 @@ make 编译
 make install 安装编译好的源码包
 
 五、apt命令
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18	apt-cache search package     #搜索包
+apt-cache search package     #搜索包
 apt-cache show package     #获取包的相关信息，如说明、大小、版本等
 sudo apt-get install package     #安装包
 sudo apt-get install package - - reinstall     #重新安装包
@@ -1361,135 +1633,3 @@ let Tlist_Enable_Fold_Column = 0
 if has("autocmd")
 autocmd FileType xml,html,c,cs,java,perl,shell,bash,cpp,python,vim,php,ruby set number
 autocmd FileType xml,html vmap
-好文要顶 关注我 收藏该文  
-
-linuxws
-关注 - 33
-粉丝 - 26
-+加关注
-4
-0
-« 上一篇： 搭建yum源
-» 下一篇： linux网页资料链接
-posted @ 2018-07-13 20:05  linuxws  阅读(40146)  评论(0)  编辑  收藏
-刷新评论刷新页面返回顶部
-登录后才能发表评论，立即 登录 或 注册， 访问 网站首页
-【推荐】开年迎好云，免费领最高6000元好云礼！15种权益祝你云气爆棚
-【推荐】阿里云Java训练营第二期--就5天，名师带你实战Spring Boot 2.5
-【推荐】阿里云 Redis 社区核心成员带你七天深入 Redis 核心技术
-【推荐】大型组态、工控、仿真、CAD\GIS 50万行VC++源码免费下载!
-【推荐】万物互联的时代，由你的代码定义，创建HarmonyOS应用
-【求助】注册 Amazon Web Services(AWS) 账户，助园子一臂之力
-【推荐】Javashop--基于SPRING BOOT架构的企业级电商系统
-AWS免费产品：
-· 如何在AWS上免费构建网站
-· AWS免费云存储解决方案
-· 在AWS上免费构建数据库
-· AWS上的免费机器学习
-最新新闻：
-· 从最惨到最富，蔚来2020上演生死时速
-· 越来越多人，盯上了程序员的饭碗
-· 女乘客坠亡背后的情绪火山
-· 这波跟风开发“中国版Clubhouse”的创业者开始融资了？
-· 一年净亏30亿，B站2020年把钱“烧”在哪儿了？
-» 更多新闻...
-历史上的今天：
-2018-07-13 搭建yum源
-公告
-昵称： linuxws
-园龄： 4年2个月
-粉丝： 26
-关注： 33
-+加关注
-<	2021年3月	>
-
-日	一	二	三	四	五	六
-28	1	2	3	4	5	6
-7	8	9	10	11	12	13
-14	15	16	17	18	19	20
-21	22	23	24	25	26	27
-28	29	30	31	1	2	3
-4	5	6	7	8	9	10
-搜索
- 
- 
-常用链接
-我的随笔
-我的评论
-我的参与
-最新评论
-我的标签
-随笔分类
-C语言基础(1)
-devops(8)
-docker(13)
-java 基础学习(8)
-jenkins(5)
-k8s(11)
-kvm(1)
-ldap(5)
-Linux命令(10)
-mysql(2)
-Nginx 读书笔记(8)
-openstack(1)
-photoshop(1)
-python(14)
-shell(2)
-更多
-随笔档案
-2021年1月(1)
-2020年12月(3)
-2020年11月(1)
-2020年10月(2)
-2020年9月(4)
-2020年8月(3)
-2020年6月(1)
-2020年5月(2)
-2020年4月(18)
-2020年1月(9)
-2019年12月(18)
-2019年11月(4)
-2019年10月(5)
-2019年8月(4)
-2019年7月(4)
-更多
-文章分类
-英语(1)
-最新评论
-1. Re:安装harbor镜像仓库
-"人的精神境界和追求看似玄虚，实则大都有具体指向。老子说：“五色令人目盲；五音令人耳聋；五味令人口爽；驰骋畋猎令人心发狂；难得之货令人行妨。”大千世界五光十色，面对诱惑，有时舍得放弃，也不失为一种智慧...
---前方一片光明
-2. Re:配置对Harbor的HTTPS访问
-"干不完的工作，停一停，放松心情；挣不够的钱财，看一看，身外之物；看不惯的世俗，静一静，顺其自然；生不完的闷气，说一说，心境宽广；接不完的应酬，辞一辞，有利健康；尽不完的孝心，走一走，回家看看；还不完...
---前方一片光明
-3. Re:安装harbor
-
-"遇事只要往好处想你就会快乐，就像你如果掉进沟里，都可以设想说不定刚好有一条鱼钻进你的口袋。"【暖心良言】
-
---前方一片光明
-4. Re:PhantomJS
-登录的时候，拖动验证码，可以实现吗？
---天字一号coder
-5. Re:长连接和短连接
-新浪短链接接口可参考：
---Outsis
-阅读排行榜
-1. CentOS系统日志(43838)
-2. Ubuntu常用命令大全(40138)
-3. shell常用正则表达式(16843)
-4. ES的索引查询和删除(14818)
-5. VMware workstation 14 安装 iOS虚拟机(12192)
-评论排行榜
-1. 安装harbor(1)
-2. 配置对Harbor的HTTPS访问(1)
-3. 安装harbor镜像仓库(1)
-4. PhantomJS(1)
-5. 长连接和短连接(1)
-推荐排行榜
-1. Ubuntu常用命令大全(4)
-2. CentOS系统日志(3)
-3. 安装harbor(2)
-4. Mac SecureCRT 的安装详细步骤(2)
-5. 解决java编译错误：编码GBK的不可映射字符(2)
-Copyright © 2021 linuxws
-Powered by .NET 5.0 on Kubernetes

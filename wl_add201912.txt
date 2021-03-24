@@ -1,4 +1,8 @@
-﻿--------------------------------------代理自动-------******-------------------------------------------------
+﻿import  sys
+print (sys.executable)
+
+rpm -qvh  postfix    #卸载 postfix 邮件传递服
+--------------------------------------代理自动-------******-------------------------------------------------
 
 data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20cmule.xyz";}
 -------------------------
@@ -500,7 +504,150 @@ validate_password.check_user_name=off
 default-authentication-plugin=mysql_native_password  #使用旧认证
 default_authentication_plugin=caching_sha2_password  #使新认证
 
+************************************
+======================  msyql8.0  ==========================
 
+MSYQL 8.0 安装指导 https://dev.mysql.com/doc/refman/8.0/en/binary-installation.html
+YUM 安装
+https://dev.mysql.com/doc/refman/8.0/en/linux-installation-yum-repo.html
+wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+yum localinstall mysql80-community-release-el8-{version-number}.noarch.rpm
+
+yum localinstall mysql80-community-release-el7-3.noarch.rpm
+yum repolist enabled | grep "mysql.*-community.*"
+yum repolist all | grep mysql
+yum  install msyql-community-server -y
+mkdir -p /data/mysql
+mkdir -p /var/lib/mysql
+groupadd mysql
+useradd mysql
+chown -R mysql.mysql /data/mysql
+chown -R mysql.mysql /var/lib/mysql
+vi  /etc/my.cnf
+datadir=/data/mysql
+socket=/var/lib/mysql
+
+
+
+======================================================================
+[mysqld]
+datadir=/data/mysql
+basedir=/usr/local/mysql
+socket=/tmp/mysql.sock
+pid-file=/tmp/mysqld.pid
+# Disabling symbolic-links is recommended to prevent assorted security risks
+
+symbolic-links=0
+
+# Settings user and group are ignored when systemd is used.
+# If you need to run mysqld under a different user or group,
+# customize your systemd unit file for mariadb according to the
+# instructions in http://fedoraproject.org/wiki/Systemd
+
+#server-id                      = 1
+port                           = 3306
+default-authentication-plugin=mysql_native_password 
+
+log-error                      = error.log
+slow-query-log                 = 1
+
+slow-query-log-file            = slow.log
+long_query_time                = 0.2
+log-bin                        = bin.log
+binlog_format                 =ROW
+character-set-client-handshake = FALSE
+character-set-server           = utf8mb4
+collation-server               = utf8mb4_unicode_ci
+init_connect                   ='SET NAMES utf8mb4'
+innodb_buffer_pool_size        = 200M
+join_buffer_size               = 10M
+sort_buffer_size               = 2M
+read_rnd_buffer_size           = 2M
+log_timestamps                 = SYSTEM
+
+
+[mysqld_safe]
+log-error=/var/log/mysqldb.log
+
+#
+# include all files from the config directory
+#
+!includedir /etc/my.cnf.d
+
+
+
+------- 标准my。cnf  配置—————（mysql8.0.23)—————————————————————————————————————————————
+
+[root@pinzhdb ~]# cat /etc/my.cnf.bak
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/8.0/en/server-configuration-defaults.html
+
+[mysqld]
+#
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+#
+# Remove the leading "# " to disable binary logging
+# Binary logging captures changes between backups and is enabled by
+# default. It's default setting is log_bin=binlog
+# disable_log_bin
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M
+#
+# Remove leading # to revert to previous value for default_authentication_plugin,
+# this will increase compatibility with older clients. For background, see:
+# https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_default_authentication_plugin
+# default-authentication-plugin=mysql_native_password
+
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+======================================================================
+
+
+mysqld --initiazlice-insecure --user=mysql --datadir=/data/mysql
+systemctl start msyqld
+mysql_secure_install   设置密码策略、密码、远程root访问、匿名账号访问、测试数据库等。
+
+mysql -u root -p 可登陆 （空密码）
+alter user root@localhsot identified by 'pass'  #更改密码
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password';   # 旧认证方式设置密码
+crate user 'root'@'%' identified by 'Pass'; 建立root用户和密码
+grant all privileges on *.*  to  'root'@'%';  #设置权限
+flush privileges;     #update
+\q                      #quit
+
+vi /etc/my.cnf
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+validate_password.length=4
+validate_password.policy=0  #密码策略0
+validate_password.check_user_name=off
+default-authentication-plugin=mysql_native_password  #使用旧认证
+default_authentication_plugin=caching_sha2_password  #使新认证
+
+
+cp  /use/local/mysql/support_files/mysql.server  /etc/init.d    -添加服务
+chkconfig --add  mysql
+
+systemctl  start   mysql
+systemctl restart mysql
+
+
+
+***************************************** 
 *****************************************              mariadb begin               *******************************************************
 -------------------------mairadb---------------------
 yum install mairadb-server -y
@@ -1056,6 +1203,8 @@ import pika
 import json
 
 #credentials = pika.PlainCredentials('shampoo', '123456')  # mq用户名和密码
+
+
 # 虚拟队列需要指定参数 virtual_host，如果是默认的可以不填。
 connection = pika.BlockingConnection(pika.ConnectionParameters(host = '192.168.110.84',port = 5672))
 channel=connection.channel()
