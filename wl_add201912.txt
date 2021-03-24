@@ -1,0 +1,2025 @@
+﻿import  sys
+print (sys.executable)
+
+rpm -qvh  postfix    #卸载 postfix 邮件传递服
+--------------------------------------代理自动-------******-------------------------------------------------
+
+data:text/plain,function%20FindProxyForURL(){return%20"HTTPS%20cmule.xyz";}
+-------------------------
+https://www.fanqiangzhe.com/
+env | grep -i proxy
+export http_proxy=http://xxx:xx  设置代理
+export  https_proxy=https://xxx:xx
+
+取消export 环境变量  noset  http_proxy  即可
+
+------------------------------------------shadowsock----------------------------------------------------
+
+[librehat-shadowsocks]
+name=Copr repo for shadowsocks owned by librehat
+baseurl=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/epel-7-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/librehat/shadowsocks/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+
+yum install shadowsocks-qt5
+
+==========================================================
+1 hostnamectl set-hostname  hostname    --设置主机名称
+2 vi /etc/sysconfig/network-scirpt/ifc-en33  -设置主机IP dns  
+  vi /etc/hosts                          -设置hosts
+
+3. #关闭Selinux/firewalld
+systemctl stop firewalld
+systemctl disable firewalld
+setenforce 0
+sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
+
+
+4 . 更新YUM Y源
+yum install wget -y
+
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+
+yum clean all
+yum makecache
+
+yum install  epel-release ntpdate   unzip  
+
+
+1 查看是否安装中文字体:
+locale -a |grep "zh_CN" -查看安装的中文字体
+2	yum  groupinstall "fonts"
+3.  locale
+4.  localectl set-locale LANG=zh_CN.utf8    -设置区域
+vim  /etc/profile
+export  LANG=zh_CN.UTF-8
+
+5.  timedatectl set-timezone "Asia/Shanghai" -设置时区
+source /etc/profile
+
+时间同步echo "00 */1 * * * root /usr/sbin/ntpdate 1.cn.pool.ntp.org;hwclock -w" >> /etc/crontab
+/usr/sbin/ntpdate 1.cn.pool.ntp.org
+hwclock -w" 
+
+**************************************** kernel  内核升级 *************************************************************
+centos7  内核升级：
+uname -a
+uname  -r  -显示内核版本
+
+# rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+# rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+安装了ELRepo存储库，我们可以通过查找特定的存储库中查找可用的软件包，这里我们查看"elrepo-kernel" 内核软件包的版本信息
+# yum --disablerepo "*" --enablerepo "elrepo-kernel" list available
+
+# yum --enablerepo=elrepo-kernel install kernel-ml	kernel-ml-devel
+3、在/boot/grub/grub.conf 文件看到存在新安装的内核条目，并修改default=0	
+
+grubby --info=ALL
+4.	查看默认执行内核
+grubby --default-kernel  -查看默认内核
+grubbu  --default-index  -查看启动顺序号
+5.	设置默认启动号
+grub2-set-default=1  -设置启动顺序号
+6. 删除旧内核（可选）
+内核有两种删除方式：通过 yum remove 命令或通过 yum-utils 工具。
+6.1 通过 yum remove 命令
+# rpm -qa | grep kernel
+kernel-tools-libs-3.10.0-514.26.2.el7.x86_64
+kernel-ml-4.15.6-1.el7.elrepo.x86_64
+kernel-3.10.0-327.el7.x86_64
+kernel-tools-3.10.0-514.26.2.el7.x86_64
+kernel-headers-3.10.0-514.26.2.el7.x86_64
+kernel-3.10.0-514.26.2.el7.x86_64
+删除旧内核的 RPM 包
+yum remove kernel-tools-libs-3.10.0-514.26.2.el7.x86_64 kernel-3.10.0-327.el7.x86_64 kernel
+6.2 通过 yum-utils 工具		
+如果安装的内核不多于 3 个，yum-utils 工具不会删除任何一个。只有在安装的内核大于 3 个时，才会自动删除旧内核。
+6.2.1 安装
+yum install yum-utils
+6.2.2 删除
+package-cleanup --oldkernels
+
+
+
+***********************************  vnc ***********************************
+安装桌面
+rpm -qa | grep desktop
+yum -y groupinstall "X Window System" "Chinese Support" "Desktop"
+安装vncserver
+yum install  tigervnc-server -y 
+vncserver 设置密码
+yum install epel-release -y
+yum install xrdp -y
+修改xrdp配置
+# vim /etc/xrdp/xrdp.ini
+max_bpp=32 #将默认的24修改为32
+
+安装桌面
+yum groupinstall "X Window System"
+yum  groupinstall ’GNOME Desktop'  -y
+yum  groupinstall  "GNOME Desktop"  "Graphical Administration Tools"  "Xfce"
+yum  groupinstall "Desktop" "X Windows"
+
+
+yum  groupinstall  "GNOME Desktop"  "Graphical Administration Tools" 
+yum groupinstall "X Window System"  -y
+
+yum install tigervnc tigervnc-server
+
+切换桌面：
+#switchdesk gnome 
+#switchdesk kde
+安装完成后，将系统启动模式设置为桌面模式：
+yum -y groupinstall chinese-support 
+yum groupinstall "X Window System"  "GNOME Desktop" "Graphical Administration Tools" -y
+yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
+systemctl get-default //获取当前系统启动模式
+systemctl set-default graphical.target  //由命令行模式更改为图形界面模式
+systemctl set-default multi-user.target  //由图形界面模式更改为命令行模式
+访问： vncviewer ： 访问  ip:1   
+
+
+*************************************  zabbix begin ****************************************************************
+
+
+安装zabbix仓库
+[root@docker-1 ~]# rpm -i https://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-1.el7.noarch.rpm
+
+2、安装zabbix
+[root@docker-1 ~]# yum install zabbix-server-mysql zabbix-web-mysql zabbix-agent mariadb-server  -y
+
+3、创建zabbix数据库
+[root@docker-1 ~]# systemctl start mariadb.service
+                mysql_secure_installation  安全设置向导
+[root@docker-1 ~]# mysql -uroot -p
+
+　　MariaDB [(none)]> create database zabbix character set utf8 collate utf8_bin;
+　　MariaDB [(none)]> grant all privileges on zabbix.* to zabbix@localhost identified by ‘11111111‘;
+　　MariaDB [(none)]> flush privileges;
+　　MariaDB [(none)]> quit;
+
+4、初始化数据库
+[root@docker-1 ~]# zcat /usr/share/doc/zabbix-server-mysql-4.0.0/create.sql.gz |mysql -uzabbix -p zabbix
+
+5、配置zabbix服务器的数据库连接密码
+[root@docker-1 ~]# vim /etc/zabbix/zabbix_server.conf
+　　DBPassword=11111111
+
+6、更改zabbix服务器时区
+[root@docker-1 ~]# vim /etc/httpd/conf.d/zabbix.conf
+　　php_value date.timezone Asia/Shanghai
+
+7、启动zabbix相关所有服务
+systemctl start httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+systemctl enable httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+
+8、web界面安装zabbix
+http://server_ip_or_name/zabbix  登陆  Admin  密码： zabbix
+
+9、中文乱码字体
+上传微软雅黑字体并替换DejaVuSans.ttf
+	zabbix  安装 中文黑体字
+	yum install wqy-microhei-fonts
+	cp /usr/share/fonts/wqy-microhei/wqy-microhei.ttc  /usr/share/fonts/dejavu/DejaVuSans.ttf
+
+10、使用ip地址直接访问 (http DocumentRoot)
+[root@docker-1 ~]# vim /etc/httpd/conf/httpd.conf
+　　DocumentRoot "/usr/share/zabbix"
+　　systemctl restart httpd.service
+
+
+***************************************************** zabbix  end ********************************
+
+------------------------------------vftp-------------------------------------------
+vsftp:
+yum install wget
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum  install rpel-release
+yum install vsftpd db4-utils
+
+useradd vsftpd -M -s /sbin/nologin #建立Vsftpd服务的宿主用户
+useradd ftpvload -M -s /sbin/nologin 	#建立Vsftpd虚拟宿主用户
+修改vsftpd.conf配置文件
+主要是下面的一些配置：
+
+	anonymous_enable=NO  #设定不允许匿名访问
+	local_enable=YES  #设定本地用户可以访问。注意：主要是为虚拟宿主用户，如果该项目设定为NO那么所有虚拟用户将无法访问。
+	write_enable=YES  #设定可以进行写操作。
+	local_umask=022  #设定上传后文件的权限掩码。
+	anon_upload_enable=NO  #禁止匿名用户上传。
+	anon_mkdir_write_enable=NO  #禁止匿名用户建立目录。
+	dirmessage_enable=YES  #设定开启目录标语功能。
+	xferlog_enable=YES  #设定开启日志记录功能。
+	connect_from_port_20=YES  #设定端口20进行数据连接。
+	chown_uploads=NO  #设定禁止上传文件更改宿主。
+	xferlog_file=/var/log/vsftpd.log . #设定Vsftpd的服务日志保存路径。注意，该文件默认不存在。必须要手动touch出来，并且由于这里更改了Vsftpd的服务宿主用户为手动建立的Vsftpd。必须注意给与该用户对日志的写入权限，否则服务将启动失败。
+	xferlog_std_format=YES  #设定日志使用标准的记录格式。
+	async_abor_enable=YES  #设定支持异步传输功能。
+	ascii_upload_enable=YES 
+	ascii_download_enable=YES  #设定支持ASCII模式的上传和下载功能。
+	ftpd_banner=This Vsftp server supports virtual users ^_^  #设定Vsftpd的登陆标语。
+	chroot_list_enable=NO  #禁止用户登出自己的FTP主目录。
+	ls_recurse_enable=NO  #禁止用户登陆FTP后使用"ls -R"的命令。该命令会对服务器性能造成巨大开销。如果该项被允许，那么当多用户同时使用该命令时将会对该服务器造成威胁。
+	listen=YES  #设定该Vsftpd服务工作在StandAlone模式下。
+	pam_service_name=vsftpd #设定PAM服务下Vsftpd的验证配置文件名。因此，PAM验证将参考/etc/pam.d/下的vsftpd文件配置。
+	userlist_enable=YES  #设定userlist_file中的用户将不得使用FTP。
+	tcp_wrappers=YES  #设定支持TCP Wrappers
+	#以下这些是关于Vsftpd虚拟用户支持的重要配置项目。默认Vsftpd.conf中不包含这些设定项目，需要自己手动添加配置
+	guest_enable=YES  #设定启用虚拟用户功能。
+	guest_username=ftpvload  #指定虚拟用户的宿主用户。
+	virtual_use_local_privs=YES  #设定虚拟用户的权限符合他们的宿主用户。
+	user_config_dir=/etc/vsftpd/vconf #设定虚拟用户个人Vsftp的配置文件存放路径。也就是说，这个被指定的目录里，
+								   将存放每个Vsftp虚拟用户个性的配置文件，一个需要注意的地方就是这些配置文件名必须和虚拟用户名相同。
+    reverse_lookup_enable=NO #禁止反向域名解析，若是没有添加这个参数可能会出现用户登陆较慢，或则客户链接不上ftp的现象
+	allow_writeable_chroot=YES
+	use_localtime=YES 
+	chroot_local_user=YES 
+	pasv_enable=YES
+   pasv_max_port=1500 开启随机最大的端口号
+   pasv_min_port=1000 开启最小端口号
+ 
+
+mkdir /etc/vsftpd/vconf/ -pv  #制作虚拟用户数据库文件
+touch /etc/vsftpd/virtusers #新建一个测试用虚拟用户
+vim /etc/vsftpd/virtusers #编辑这个虚拟用户名单文件，在其中加入用户的用户名和口令信息。格式很简单：“奇数行用户名，偶数行口令”。
+       virtusers文件格式如下：
+ test #用户名
+ test1234 #用户密码
+db_load -T -t hash -f /etc/vsftpd/virtusers /etc/vsftpd/virtusers.db 生成虚拟用户数据文件：
+cp /etc/pam.d/vsftpd /etc/pam.d/vsftpd.backup 编辑Vsftpd的PAM验证配置文件，把原来的配置文件全部注释掉（不注释掉虚拟用户会登录不上），添加如下行
+#vim /etc/pam.d/vsftpd
+auth sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+vi /etc/vsftpd/vconf/user1
+local_root=/opt/vsftp/file
+#指定虚拟用户仓库的具路径
+anonymous_enable=NO
+#设定不允许匿名访问
+write_enable=YES
+#允许写的操作
+local_umask=022
+#上传文件的权限掩码
+anon_upload_enable=NO
+#不允许匿名上传
+anon_mkdir_write_enable=NO
+#不允许匿名用户建立目录
+idle_session_timeout=300
+#设定空闲链接超时时间
+data_connection_timeout=1000
+#设定单次传输最大时间
+max_clients=0
+#设定并发客户端的访问数量
+max_per_ip=0
+#设定客户端的最大线程数
+local_max_rate=0
+#设定用户的最大传输速率，单位b/s
+
+查看selinux 设置上传
+getsebool -a | grep ftpd
+setsebool allow_ftpd_full_access on  #  selinux 
+
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT（允许21端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT（允许20端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 000:9045 -j ACCEPT（设置ftp被动模式的端口范围)
+
+
+后使用 yum install iptables-services 安装或更新服务
+再使用systemctl enable iptables 启动iptables
+最后 systemctl start iptables 打开iptables
+
+
+iptables 配置文件位置： /etc/sysconfig/iptables-config
+ 保存： iptables-save
+ 恢复： iptables-restore
+4个表  -t： filter、nat、mangle、raw 
+5个链： RREROUTING 、INPUT、FORWARD、OUTPUT、POSTROUTING
+动作 -j ：  ACCEPT  DROP  REJECT MASQUERADE
+iptables -I INPUT -p icmp  --icmp-type 8 -j DROP   # 可以ping出， 不许ping 入
+iptables -nvL
+iptables -F  clean
+iptables -P    设置某条规则链的默认动作
+iptables  -P INPUT ACCEPT
+iptables  -P  FORWARD  DROP
+iptables -X  删除用户定义链
+
+
+查看selinux 设置上传
+getsebool -a | grep ftpd
+setsebool allow_ftpd_full_access on  #  selinux 
+
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT（允许21端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT（允许20端口通过防火墙）
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 000:9045 -j ACCEPT（设置ftp被动模式的端口范围)
+
+iptables -F
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+iptables -A INPUT -s 192.168.1.54 -p tcp --dport 22 -m state --state NEW -m connlimit ! --connlimit-above 3 -j ACCEPT  # ssh
+
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -A INPUT -d 192.168.0.176 -p tcp --dport 21 -m state --state NEW -j ACCEPT
+iptables -A INPUT -m state --state RELATED -j ACCEPT
+iptables -A OUTPUT -m state --state RELATED -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20:21 -j ACCEPT
+iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 30000:30999 -j ACCEPT
+
+iptables -nvL
+
+:INPUT DROP [316:24904]
+:FORWARD ACCEPT [0:0]
+:OUTPUT DROP [6:444]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state ESTABLISHED -j ACCEPT
+-A INPUT -s 192.168.1.54/32 -d 192.168.0.176/32 -p tcp -m tcp --dport 22 -m state --state NEW -m connlimit --connlimit-upto 3 --connlimit-mask 32 --
+connlimit-saddr -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 30000:30999 -j ACCEPT
+-A INPUT -m state --state RELATED -j ACCEPT
+-A INPUT -d 192.168.0.176/32 -p tcp -m tcp --dport 21 -m state --state NEW -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED -j ACCEPT
+
+
+
+*************************************************   java 安装 ****************************************
+6. 	JAVA 安装：
+tar  zxvf  jdkxxx.tar.gz
+mv  jdkxxx  /usr/local/java
+ln -s  /usr/local/jdkxxx /usr/local/java
+
+cat >> /etc/profile.d/java.sh <<EOF
+JAVA_HOME=/usr/local/java
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar
+PATH=$JAVA_HOME/bin:$HOME/bin:$HOME/.local/bin:$PATH
+EOF
+
+cat >> /etc/profile.d/java.sh <<EOF
+JAVA_HOME=/usr/java/jdk1.8.0_101
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar
+PATH=$JAVA_HOME/bin:$HOME/bin:$HOME/.local/bin:$PATH
+EOF
+
+
+/usr/java/jdk1.8.0_101
+
+source  /etc/profile.d/java.sh
+java -version  -检查java 运行正常。
+
+-------------------------------------------tomcat 安装 ----------------------------------------------------
+7. 	tomcat  安装
+tar  zxvf  apach-tomcat.tar.gz
+mv  apach-tomcat /usr/local
+ln -s  apach-tomcat tomcat
+vim /etc/profile.d/tomcat.sh
+export JAVA_HOME=/usr/local/java
+export JAVA_BIN=$JAVA_HOME/bin
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+
+cat >> /etc/profile.d/tomcat.sh  <<EOF
+export JAVA_HOME=/usr/local/java
+export JAVA_BIN=$JAVA_HOME/bin
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+EOF
+
+
+source  /etc/profile.d/tomcat.sh
+/usr/local/tomcat/bin/startup.sh  -启动tomcat
+
+************************** tomcat  测试代码************************************
+vi  test.jsp
+<%@ page contentType="text/html;charset=utf-8"%>
+<%@ page import="java.sql.*"%>
+<html>
+<body>
+<%
+Class.forName("org.gjt.mm.mysql.Driver").newInstance();
+String url ="jdbc:mysql://db/tomcat?user=tomcat&password=tomcat&useUnicode=true&characterEncoding=utf-8";
+Connection conn= DriverManager.getConnection(url);
+Statement stmt=conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+String sql="select * from tt";
+ResultSet rs=stmt.executeQuery(sql);
+while(rs.next()){%>
+step:<%=rs.getString(1)%>
+context:<%=rs.getString(2)%><br><br>
+<%}%>
+<%out.print("Congratulations!!! JSP connect MYSQL IS OK!!");%>
+<%rs.close();
+stmt.close();
+conn.close();
+%>
+</body>
+</html>
+
+
+*************************************************mysql  ***************************************************
+==================  mysql57 ==============================
+YUM安装mysql57-server:
+rpm -qa |grep mariadb
+rpm -e --nodeps  mairadb-libs
+wget -i -c http://dev.mysql.com/get/mysql57-community-release-el7-10.noarch.rpm
+yum -y install mysql57-community-release-el7-10.noarch.rpm
+yum -y install mysql-community-server
+
+rpm  安装
+mkdir /usr/local/mysql
+cd /usr/local/mysql
+
+yum install net-tools perl
+
+rpm -ivh mysql-community-common-8.0.11-1.el7.x86_64.rpm --nodeps --force
+rpm -ivh mysql-community-libs-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 libs
+rpm -ivh mysql-community-client-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 client
+rpm -ivh mysql-community-server-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 server
+rpm -qa | grep mysql 命令查看 mysql 的安装包
+
+mysqld --initialize;
+chown mysql:mysql /var/lib/mysql -R;
+systemctl start mysqld.service;
+systemctl  enable mysqld;
+
+cat /var/log/mysqld.log | grep password 命令查看数据库的密码
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'; 命令来修改密码
+
+create user 'root'@'%' identified with mysql_native_password by 'pass';
+grant all privileges on *.* to 'root'@'%' with grant option;
+flush privileges;
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root' PASSWORD EXPIRE NEVER; 命令修改加密规则，
+MySql8.0 版本 和 5.0 的加密规则不一样，而现在的可视化工具只支持旧的加密方式。
+
+======================  msyql8.0  ==========================
+
+MSYQL 8.0 安装指导 https://dev.mysql.com/doc/refman/8.0/en/binary-installation.html
+YUM 安装
+https://dev.mysql.com/doc/refman/8.0/en/linux-installation-yum-repo.html
+wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+yum localinstall mysql80-community-release-el8-{version-number}.noarch.rpm
+
+yum localinstall mysql80-community-release-el7-3.noarch.rpm
+yum repolist enabled | grep "mysql.*-community.*"
+yum repolist all | grep mysql
+yum  install msyql-community-server -y
+mkdir -p /data/mysql
+mkdir -p /var/lib/mysql
+groupadd mysql
+useradd mysql
+chown -R mysql.mysql /data/mysql
+chown -R mysql.mysql /var/lib/mysql
+vi  /etc/my.cnf
+datadir=/data/mysql
+socket=/var/lib/mysql
+
+mysqld --initiazlice-insecure --user=mysql --datadir=/data/mysql
+systemctl start msyqld
+mysql_secure_install   设置密码策略、密码、远程root访问、匿名账号访问、测试数据库等。
+
+mysql -u root -p 可登陆 （空密码）
+alter user root@localhsot identified by 'pass'  #更改密码
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password';   # 旧认证方式设置密码
+crate user 'root'@'%' identified by 'Pass'; 建立root用户和密码
+grant all privileges on *.*  to  'root'@'%';  #设置权限
+flush privileges;     #update
+\q                      #quit
+
+vi /etc/my.cnf
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+validate_password.length=4
+validate_password.policy=0  #密码策略0
+validate_password.check_user_name=off
+default-authentication-plugin=mysql_native_password  #使用旧认证
+default_authentication_plugin=caching_sha2_password  #使新认证
+
+************************************
+======================  msyql8.0  ==========================
+
+MSYQL 8.0 安装指导 https://dev.mysql.com/doc/refman/8.0/en/binary-installation.html
+YUM 安装
+https://dev.mysql.com/doc/refman/8.0/en/linux-installation-yum-repo.html
+wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+yum localinstall mysql80-community-release-el8-{version-number}.noarch.rpm
+
+yum localinstall mysql80-community-release-el7-3.noarch.rpm
+yum repolist enabled | grep "mysql.*-community.*"
+yum repolist all | grep mysql
+yum  install msyql-community-server -y
+mkdir -p /data/mysql
+mkdir -p /var/lib/mysql
+groupadd mysql
+useradd mysql
+chown -R mysql.mysql /data/mysql
+chown -R mysql.mysql /var/lib/mysql
+vi  /etc/my.cnf
+datadir=/data/mysql
+socket=/var/lib/mysql
+
+
+
+======================================================================
+[mysqld]
+datadir=/data/mysql
+basedir=/usr/local/mysql
+socket=/tmp/mysql.sock
+pid-file=/tmp/mysqld.pid
+# Disabling symbolic-links is recommended to prevent assorted security risks
+
+symbolic-links=0
+
+# Settings user and group are ignored when systemd is used.
+# If you need to run mysqld under a different user or group,
+# customize your systemd unit file for mariadb according to the
+# instructions in http://fedoraproject.org/wiki/Systemd
+
+#server-id                      = 1
+port                           = 3306
+default-authentication-plugin=mysql_native_password 
+
+log-error                      = error.log
+slow-query-log                 = 1
+
+slow-query-log-file            = slow.log
+long_query_time                = 0.2
+log-bin                        = bin.log
+binlog_format                 =ROW
+character-set-client-handshake = FALSE
+character-set-server           = utf8mb4
+collation-server               = utf8mb4_unicode_ci
+init_connect                   ='SET NAMES utf8mb4'
+innodb_buffer_pool_size        = 200M
+join_buffer_size               = 10M
+sort_buffer_size               = 2M
+read_rnd_buffer_size           = 2M
+log_timestamps                 = SYSTEM
+
+
+[mysqld_safe]
+log-error=/var/log/mysqldb.log
+
+#
+# include all files from the config directory
+#
+!includedir /etc/my.cnf.d
+
+
+
+------- 标准my。cnf  配置—————（mysql8.0.23)—————————————————————————————————————————————
+
+[root@pinzhdb ~]# cat /etc/my.cnf.bak
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/8.0/en/server-configuration-defaults.html
+
+[mysqld]
+#
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+#
+# Remove the leading "# " to disable binary logging
+# Binary logging captures changes between backups and is enabled by
+# default. It's default setting is log_bin=binlog
+# disable_log_bin
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M
+#
+# Remove leading # to revert to previous value for default_authentication_plugin,
+# this will increase compatibility with older clients. For background, see:
+# https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_default_authentication_plugin
+# default-authentication-plugin=mysql_native_password
+
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+======================================================================
+
+
+mysqld --initiazlice-insecure --user=mysql --datadir=/data/mysql
+systemctl start msyqld
+mysql_secure_install   设置密码策略、密码、远程root访问、匿名账号访问、测试数据库等。
+
+mysql -u root -p 可登陆 （空密码）
+alter user root@localhsot identified by 'pass'  #更改密码
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password';   # 旧认证方式设置密码
+crate user 'root'@'%' identified by 'Pass'; 建立root用户和密码
+grant all privileges on *.*  to  'root'@'%';  #设置权限
+flush privileges;     #update
+\q                      #quit
+
+vi /etc/my.cnf
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+validate_password.length=4
+validate_password.policy=0  #密码策略0
+validate_password.check_user_name=off
+default-authentication-plugin=mysql_native_password  #使用旧认证
+default_authentication_plugin=caching_sha2_password  #使新认证
+
+
+cp  /use/local/mysql/support_files/mysql.server  /etc/init.d    -添加服务
+chkconfig --add  mysql
+
+systemctl  start   mysql
+systemctl restart mysql
+
+
+
+***************************************** 
+*****************************************              mariadb begin               *******************************************************
+-------------------------mairadb---------------------
+yum install mairadb-server -y
+mkdir  -p /data/mysql
+mysql_install_db  --datadir=/data/mysql --force
+systemctl start mariadb
+mysqladmin -u password  
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'pass' WITH GRANT OPTION;
+show variables like "%character%";show variables like "%collation%";
+FLUSH  PRIVILEGES;
+
+vi /etc/my.cnf 添加
+[mysqld]
+datadir=/data/mysql
+socket=/data/mysql/mysql.sock
+
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+
+
+mkdir -p /var/lib/mysql
+ln -s /data/mysql/mysql.sock /var/lib/mysql/mysql.sock
+
+systemctl enable mariadb
+systemctl start mairadb 
+
+msyql -u root -p
+
+  
+ 
+2、配置MariaDB的字符集
+vi /etc/my.cnf 添加
+[mysqld]
+init_connect='SET collation_connection = utf8_general_ci' 
+init_connect='SET NAMES utf8' 
+character-set-server=utf8 
+collation-server=utf8_general_ci 
+skip-character-set-client-handshake
+
+vi /etc/my.cnf.d/client.cnf 在[client]中添加
+default-character-set=utf8
+vi /etc/my.cnf.d/mysql-clients.cnf
+  在[mysql]中添加
+default-character-set=utf8
+ 全部配置完成，
+ 重启mariadb
+  systemctl restart mariadb 
+MariaDB查看字符集
+mysql> show variables like "%character%";show variables like "%collation%";
+显示为
+
++--------------------------+----------------------------+
+| Variable_name            | Value                      |
++--------------------------+----------------------------+
+| character_set_client    | utf8                      |
+| character_set_connection | utf8                      |
+| character_set_database  | utf8                      |
+| character_set_filesystem | binary                    |
+| character_set_results    | utf8                      |
+| character_set_server    | utf8                      |
+| character_set_system    | utf8                      |
+| character_sets_dir      | /usr/share/mysql/charsets/ |
++--------------------------+----------------------------+
+8 rows in set (0.00 sec)
+
++----------------------+-----------------+
+| Variable_name        | Value          |
++----------------------+-----------------+
+| collation_connection | utf8_unicode_ci |
+| collation_database  | utf8_unicode_ci |
+| collation_server    | utf8_unicode_ci |
++----------------------+-----------------+
+3 rows in set (0.00 sec)
+
+字符集配置完成。
+
+
+ 3、添加用户，设置权限
+创建用户命令
+mysql>create user username@localhost identified by 'password'; 直接创建用户并授权的命令
+mysql>grant all on *.* to username@localhost indentified by 'password'; 授予外网登陆权限 
+mysql>grant all privileges on *.* to username@'%' identified by 'password'; 授予权限并且可以授权
+mysql>grant all privileges on *.* to username@'hostname' identified by 'password' with grant option;
+
+开启和停用Binlog
+通过配置/etc/my.cnf配置文件的log-bin选项：
+[mysqld]
+log-bin=mysql-bin
+binlog_format='ROW'          #放在mysqld模块下面
+or
+    log_bin=ON
+    log_bin_basename=/var/lib/mysql/mysql-bin
+    log_bin_index=/var/lib/mysql/mysql-bin.index
+
+mysqlbinlog：
+show variables like ‘%log_bin%’  
+mysql> SHOW BINARY LOGS;
+set global binlog_format='ROW';　　
+show master status 可以查看binlog的状态
+reset master 清空binlog日志文件
+flush logs; - .通过flush logs 可以手动刷新日志，生成一个新的binlog文件
+
+在使用二进制日志文件进行数据库恢复时，该过程中也会产生日志文件，就会进入一个循环状态，继续恢复该过程中的数据。因此，当使用mysqlbinlog命令时，要禁用二进制日志，请使用下面所示的-D选项： 
+ mysqlbinlog -D mysqld-bin.000001  禁止恢复过程产生日志
+ mysqlbinlog --disable-log-bin mysqld-bin.000001  禁止恢复过程产生日志
+
+ mysqlbinlog -database crm mysqld-bin.000001 > crm-events.txt
+ mysqlbinlog -s mysqld-bin.000001   仅显示sql语句  --short-form
+ mysqlbinlog mysqld-bin.000001 > output.out
+ mysqlbinlog -j 15028 mysqld-bin.000001 > from-15028.out  从位置编号为15028的二进制日志条目处开始读取
+  mysqlbinlog --start-datetime="2017-08-16 10:00:00" mysqld-bin.000001
+ 当你想要从一个二进制文件中提取数据时，这是非常有用的，因为你希望使用它来恢复或重构在某个时间段内发生的某些数据库活动。时间戳的格式可以是MySQL服务器所理解的DATETIME和timestamp中的任何类型。
+ mysqlbinlog --stop-datetime="2017-08-16 15:00:00" mysqld-bin.000001 命令将读取到给定结束时间的条目
+ mysqlbinlog --stop-position=15028 mysqld-bin.000001 > upto-15028.out 就像前面的例子一样，你也可以从mysql二进制日志中截止到一个特定位置的条目
+ 
+
+#mysqlbinlog --base64-output="decode-rows" -v mysql-bin.000001  Row模式下解析binlog日志
+
+******************************** mariadb end ********************************************************
+
+================================================================
+******************************************python  +  pip  + django  + uwsgi   +   nginx  **begin *******************************
+1 安装 python3
+
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum -y groupinstall "Development tools"
+yum install -y openssl-devel openssl-static zlib-devel lzma tk-devel xz-devel bzip2-devel ncurses-devel gdbm-devel readline-devel sqlite-devel gcc libffi-devel
+
+	下载好了之后在文件所在目录解压
+	tar -xvf Python-3.7.0.tgz
+	配置编译
+	进入到解压的python的目录里面，使用`Python3.7.0/configure`文件进行配置
+	cd Python-3.7.0
+	配置编译的的路径
+	./configure --prefix=/opt/python/python-3.7.0
+	安装依赖项
+	安装Python 3.7所需的依赖:
+	yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel libffi-devel gcc make
+	下载Python
+	在官网下载所需版本，这里用的是3.7.0版本
+	wget https://www.python.org/ftp/3.7.0/Python-3.7.0.tgz
+	安装Python
+	通过解压，配置编译，编译安装等步骤完成
+	解压
+	下载好了之后在文件所在目录解压
+	tar -xvf Python-3.7.0.tgz
+	配置编译
+	进入到解压的python的目录里面，使用`Python3.7.0/configure`文件进行配置
+	cd Python-3.7.0
+	配置编译的的路径
+	./configure --prefix=/usr/local/python-3.7.4
+
+	优化选项（可选）：
+	执行完上一步后会提示执行以下的代码对Python解释器进行优化，执行该代码后，会编译安装到 /usr/local/bin/ 下，且不用添加软连接或环境变量
+	./configure --enable-optimizations
+	编译和安装
+	make && make install
+	添加软连接
+	添加软链或者添加到环境变量，直接输入python3就可以使用了，下边是添加软连接：
+	ln -s /usr/local/python-3.7.4/bin/python3 /usr/bin/python3
+
+	vi /etc/profile
+	export PATH=$PATH:/usr/local/python-3.7.4/bin
+
+	source  /etc/profile
+
+	安装python3时同时安装了pip　和　setuptools
+
+	可以更新升级相关部件
+
+	 设置pip使用国内镜像
+	
+vi /etc/pop.conf
+	
+[global]
+index-url = https://mirrors.aliyun.com/pypi/simple/
+
+[install]
+trusted-host=mirrors.aliyun.com
+	
+	
+	pip3  install  --upgrade setuptools
+	pip3  install --upgrade  pip
+	python3 -m django –version  -查看版本
+
+=====================================安装 PIP    =====================================================
+
+
+
+
+2、安装pip前需要前置安装setuptools  (编译安装）
+
+	命令如下：
+
+	wget --no-check-certificate  https://pypi.python.org/packages/source/s/setuptools/setuptools-19.6.tar.gz#md5=c607dd118eae682c44ed146367a17e26
+	 
+	tar -zxvf setuptools-19.6.tar.gz
+	 
+	cd setuptools-19.6
+	 
+	python3 setup.py build
+	 
+	python3 setup.py install
+
+
+=========================     安装django   ==================================
+
+3.  安装django
+
+pip3  install   django
+
+--------------------------------------------------------------------
+4.  安装sqlite  
+
+	wget https://www.sqlite.org/2019/sqlite-autoconf-3280000.tar.gz
+	tar -zxvf sqlite-autoconf-3280000.tar.gz
+	cd sqlite-autoconf-3280000
+
+	./configure --prefix=/usr/local
+	make && make install
+	find /usr/ -name sqlite3
+
+	删除不必要的文件
+	rm -rf sqlite-autoconf-3280000*
+
+
+	mv /usr/bin/sqlite3  /usr/bin/sqlite3_old
+	ln -s /usr/local/bin/sqlite3   /usr/bin/sqlite3
+
+	vim ~/.bashrc
+	export LD_LIBRARY_PATH="/usr/local/lib"
+	source ~/.bashrc
+
+	测试 sqlite：
+	python3
+	import sqlite3
+	sqlite3.sqlite_version  显示版本
+
+---------------------------------------------------------------------
+5. 创建Django项目：
+django-admin.py startproject 项目名(mysite)
+创建项目中的static目录：
+cd mysite
+mkdir static
+
+更改文件
+setting.py 
+ALLOWED_HOSTS = ['*']
+
+
+启动Django项目
+python3 manage.py runserver 0.0.0.0:8000
+选择一个浏览器输入：http://115.159.214.215:8000/
+注意：IP地址换成自己的主机IP
+python3 mange.py createsuperuser  -产生admin用户
+
+----------------------------  安装 uwsgi     ---------------------------
+6. 安装 uwsgi
+
+pip3  install  uwsgi
+
+
+
+# test.py
+def application(env, start_response):
+    start_response('200 OK', [('Content-Type','text/html')])
+    return [b"Hello World"]
+
+测试：
+uwsgi –http :8001 –wsgi-file test.p
+	添加并发和监控
+	默认情况下，uWSGI 启动一个单一的进程和一个单一的线程。
+	你可以用 --processes 选项添加更多的进程，或者使用 --threads 选项添加更多的线程 ，也可以两者同时使用。
+	uwsgi --http :9090 --wsgi-file foobar.py --master --processes 4 --threads 2
+	以上命令将会生成 4 个进程, 每个进程有 2 个线程。
+	如果你要执行监控任务，可以使用 stats 子系统，监控的数据格式是 JSON：
+	uwsgi --http :9090 --wsgi-file foobar.py --master --processes 4 --threads 2 --stats 127.0.0.1:9191
+	我们可以安装 uwsgitop（类似 Linux top 命令） 来查看监控数据：
+	pip install uwsgitop
+	结合 Web 服务器使用
+	我们可以将 uWSGI 和 Nginx Web 服务器结合使用，实现更高的并发性能。
+	一个常用的nginx配置如下：
+
+	location / {
+		include uwsgi_params;
+		uwsgi_pass 127.0.0.1:3031;
+	}
+
+	现在，我们可以生成 uWSGI 来本地使用 uwsgi 协议：
+	uwsgi --socket 127.0.0.1:3031 --wsgi-file foobar.py --master --processes 4 --threads 2 --stats 127.0.0.1:9191
+	如果你的 Web 服务器使用 HTTP，那么你必须告诉 uWSGI 本地使用 http 协议 (这与会自己生成一个代理的–http不同):
+	uwsgi --http-socket 127.0.0.1:3031 --wsgi-file foobar.py --master --processes 4 --threads 2 --stats 127.0.0.1:9191
+
+ini 配置：
+	uwsgi 配置
+	uwsgi支持ini、xml等多种配置方式，本文以 ini 为例， 在/etc/目录下新建uwsgi8001.ini，添加如下配置：
+
+	[uwsgi]
+	#pythonpath = /usr/local/lib/python2.7/site-packages //因为python重新安装过的，所以目录要指定到这个
+	pythonpath = /usr/local/lib/python3.6/site-packages
+	socket = 127.0.0.1:8001
+	master = true         //主进程
+	vhost = true          //多站模式
+	no-site = true        //多站模式时不设置入口模块和文件
+	workers = 2           //子进程数
+	reload-mercy = 10     
+	vacuum = true         //退出、重启时清理文件
+	max-requests = 1000   
+	limit-as = 512
+	buffer-size = 30000
+	pidfile = /var/run/uwsgi8001.pid    //pid文件，用于下面的脚本启动、停止该进程
+	daemonize = /website/uwsgi8001.log  //因为python重新安装过的，所以目录要指定到这个
+
+	另外要新建一个/website目录，否则也会报错！！
+
+uwsgi --ini /etc/uwsgi8001.ini  测试
+
+-----------------------------------------  安装  nginx    ----------------------------------------------
+
+
+7.  安装nginx
+ yum  install wget -y
+ wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+ yum  install nginx -y
+ 
+测试：  systemctl  start  nginx
+  访问： ip  可看到nginx 欢迎界面。
+  
+  编译安装：
+  tar zxvf nginx-1.6.2.tar.gz
+  ./configure --prefix=/usr/local/webserver/nginx --with-http_stub_status_module --with-http_ssl_module  --with-http_gzip_static_module 
+  make  && make  install
+  
+  /usr/local/webserver/nginx/sbin/nginx -v   查看版本
+  # /usr/local/webserver/nginx/sbin/nginx -t  检查配置文件nginx.conf的正确性命令
+  配置模版：
+   /usr/sbin/groupadd www   建组
+   /usr/sbin/useradd -g www www  建用户
+  cat /usr/local/webserver/nginx/conf/nginx.conf
+ 			user www www;
+			worker_processes 2; #设置值和CPU核心数一致
+			error_log /usr/local/webserver/nginx/logs/nginx_error.log crit; #日志位置和日志级别
+			pid /usr/local/webserver/nginx/nginx.pid;
+			#Specifies the value for maximum file descriptors that can be opened by this process.
+			worker_rlimit_nofile 65535;
+			events
+			{
+			  use epoll;
+			  worker_connections 65535;
+			}
+			http
+			{
+			  include mime.types;
+			  default_type application/octet-stream;
+			  log_format main  '$remote_addr - $remote_user [$time_local] "$request" '
+			               '$status $body_bytes_sent "$http_referer" '
+			               '"$http_user_agent" $http_x_forwarded_for';
+			  
+			#charset gb2312;
+			     
+			  server_names_hash_bucket_size 128;
+			  client_header_buffer_size 32k;
+			  large_client_header_buffers 4 32k;
+			  client_max_body_size 8m;
+			     
+			  sendfile on;
+			  tcp_nopush on;
+			  keepalive_timeout 60;
+			  tcp_nodelay on;
+			  fastcgi_connect_timeout 300;
+			  fastcgi_send_timeout 300;
+			  fastcgi_read_timeout 300;
+			  fastcgi_buffer_size 64k;
+			  fastcgi_buffers 4 64k;
+			  fastcgi_busy_buffers_size 128k;
+			  fastcgi_temp_file_write_size 128k;
+			  gzip on; 
+			  gzip_min_length 1k;
+			  gzip_buffers 4 16k;
+			  gzip_http_version 1.0;
+			  gzip_comp_level 2;
+			  gzip_types text/plain application/x-javascript text/css application/xml;
+			  gzip_vary on;
+			 
+			  #limit_zone crawler $binary_remote_addr 10m;
+			 #下面是server虚拟主机的配置
+			 server
+			  {
+			    listen 80;#监听端口
+			    server_name localhost;#域名
+			    index index.html index.htm index.php;
+			    root /usr/local/webserver/nginx/html;#站点目录
+			      location ~ .*\.(php|php5)?$
+			    {
+			      #fastcgi_pass unix:/tmp/php-cgi.sock;
+			      fastcgi_pass 127.0.0.1:9000;
+			      fastcgi_index index.php;
+			      include fastcgi.conf;
+			    }
+			    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf|ico)$
+			    {
+			      expires 30d;
+			  # access_log off;
+			    }
+			    location ~ .*\.(js|css)?$
+			    {
+			      expires 15d;
+			   # access_log off;
+			    }
+			    access_log off;
+			  }
+			 
+			}
+			
+静态资源没有配置，导致admin界面进去之后都是丢失了css样式的
+	解决步骤：
+	在/website目录下新建目录static
+	修改项目目录下settings.py，增加下面这行：
+	STATIC_ROOT = '/website/static/'
+	再在nginx里给这个目录取一个别名
+	location /static {
+		alias /website/static/;
+	}
+	意思就是外部访问我的 域名/static  时候就可以访问到/website/static这个目录
+	使用python manage.py collectstatic，将项目需要的静态资源搜集到指定的STATIC_ROOT对应的目录下。也即是这个nginx刚刚取了别名的目录/website/static/。
+	
+	python manage.py collectstatic
+	
+			
+=========================================================================================================================== 
+8.    Nginx 配置 支持 uwsgi
+
+找到nginx的安装目录（如：/usr/local/nginx/），打开conf/nginx.conf文件，修改server配置：
+		server {
+				listen       80;
+				server_name  localhost;
+				
+				location / {            
+					include  uwsgi_params;
+					uwsgi_pass  127.0.0.1:9090;              //必须和uwsgi中的设置一致
+					uwsgi_param UWSGI_SCRIPT demosite.wsgi;  //入口文件，即wsgi.py相对于项目根目录的位置，“.”相当于一层目录
+					uwsgi_param UWSGI_CHDIR /root/Penn/demosite/;       //项目根目录！！！
+					index  index.html index.htm;
+					client_max_body_size 35m;
+				}
+			}
+
+
+9. 部署 uwsgi+ Django
+	Django 是最常使用的 Python web 框架，假设 Django 项目位于 /home/foobar/myproject:
+
+	uwsgi --socket 127.0.0.1:3031 --chdir /home/foobar/myproject/ --wsgi-file myproject/wsgi.py --master --processes 4 --threads 2 --stats 127.0.0.1:9191
+
+	--chdir 用于指定项目路径。
+
+	我们可以把以上的命令弄成一个 yourfile.ini 配置文件:
+		[uwsgi]
+		socket = 0.0.0.0:8000
+		chdir = /root/project/
+		wsgi-file = project/wsgi.py
+		processes = 4
+		threads = 2
+		stats = 0.0.0.0:9000
+	接下来你只需要执行以下命令即可：
+	uwsgi yourfile.ini
+	
+				
+    ningx  +django 静态资源没有配置，导致admin界面进去之后都是丢失了css样式的
+解决步骤：
+	在/website目录下新建目录static
+	修改项目目录下settings.py，增加下面这行：
+	STATIC_ROOT = '/website/static/'
+	再在nginx里给这个目录取一个别名
+	location /static {
+		alias /website/static/;
+	}
+	意思就是外部访问我的 域名/static  时候就可以访问到/website/static这个目录
+	使用python manage.py collectstatic，将项目需要的静态资源搜集到指定的STATIC_ROOT对应的目录下。也即是这个nginx刚刚取了别名的目录/website/static/。
+	
+	python manage.py collectstatic
+
+	
+	
+10. 部署 uwsgi+Flask
+	Flask 是一个流行的 Python web 框架。
+
+	创建文件 myflaskapp.py ，代码如下：
+
+	from flask import Flask
+
+	app = Flask(__name__)
+
+	@app.route('/')
+	def index():
+		return "<span style='color:red'>I am app 1</span>"
+	执行以下命令：
+
+	uwsgi --socket 127.0.0.1:3031 --wsgi-file myflaskapp.py --callable app --processes 4 --threads 2 --stats 127.0.0.1:9191
+
+11  文件上传解决
+图片的上传
+
+需要在admin的models下有个能上传图片的表，在models.py中定义表结构如下
+
+class Shop(models.Model):
+    name = models.CharField(max_length=200)
+    lat = models.FloatField(default=0)
+    lng = models.FloatField(default=0)
+    addr = models.CharField(max_length=500)
+    phone = models.CharField(max_length=20)
+    imgUrl = models.ImageField(u'图片',upload_to='uploadImages')
+    status = models.IntegerField(default=0)
+    notes = models.CharField(max_length=500)
+    addDate = models.DateTimeField(u'添加时间', auto_now_add=True, editable=True)
+    updateTime = models.DateTimeField(u'更新时间', auto_now=True, null=True)
+在settings.py中设置一下media的路径
+
+MEDIA_ROOT = '/website/media'
+MEDIA_URL = '/media/'
+在admin.py下新加一条注册模型的语句
+
+admin.site.register([Test,Shop])
+ 
+同时在website目录下新建media目录
+
+在nginx的配置文件中同样的新建一个media对应的别名
+
+location /media{
+    alias /website/media/;
+}
+在项目根目录下执行以下指令，来重新生成数据库
+
+python3 manage.py makemigrations WxModel  # 让 Django 知道我们在我们的模型有一些变更
+python3 manage.py migrate WxModel   # 创建表结构
+另外还缺少一个Pillow的库，是要使用ImageField类型的字段需要的一个图形库，使用pip安装
+
+pip3 install Pillow
+pip3  install -i http://mirrors.aliyun.com/pypi/simple/  pymysql
+ 
+
+重启nginx和uwsgi后成功
+————————————————
+版权声明：本文为CSDN博主「wangpeng2011314」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/wangpeng2011314/article/details/80993178
+
+*********************************************** rabbitmq  ***************************************************
+========================PYTHON rabbitmq ----------------------------
+import pika
+import json
+
+#credentials = pika.PlainCredentials('shampoo', '123456')  # mq用户名和密码
+
+
+# 虚拟队列需要指定参数 virtual_host，如果是默认的可以不填。
+connection = pika.BlockingConnection(pika.ConnectionParameters(host = '192.168.110.84',port = 5672))
+channel=connection.channel()
+# 声明消息队列，消息将在这个队列传递，如不存在，则创建
+result = channel.queue_declare(queue = 'python-test')
+
+for i in range(10):
+    message=json.dumps({'OrderId':"1000%s"%i})
+# 向队列插入数值 routing_key是队列名
+    channel.basic_publish(exchange = '',routing_key = 'python-test',body = message)
+    print(message)
+connection.close()
+
+-------------------------------------------
+import pika
+
+#credentials = pika.PlainCredentials('shampoo', '123456')
+connection = pika.BlockingConnection(pika.ConnectionParameters(host = '192.168.110.84',port = 5672))
+channel = connection.channel()
+# 申明消息队列，消息在这个队列传递，如果不存在，则创建队列
+channel.queue_declare(queue = 'python-test', durable = False)
+# 定义一个回调函数来处理消息队列中的消息，这里是打印出来
+def callback(ch, method, properties, body):
+    ch.basic_ack(delivery_tag = method.delivery_tag)
+    print(body.decode())
+
+# 告诉rabbitmq，用callback来接收消息
+channel.basic_consume(on_message_callback=callback,
+                      queue = 'python-test'
+                      )
+# 开始接收信息，并进入阻塞状态，队列里有信息才会调用callback进行处理
+channel.start_consuming()
+
+
+=============fanout=========
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+# 注意：这里是广播，不需要声明queue
+channel.exchange_declare(exchange='logs',  # 声明广播管道
+                         exchange_type='fanout')
+
+# message = ' '.join(sys.argv[1:]) or "info: Hello World!"
+message = "info: Hello World22222!"
+channel.basic_publish(exchange='logs',
+                      routing_key='',  # 注意此处空，必须有
+                      body=message)
+print(" [x] Sent %r" % message)
+connection.close()
+---------------fanout--------------
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+channel.exchange_declare(exchange='logs',
+                         exchange_type='fanout')
+# 不指定queue名字,rabbit会随机分配一个名字,exclusive=True会在使用此queue的消费者断开后,自动将queue删除
+result = channel.queue_declare(queue='' ,exclusive=True)
+# 获取随机的queue名字
+queue_name = result.method.queue
+print("random queuename:", queue_name)
+
+channel.queue_bind(exchange='logs',  # queue绑定到转发器上
+                   queue=queue_name)
+
+print(' [*] Waiting for logs. To exit press CTRL+C')
+
+
+def callback(ch, method, properties, body):
+    print(" [x] %r" % body)
+
+
+channel.basic_consume(on_message_callback=callback,
+                      queue=queue_name,
+                      auto_ack=True)
+
+channel.start_consuming()
+======================routing——key =======================================
+
+
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+channel.exchange_declare(exchange='direct_logs',
+             exchange_type='direct')
+# 重要程度级别，这里默认定义为 info
+severity = sys.argv[1] if len(sys.argv) > 1 else 'info'
+message = ' '.join(sys.argv[2:]) or 'Hello World!'
+channel.basic_publish(exchange='direct_logs',
+           routing_key=severity,
+           body=message)
+print(" [x] Sent %r:%r" % (severity, message))
+connection.close()
+
+------------------routing——key--------------------------
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+
+channel.exchange_declare(exchange='direct_logs',
+                         exchange_type='direct')
+
+result = channel.queue_declare(queue='',exclusive=True)
+queue_name = result.method.queue
+# 获取运行脚本所有的参数
+severities = sys.argv[1:]
+if not severities:
+    sys.stderr.write("Usage: %s [info] [warning] [error]\n" % sys.argv[0])
+    sys.exit(1)
+# 循环列表去绑定
+for severity in severities:
+    channel.queue_bind(exchange='direct_logs',
+                       queue=queue_name,
+                       routing_key=severity)
+
+print(' [*] Waiting for logs. To exit press CTRL+C')
+
+
+def callback(ch, method, properties, body):
+    print(" [x] %r:%r" % (method.routing_key, body))
+
+
+channel.basic_consume(on_message_callback=callback,
+                      queue=queue_name,
+                      auto_ack=True)
+
+channel.start_consuming()
+===================topic ==========================
+
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+channel.exchange_declare(exchange='topic_logs',
+                         exchange_type='topic')
+
+routing_key = sys.argv[1] if len(sys.argv) > 1 else 'anonymous.info'
+message = ' '.join(sys.argv[2:]) or 'Hello World!'
+channel.basic_publish(exchange='topic_logs',
+                      routing_key=routing_key,
+                      body=message)
+print(" [x] Sent %r:%r" % (routing_key, message))
+connection.close()
+
+
+
+-----------------------
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.110.84'))
+channel = connection.channel()
+channel.exchange_declare(exchange='topic_logs',
+                         exchange_type='topic')
+
+result = channel.queue_declare(queue
+
+
+-----------rabbitmq -rpc---client-------------------
+
+#！ /usr/bin
+#-*-  coding utf-8 -*-
+#  wanglong
+import pika
+import uuid
+
+
+class FibonacciRpcClient(object):
+    def __init__(self):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host='192.168.1.60'))
+
+        self.channel = self.connection.channel()
+
+        result = self.channel.queue_declare(queue='', exclusive=True)
+        self.callback_queue = result.method.queue
+
+        self.channel.basic_consume(on_message_callback=self.on_response, auto_ack=True,
+                                   queue=self.callback_queue)
+
+    def on_response(self, ch, method, props, body):
+        if self.corr_id == props.correlation_id:
+            self.response = body
+
+    def call(self, n):
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        self.channel.basic_publish(exchange='',
+                                   routing_key='rpc_queue',
+                                   properties=pika.BasicProperties(
+                                       reply_to=self.callback_queue,
+                                       correlation_id=self.corr_id,
+                                   ),
+                                   body=str(n))
+
+        while self.response is None:
+            self.connection.process_data_events()
+        return int(self.response)
+
+
+fibonacci_rpc = FibonacciRpcClient()
+
+print(" [x] Requesting fib(30)")
+response = fibonacci_rpc.call(30)
+print(" [.] Got %r" % response)
+
+
+----------------rabbmtmq   prc    server   ------------------------------
+#！ /usr/bin
+#-*-  coding utf-8 -*-
+#  wanglong
+
+import pika
+import time
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host='192.168.1.60'))
+
+channel = connection.channel()
+
+channel.queue_declare(queue='rpc_queue')
+
+
+def fib(n):
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fib(n - 1) + fib(n - 2)
+
+
+def on_request(ch, method, props, body):
+    n = int(body)
+
+    print(" [.] fib(%s)" % n)
+    response = fib(n)
+
+    ch.basic_publish(exchange='',
+                     routing_key=props.reply_to,
+                     properties=pika.BasicProperties(correlation_id= \
+                                                         props.correlation_id),
+                     body=str(response))
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume(on_message_callback=on_request, queue='rpc_queue')
+
+print(" [x] Awaiting RPC requests")
+channel.start_consuming()
+================================================
+ yum  install  redis
+ 
+ redis-server   /etc/redis.conf
+ /etc/redis.conf
+ bind 0.0.0.0 --可以访问的地址
+ protected-mode no
+ port 6379
+ daemonize no
+ requirepass foobared   --设置密码
+ 
+ 远程访问redis
+  redis-cli  -h 192.168.1.62  -p  6379 -a password         
+  
+  
+
+
+----------------ublish --------------------------------
+import pika
+import json
+
+#credentials = pika.PlainCredentials('shampoo', '123456')  # mq用户名和密码
+# 虚拟队列需要指定参数 virtual_host，如果是默认的可以不填。
+connection = pika.BlockingConnection(pika.ConnectionParameters(host = '192.168.110.84',port = 5672))
+channel=connection.channel()
+# 声明消息队列，消息将在这个队列传递，如不存在，则创建
+result = channel.queue_declare(queue = 'python-test')
+
+for i in range(10):
+    message=json.dumps({'OrderId':"1000%s"%i})
+# 向队列插入数值 routing_key是队列名
+    channel.basic_publish(exchange = '',routing_key = 'python-test',body = message)
+    print(message)
+connection.close()
+
+-----------------------consume  -------
+import pika
+
+#credentials = pika.PlainCredentials('shampoo', '123456')
+connection = pika.BlockingConnection(pika.ConnectionParameters(host = '192.168.110.84',port = 5672))
+channel = connection.channel()
+# 申明消息队列，消息在这个队列传递，如果不存在，则创建队列
+channel.queue_declare(queue = 'python-test', durable = False)
+# 定义一个回调函数来处理消息队列中的消息，这里是打印出来
+def callback(ch, method, properties, body):
+    ch.basic_ack(delivery_tag = method.delivery_tag)
+    print(body.decode())
+
+# 告诉rabbitmq，用callback来接收消息
+channel.basic_consume(on_message_callback=callback,
+                      queue = 'python-test'
+                      )
+# 开始接收信息，并进入阻塞状态，队列里有信息才会调用callback进行处理
+channel.start_consuming()
+
+
+
+
+------------------------------  redis-server 安装 ---------------------------------------------
+
+wget http://download.redis.io/releases/redis-4.0.6.tar.gz
+tar  xvf   /redis-4.0.6.tar.gz
+
+
+make PREFIX=/usr/local/redis install
+
+./redis-server ./redis.conf &
+-----------------------------------------
+
+import redis
+pool = redis.ConnectionPool(host='localhost', port=6379,db=1,password='abc')
+red = redis.Redis(connection_pool=pool)
+red.set=
+
+
+import redis                      
+                                  
+# r=redis.Redis()                 
+# r = redis.Redis                 
+# (host='192.168.110.82',password=
+# r.set('name','qimi')            
+                                  
+# print(r.get('name'))            
+                                  
+pool=redis.ConnectionPool(host='19
+red=redis.Redis(connection_pool=po
+red.set ( 'name1','wanglogn')     
+
+------------redis  publish ------------------------
+import redis,time                                                                   
+                                                                                    
+number_list = ['300033', '300032', '300031', '300030']                              
+signal = ['1', '-1', '1', '-1']                                                     
+                                                                                    
+rc = redis.StrictRedis(host='192.168.110.82', port='6379', db=3, password='abc')    
+for i in range(len(number_list)):                                                   
+    value_new = str(number_list[i]) + ' ' + str(signal[i])                          
+    rc.publish("liao", value_new)                                                   
+
+--------redis  subscribe  ------
+import time
+import redis
+
+rc = redis.StrictRedis(host='192.168.110.82', port='6379', db=3, password='abc')
+ps = rc.pubsub()
+ps.subscribe('liao')  # 从liao订阅消息
+for item in ps.listen():  # 监听状态：有消息发布了就拿过来
+    if item['type'] == 'message':
+        print( item['channel'])
+        print( item['data'])
+		
+******************************************python  +  pip  + django  + uwsgi   +   nginx  **end *******************************	
+
+--------------------------------docker  安装   begin ---------------------------------------
+1#  设置网桥包经IPTables，core文件生成路径
+echo """
+vm.swappiness = 0
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1 """  > /etc/sysctl.conf
+sysctl -p
+		
+
+#docker yum源
+
+yum install -y yum-utils device-mapper-persistent-data lvm2 
+
+cat >> /etc/yum.repos.d/docker.repo <<EOF
+[docker-repo]
+name=Docker Repository
+baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+enabled=1
+gpgcheck=0
+EOF
+
+
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum install  docker-ce
+
+cat  > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+systemctl enable docker
+systemctl  daemon-reload
+systemctl  restart docker
+
+docker  批量删除 镜像仓库
+docker rmi $(docker images | grep "none" | awk '{print $3}') 
+
+************************************************  gitlab  *****************************************
+
+Start GitLab using:
+
+docker-compose up
+Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
+
+Step 1. Launch a postgresql container
+
+docker run --name gitlab-postgresql -d \
+--env 'DB_NAME=gitlabhq_production' \
+--env 'DB_USER=gitlab' --env 'DB_PASS=password' \
+--env 'DB_EXTENSION=pg_trgm' \
+--volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
+sameersbn/postgresql:9.6-2
+Step 2. Launch a redis container
+
+docker run --name gitlab-redis -d \
+--volume /srv/docker/gitlab/redis:/var/lib/redis \
+sameersbn/redis:latest
+Step 3. Launch the gitlab container
+
+docker run --name gitlab -d \
+--link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
+--publish 10022:22 --publish 10080:80 \
+--env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+--env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+--env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+--env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+--volume /srv/docker/gitlab/gitlab:/home/git/data \
+sameersbn/gitlab:10.5.6
+Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
+
+NOTE: Please allow a couple of minutes for the GitLab application to start.
+
+Point your browser to http://localhost:10080 and set a password for the root user account
+
+
+
+
+==============================================        k8s V1.17   begin          ===================================		
+
+国内环境centos7安装k8s:v1.17.0
+
+一、安装最新版docker
+# step 1: 安装必要的一些系统工具
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+# Step 2: 添加软件源信息
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# Step 3: 更新并安装Docker-CE
+sudo yum makecache fast
+sudo yum -y install docker-ce
+# Step 4: 开启Docker服务
+
+
+systemctl enable  docker
+sudo service docker start
+# 注意：# 官方软件源默认启用了最新的软件
+vi  /etc/sysctl.conf
+添加下面的：
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+使生效：
+sysctl -p
+docker info
+
+# wanglong  添加
+
+cat  > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+}
+EOF
+
+systemctl  daemon-reload
+systemctl  enable docker
+systemctl start docker
+
+echo """
+vm.swappiness = 0
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1 """  > /etc/sysctl.conf
+sysctl -p
+
+
+
+
+
+
+二、设置k8s环境准备条件
+# 关闭防火墙
+systemctl disable firewalld
+systemctl stop firewalld
+# 关闭selinux
+# 临时禁用selinux
+setenforce 0
+# 永久关闭 修改/etc/sysconfig/selinux文件设置
+sed -i 's/SELINUX=permissive/SELINUX=disabled/' /etc/sysconfig/selinux
+sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
+# 禁用交换分区
+swapoff -a
+# 永久禁用，打开/etc/fstab注释掉swap那一行。
+sed -i 's/.*swap.*/#&/' /etc/fstab
+
+配置hosts（很重要必须要加）
+vim /etc/hosts
+添加：
+127.0.0.1 master
+
+三、安装k8s:master管理节点
+        1.安装kubeadm、kubelet、kubectl
+由于官方k8s源在google，国内无法访问，这里使用阿里云yum源
+# 执行配置k8s阿里云源
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+# 安装kubeadm、kubectl、kubelet
+yum install -y kubectl-1.17.0-0 kubeadm-1.17.0-0 kubelet-1.17.0-0
+# 启动kubelet服务
+systemctl enable kubelet && systemctl start kubelet
+        2.初始化k8s
+ip a
+master 的IP如果是：192.168.100.5  （改成自己服务器ip 就可以，唯一要改的地方）
+kubeadm init --image-repository registry.aliyuncs.com/google_containers --kubernetes-version v1.17.0 --apiserver-advertise-address 192.168.110.40 --pod-network-cidr=10.244.0.0/16 --token-ttl 0
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+
+四、安装k8s:node工作节点
+安装docker 
+关防护墙，关swap，配置hosts
+安装kubeadm、kubelet
+# 执行配置k8s阿里云源
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+# 安装kubeadm、kubectl、kubelet
+yum install -y  kubeadm-1.17.0-0 kubelet-1.17.0-0
+# 启动kubelet服务
+systemctl enable kubelet && systemctl start kubelet
+        加入集群
+
+
+登入master：
+执行：kubeadm token create --print-join-command
+复制：kubeadm join 192.168.100.5:6443 --token i4u5vr.2198yy29hhr00k6f     --discovery-token-ca-cert-hash sha256:95519080b1911f84641405ff084a9444d9140eac500b0062009b026ac7b3aa95
+登入node，执行上面命令
+
+五、安装flannel（master机器）
+1.下载官方fannel配置文件
+使用wget命令，地址为：(https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml)，这个地址国内访问不了.
+2.安装fannel
+kubectl apply -f kube-flannel.yml
+3.检查
+登陆master：
+执行：kubectl get nodes
+节点已为Ready状态，ok。
+
+
+测试
+docker pull httpd
+kubectl run http-app --image=httpd --replicas=3
+kubectl get pods
+kubectl expose deployment/http-app --type="NodePort" --port 80
+kubectl get services
+
+
+---------------------------------------------k8s  清理 ------------------------------------
+k8s  清理
+kubeadm reset -f
+modprobe -r ipip
+lsmod
+rm -rf ~/.kube/
+rm -rf /etc/kubernetes/
+rm -rf /etc/systemd/system/kubelet.service.d
+rm -rf /etc/systemd/system/kubelet.service
+rm -rf /usr/bin/kube*
+rm -rf /etc/cni
+rm -rf /opt/cni
+rm -rf /var/lib/etcd
+rm -rf /var/etcd
+
+
+
+==============================================        k8s V1.17    end.          ===================================	
+
+
+
+
+-----------------------docker--------influxdb+cadvisor+grafana--------------------------------------
+docker  监控：
+1.镜像准备
+docker.io/tutum/influxdb
+docker.io/google/cadvisor
+docker.io/grafana/grafana
+2. docker  run  -d -p 8086:8086 -v ~/influxdb:/var/lib/influxdb --name influxdb  tutum/influxdb
+docker exec -ti influxdb  influx  --进行influxdb 数据库
+create database 'test'
+create user "root" with password 'password' with all privileges
+quit
+
+docker  run -d -v /:/rootfs  -v /var/run:/var/run -v /sys:/sys \
+-v /var/lib/docker:/var/lib/docker  \
+--volume /cgroup:/cgroup:ro \
+--privileged=true  \
+--link=influxdb:influxdb --name cadvisor google/cadvisor \
+--storage_driver=influxdb  \
+--storage_driver_host=influxdb:8086 \
+--storage_driver_db=test \
+--storage_driver_user=root \
+--storage_driver_password=password
+3. docker run -d -p 5000:3000 -v ~/grafana:/var/lib/grafana \
+--link=influxdb:influxdb \
+--name grafana  grafana/grafana
+4. 打开localhost:5000来访问grafana的web服务
+login: admin  admin
+
+
+---------------------------docker------------zabbix  -------------------------------------
+docker pull busybox
+docker pull  monitoringartist/zabbix-xxl
+docker pull monitoringartist/zabbix-db-mariadb
+
+# create /var/lib/mysql as persistent volume storage
+docker run -d -v /var/lib/mysql --name zabbix-db-storage busybox:latest
+
+# start DB for Zabbix - default 1GB innodb_buffer_pool_size is used
+docker run \
+-d \
+--name zabbix-db \
+-v /backups:/backups \
+-v /etc/localtime:/etc/localtime:ro \
+--volumes-from zabbix-db-storage \
+--env="MARIADB_USER=zabbix" \
+--env="MARIADB_PASS=my_password" \
+monitoringartist/zabbix-db-mariadb
+
+# start Zabbix linked to started DB
+docker run \
+-d \
+--name zabbix \
+-p 80:80 \
+-p 10051:10051 \
+-v /etc/localtime:/etc/localtime:ro \
+--link zabbix-db:zabbix.db \
+--env="ZS_DBHost=zabbix.db" \
+--env="ZS_DBUser=zabbix" \
+--env="ZS_DBPassword=my_password" \
+monitoringartist/zabbix-xxl
+
+
+
+默认账号：Admin，密码：zabbix，这是一个超级管理员
+
+
+# Backup of DB Zabbix - configuration data only, no item history/trends
+docker exec \
+-ti zabbix-db \
+/zabbix-backup/zabbix-mariadb-dump -u zabbix -p my_password -o /backups
+
+# Full backup of Zabbix DB
+docker exec \
+-ti zabbix-db \
+bash -c "\
+mysqldump -u zabbix -pmy_password zabbix | \
+bzip2 -cq9 > /backups/zabbix_db_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.bz2"
+
+# Restore Zabbix DB
+# remove zabbix server container
+docker rm -f zabbix
+# restore data from dump (all current data will be dropped!!!)
+docker exec -i zabbix-db sh -c 'bunzip2 -dc /backups/zabbix_db_dump_2016-05-25-02.57.46.sql.bz2 | mysql -uzabbix -p --password=my_password zabbix'
+# run zabbix server again
+---------------------docker --------------------- grafana ------------------------------------------------------
+
+
+# create /var/lib/grafana as persistent volume storage
+docker run -d -v /var/lib/grafana --name grafana-xxl-storage busybox:latest
+
+# start grafana-xxl
+docker run \
+  -d \
+  -p 3000:3000 \
+  --name grafana-xxl \
+  -e UPGRADEALL=false \
+  --volumes-from grafana-xxl-storage \
+  monitoringartist/grafana-xxl:latest
+
+docker run -d --name=grafana-xxl -p 3000:3000 -e UPGRADEALL=false monitoringartist/grafana-xxl
+
+http://xxx.xxx.xxx.xxx:3000
+默认账号 admin，密码：admin，这是一个超级管理员
+
+-----------------------docker----------------prometheus- -----------------------------------------------------------
+prometheus：
+tar xvfz prometheus-*.tar.gz
+cd prometheus-*
+
+prometheus.yml:
+		global:
+		  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+		  # Attach these labels to any time series or alerts when communicating with
+		  # external systems (federation, remote storage, Alertmanager).
+		  external_labels:
+			monitor: 'codelab-monitor'
+
+		# A scrape configuration containing exactly one endpoint to scrape:
+		# Here it's Prometheus itself.
+		scrape_configs:
+		  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+		  - job_name: 'prometheus'
+
+			# Override the global default and scrape targets from this job every 5 seconds.
+			scrape_interval: 5s
+
+			static_configs:
+			  - targets: ['localhost:9090']
+
+# Start Prometheus.
+# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+./prometheus --config.file=prometheus.yml
+
+docker run -p 9090:9090 -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml \
+       prom/prometheus
+
+Or use an additional volume for the config:
+
+docker run -p 9090:9090 -v /prometheus-data \
+       prom/prometheus --config.file=/prometheus-data/prometheus.yml
+	   
+	   
+*************************  sqlalchemy  ******************************************
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+engine = create_engine(
+    'mysql+pymysql://root:pass@192.168.1.64/db1', encoding='utf-8')
+Base = declarative_base()
+
+
+class user(Base):
+    __tablename__ = 'user1'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    age = Column(Integer)
+	
+# Base.metadata.create_all(engine)  #  生成表机构
+--------------------------------------------------------------------------
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from  sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, UniqueConstraint, Index
+
+engine = create_engine("mysql+pymysql://root:pass@192.168.1.64/db1",encoding='utf-8')
+Base = declarative_base()
+session_class=sessionmaker(bind=engine)
+session=session_class()
+class user(Base):
+    __tablename__ = 'user1'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    age = Column(Integer)
+    
+user2=user(name='wanglong',age=55)
+user3=user(name='ww',age=12)
+session.add(user2)
+session.add(user3)
+session.commit()
+session.close()
+--------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+nginx  1.16.1   编译安装：
+yum install -y  wget gcc pcre pcre-devel zlib-devel 
+
+wget -c http://nginx.org/download/nginx-1.16.0.tar.gz
+tar zxvf nginx-1.16.0.tar.gz
+cd nginx-1.16.0
+
+useradd  -s /sbin/nologin nginx  -M 
+./configure --prefix=/usr/local/nginx --user=nginx --group=nginx --with-http_stub_status_module
+make -j4
+make  -j4 install
+/usr/local/nginx/sbin/nginx
