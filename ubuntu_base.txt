@@ -103,6 +103,15 @@ systemctl set-default multi-user.target ##开机不开启图形
 systemctl set-default graphical.target  ##开机启动图形
 
 
+chkconfig --list   #查看开机启动服务
+chkconfig  --add   mysql.server    #  添加开机启动项服务
+chkconfig  mysql  on     # 设置开机启动
+chkconfig  mysql  off   # 关闭开机启动
+chkconfig –del httpd        #删除httpd服务
+chkconfig –level httpd 2345 on      #设置httpd在运行级别为2、3、4、5的情况下都是on（开启）的状态
+
+
+
 ************************* 基本设置 ***************************
 hostnamectl  set-hostname  hostname   # 设置主机名
 timedatectl  set-timezone  Asia/Shanghai  # 设置时区
