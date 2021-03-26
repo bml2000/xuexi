@@ -86,7 +86,7 @@ tcpdump tcp -i eth1 -t -s 0 -c 100 and dst port ! 22 and src net 192.168.1.0/24 
 (7)src net 192.168.1.0/24 : 数据包的源网络地址为192.168.1.0/24
 (8)-w ./target.cap : 保存成cap文件，方便用ethereal(即wireshark)分
 
-==================================   服务相关  ============================
+V==================================   服务相关  ============================
 #服务相关
 sudo update-rc.d 服务名 defaults               # 添加服务
 sudo update-rc.d -f 服务名 remove        # 删除服务
@@ -99,6 +99,8 @@ systemctl list-unit-files   # 查询服务状态
 systemctl start /stop  /restart /status  ssh
 systtemctl list-unit-files |grep  zabbix-agent  # 查看服务状态
 systtemctl list-unit-files |grep  eanbled   # 查看开机启动服务
+systemctl set-default multi-user.target ##开机不开启图形
+systemctl set-default graphical.target  ##开机启动图形
 
 
 ************************* 基本设置 ***************************
@@ -124,6 +126,8 @@ crontab  -e   #编辑计划任务
 #关闭sudo密码
 sudo visudo ，打开 visudo；
 找到 %sudo ALL=(ALL:ALL) ALL 这⼀⾏修改为 %sudo ALL=(ALL:ALL) NOPASSWD:ALL
+#基本安装
+yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools unzip lsof iptables -y 
 
 ************************ 安装包管理  **************************************************
 
