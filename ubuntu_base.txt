@@ -18,6 +18,12 @@ ps  -aux          #  查看进程
 ss                # 查看
 ss -alnpt         # 查看端口
 top              # 查看负载
+grubby  --info=ALL  #查看grub启动信息
+grubby --default-kernel  #查看默认内核
+grubby  --default-index  #查看启动顺序号
+grub2-set-default  X      #设置默认启动
+
+
 
 
 apt  edit-source   #  编辑apt source
@@ -91,6 +97,9 @@ systemctl  status  ssh                      #查询服务状态
 systemctl is-enabled servicename.service     #查询所有已enable的服务
 systemctl list-unit-files   # 查询服务状态
 systemctl start /stop  /restart /status  ssh
+systtemctl list-unit-files |grep  zabbix-agent  # 查看服务状态
+systtemctl list-unit-files |grep  eanbled   # 查看开机启动服务
+
 
 ************************* 基本设置 ***************************
 hostnamectl  set-hostname  hostname   # 设置主机名
