@@ -26,6 +26,7 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 trusted-host = https://pypi.tuna.tsinghua.edu.cn  # 
 
 
+
 ~/.pip/pip.conf
 	[global]
 	index-url = https://mirrors.aliyun.com/pypi/simple/
@@ -41,6 +42,21 @@ virtualenv --no-site-packages venv  # 创建虚拟环境在venv 目录中， 区
 
 virtualenv  -p  d:\python39\python.exe  py39   #创建虚拟python39
 virtualenv  -p  d:\python27\python.exe  py27   #创建虚拟python27
+29. python
+		yum  install python36
+		wget  https://bootstrap.pypa.io/get-pip.py
+		python get-pip.py
+30  pip
+		pip 加速器，
+			mkdir ~/.pip
+			cat > ~/.pip/pip.conf << EOF
+				[global]
+				trusted-host=mirrors.aliyun.com
+				index-url=https://mirrors.aliyun.com/pypi/simple/
+				EOF
+			pip install --upgrade pip
+
+
 
 ------------------------------------------rabbit ------------------------------------
 rabbitmq  3.8.14
@@ -292,7 +308,7 @@ systemctl restart nginx
 systemctl enable  nginx
 systemctl stop  nginx
 
-**********************   tomcat     ***********************************
+********************** java   tomcat     ***********************************
 
 二进制安装tomcat 实现systemd管理控制
 安装java环境，我已经将安装包打包到我得服务器上，也可以去官网下载
@@ -383,21 +399,1127 @@ vim      /usr/lib/systemd/system/abc.service
 [Unit]
 Description=uams server
 Wants=network-online.target
-After=network.target
+After=network.target24 	mariadb
+		yum  install  -y  mariadb  mariadb-server  
+		systemctl start mariadb
+		systemctl enable mariadb
+		mysql_secure_installation
+			首先是设置密码，会提示先输入密码
+			Enter current password for root (enter for none):<–初次运行直接回车
+			Set root password? [Y/n] <– 是否设置root用户密码，输入y并回车或直接回车
+			New password: <– 设置root用户的密码
+			Re-enter new password: <– 再输入一次你设置的密码
+			Remove anonymous users? [Y/n] <– 是否删除匿名用户，回车
+			Disallow root login remotely? [Y/n] <–是否禁止root远程登录,回车,
+			Remove test database and access to it? [Y/n] <– 是否删除test数据库，回车
+			Reload privilege tables now? [Y/n] <– 是否重新加载权限表，回车
+			mysql -uroot -ppassword
 
-[Service]
-Type=forking
-WorkingDirectory=/usr/local/abc/
-ExecStart=/bin/bash uams.sh start
-ExecStop=/bin/bash uams.sh stop
-ExecReload=/bin/bash uams.sh restart
-Restart=on-failure
+25	zabbix
+		安装zabbix仓库
+		[root@docker-1 ~]# rpm -i https://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-1.el7.noarch.rpm
+		2、安装zabbix
+		[root@docker-1 ~]# yum install zabbix-server-mysql zabbix-web-mysql zabbix-agent mariadb-server  -y
+		3、创建zabbix数据库
+		[root@docker-1 ~]# systemctl start mariadb.service
+						mysql_secure_installation  安全设置向导
+		[root@docker-1 ~]# mysql -uroot -p
+		　　MariaDB [(none)]> create database zabbix character set utf8 collate utf8_bin;
+		　　MariaDB [(none)]> grant all privileges on zabbix.* to zabbix@localhost identified by ‘11111111‘;
+		　　MariaDB [(none)]> flush privileges;
+		　　MariaDB [(none)]> quit;
+		4、初始化数据库
+		[root@docker-1 ~]# zcat /usr/share/doc/zabbix-server-mysql-4.0.0/create.sql.gz |mysql -uzabbix -p zabbix
+		5、配置zabbix服务器的数据库连接密码
+		[root@docker-1 ~]# vim /etc/zabbix/zabbix_server.conf
+		　　DBPassword=11111111
+		6、更改zabbix服务器时区
+		[root@docker-1 ~]# vim /etc/httpd/conf.d/zabbix.conf
+		　　php_value date.timezone Asia/Shanghai
+		7、启动zabbix相关所有服务
+		systemctl start httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+		systemctl enable httpd.service zabbix-server.service zabbix-agent.service mariadb.service
+		8、web界面安装zabbix
+		http://server_ip_or_name/zabbix  登陆  Admin  密码： zabbix
+		9、中文乱码字体
+		上传微软雅黑字体并替换DejaVuSans.ttf
+			zabbix  安装 中文黑体字
+			yum install wqy-microhei-fonts
+			cp /usr/share/fonts/wqy-microhei/wqy-microhei.ttc  /usr/share/fonts/dejavu/DejaVuSans.ttf
+		10、使用ip地址直接访问 (http DocumentRoot)
+		[root@docker-1 ~]# vim /etc/httpd/conf/httpd.conf
+		　　DocumentRoot "/usr/share/zabbix"
+		　　systemctl restart httpd.service
 
-[Install]
-WantedBy=multi-user.target
+	server
+		rpm -i http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-2.el7.noarch.rpm
+		yum install zabbix-server-mysql zabbix-web-mysql zabbix-agent
+		mysql -uroot -p
+			password
+			mysql> create database zabbix character set utf8 collate utf8_bin;
+			mysql> grant all privileges on zabbix.* to zabbix@localhost identified by 'password';
+			mysql> quit
+		zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -p zabbix
+		vim /etc/zabbix/zabbix_server.conf  设置数据库密码
+		DBPassword=password
+		systemctl restart zabbix-server zabbix-agent httpd
+		systemctl enable zabbix-server zabbix-agent httpd
+		vim /etc/httpd/conf.d/zabbix.conf, uncomment and set the right timezone for you.
+			php_value date.timezone Asia/Shanghai	
+		systemctl restart zabbix-server zabbix-agent httpd
+		http://server_ip_or_name/zabbix 
+			login:  Admin  password: zabbix
+			
+	client：
+		1. rpm -Uvh http://repo.zabbix.com/zabbix/3.2/rhel/7/x86_64/zabbix-release-3.2-1.el7.noarch.rpm
+		2. yum  install  zabbix-agent
+		3.编辑Zabbix Agent 配置文件
+		vim /etc/zabbix/zabbix_agentd.conf
+			Server=[zabbix server ip]
+			ServerActive=[zabbix server ip]
+			Hostname=[ Hostname of client system ]
 
-启动abc服务
-systemctl restart abc  #启动
-systemctl enable abc   #配置自启
-systemctl stop  abc   #停止服务
-systemctl status  abc  #检测状态
+		4.重启Zabbix Agent
+			service zabbix-agent restart
+		5.添加开机启动
+			chkconfig zabbix-agent on
+	设置mail 报警 通过外网邮件发送邮件
+	    yum  install  postfix  
+		yum  install mailx
+		vim  /etc/mail.rc
+			set from=wanglong@tongdelai.cn
+			set smtp=stmp.yiye.163.com
+			set smtp-auth-user=wanglong@tongdelai.cn
+			set smtp-auth-password=sdfasdf
+			set smtp-auth=login
+	zabbix4.09 编译安装
+		wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		yum clean all
+		yum makecache
+
+		yum -y install gcc curl curl-devel net-snmp net-snmp-devel perl-DBI libxml2-devel libevent-devel pcre mysql-devel
+		yum -y install  php php-devel  php-fpm  mariadb-server   mariadb-devel
+		yum -y install php-gd php-mbstring php-bcmath php-mysql php-xml  gd-devel   php-ldap openldap  openldap-devel
+		yum  -y install nginx 
+
+		#useradd zabbix -m -s  /sbin/nologin
+		groupadd --system zabbix
+		useradd --system -g zabbix -d /usr/local/zabbix -s /sbin/nologin -c "Zabbix Monitoring System" zabbix
+
+		mkdir -m u=rwx,g=rwx,o= -p /usr/local/zabbix
+		chown -R  zabbix:zabbix /usr/local/zabibx
+
+		./configure --prefix=/usr/local/zabbix/ --enable-server --with-mysql --enable-ipv6 --with-net-snmp  --with-libcurl --with-libxml2
+		make && make install
+
+		shell> mysql -uroot -p<password>
+		mysql> create database zabbix character set utf8 collate utf8_bin;
+		mysql> create user 'zabbix'@'localhost' identified by '<password>';
+		mysql> grant all privileges on zabbix.* to 'zabbix'@'localhost';
+		mysql> quit;
+
+		shell> cd database/mysql
+		cd /root/zabbix-4.0.19/database/mysql/
+		shell> mysql -uzabbix -p<password> zabbix < schema.sql
+		shell> mysql -uzabbix -p<password> zabbix < images.sql
+		shell> mysql -uzabbix -p<password> zabbix < data.sql
+
+		vi /etc/nginx/nginx.conf
+				location / {
+					root   html;
+					index  index.php index.html index.htm;
+				}
+
+				location ~ \.php$ {
+					root           /usr/share/nginx/html;
+					fastcgi_pass   127.0.0.1:9000;
+					fastcgi_index  index.php;
+					fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+					include        fastcgi_params;
+				}
+				
+		chmod -R zabbix:zabbix /usr/nginx/share/html		
+		chmod 757 /usr/share/nginx/html/assets/
+		nginx -t  #  检查配置文件
+		ningx   启功
+		nginx -s  stop    停止nginx
+		nginx -s  reload   
+		nginx -h               help
+
+		\cp -a /root/zabbix-4.0.19/frontends/php/*  /usr/share/nginx/html/
+
+		sed   -i '/post_max_size/s/8/16/g;/max_execution_time/s/30/300/g;/max_input_time/s/60/300/g;s/\;date.timezone.*/date.timezone \= PRC/g;s/\;always_populate_raw_post_data/always_populate_raw_post_data/g'  /etc/php.ini
+
+		vi /usr/local/zabbix/etc/zabbix_server.conf
+			LogFile=/tmp/zabbix_server.log
+			DBHost=localhost
+			DBName=zabbix
+			DBUser=zabbix
+			DBPassword=123456
+
+		cp  /root/zabbix-4.0.19/misc/init.d/tru64/zabbix_server  /etc/init.d/zabbix_server
+		chmod  o+x  /etc/init.d/zabbix_server
+		ln -s /usr/local/zabbix/sbin/zabbix_*  /usr/local/sbin/
+		/etc/init.d/zabbix_server  restart
+		systemctl start mariadb
+		systemctl start php-fpm
+		nginx 
+
+		Admin  zabbix
+		mkdir <htdocs>/zabbix
+		cd frontends/php
+		cp -a . <htdocs>/zabbix
+
+	agent:
+			yum -y install gcc curl curl-devel net-snmp net-snmp-devel perl-DBI libxml2-devel libevent-devel pcre mysql-devel
+
+			./configure --prefix=/usr/local/zabbix-agent  --enable-agent
+			make && make install
+
+			groupadd --system zabbix
+			useradd --system -g zabbix -d /usr/local/zabbix -s /sbin/nologin -c "Zabbix Monitoring System" zabbix
+			ln -s /usr/local/zabbix-agent/sbin/zabbix_agentd  /usr/local/sbin/zabbix_agentd
+			cp /root/zabbix-4.0.19/misc/init.d/tru64/zabbix_agentd /etc/init.d/zabbix_agentd
+			chmod o+x /etc/init.d/zabbix_agentd 
+			[root@centos84 ~]# grep -vE '^#|^$' /usr/local/zabbix-agent/etc/zabbix_agentd.conf
+				LogFile=/tmp/zabbix_agentd.log
+				Server=192.168.110.87
+				ServerActive=192.168.110.87
+				Hostname=centos84
+
+			/etc/init.d/zabbix_agentd start
+
+		# rpm -Uvh https://repo.zabbix.com/zabbix/4.0/rhel/7/x86_64/zabbix-release-4.0-2.el7.noarch.rpm
+		cd  zabbix-4.0
+		./configure --help    查看参数说明
+
+			yum -y install gcc curl curl-devel net-snmp net-snmp-devel perl-DBI libxml2-devel libevent-devel pcre mysql-devel
+			yum -y install gcc curl curl-devel net-snmp net-snmp-devel perl-DBI libxml2-devel libevent-devel pcre mysql-devel
+
+		./configure --prefix=/usr/local/zabbix-agent / --enable-agent --with-mysql --enable-ipv6 --with-net-snmp  --with-libcurl --with-libxml2
+
+		yum  install  epel-release -y
+		yum  install nginx -y
+
+		安装  php  。php-fpm
+		yum install  php php-devel  php-fpm  mariadb-server   mariadb-delvel
+
+		/etc/nginx/nginx.conf
+			server {
+				listen       80;
+				server_name  localhost;
+				#charset koi8-r;
+				#access_log  logs/host.access.log  main;
+				location / {
+					root   /usr/share/nginx/html;
+					index  index.php index.html index.htm;
+				}
+				#error_page  404              /404.html;
+				# redirect server error pages to the static page /50x.html
+				#
+				error_page   500 502 503 504  /50x.html;
+				location = /50x.html {
+					root   html;
+				location = /50x.html {
+					root   html;
+				}
+				# proxy the PHP scripts to Apache listening on 127.0.0.1:80
+				#
+				#location ~ \.php$ {
+				#    proxy_pass   http://127.0.0.1;
+				#}
+				# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+				#
+				location ~ \.php$ {
+					root           /usr/share/nginx/html;
+					fastcgi_pass   127.0.0.1:9000;
+					fastcgi_index  index.php;
+					fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+					include        fastcgi_params;
+					}
+				}
+	
+			systmctl  restart php-fpm
+			yum install php-gd php-mbstring php-bcmath php-mysql php-xml  gd-devel -y
+			nginx -c /etc/nginx/nginx.conf
+	keepalived + nginx   高可用：
+			1. nignx：
+			/etc/nginx.conf
+			在http 段中加入:
+				upstream  web {
+				server 192.168.110.81;
+				server 192.168.110.82;
+				}
+			在server 段中加入：
+			location / {
+					proxy_pass http://web;
+			}
+			2. keepalived：
+			/etc/keepalived/keepalived.conf
+				master：
+					vrrp_script check_nginx {
+					script "/etc/keepalived/chk_nginx.sh"
+					interval 1
+					weight -20
+					}
+				vrrp_instance VI_1 {
+					state MASTER
+					interface ens33
+					virtual_router_id 51
+					priority 100
+					advert_int 1
+					authentication {
+						auth_type PASS
+						auth_pass 1111
+					}
+					virtual_ipaddress {
+						192.168.110.99
+					}
+					track_script {
+						check_nginx
+					}
+				}
+				BACKUP:
+					vrrp_script check_nginx {
+					script "/etc/keepalived/chk_nginx.sh"
+					interval 1
+					weight -20
+					}
+				vrrp_instance VI_1 {
+					state BACKUP
+					interface ens33
+					virtual_router_id 51
+					priority 90
+					advert_int 1
+					authentication {
+						auth_type PASS
+						auth_pass 1111
+					}
+					virtual_ipaddress {
+						192.168.110.99
+					}
+					track_script {
+						check_nginx
+					}
+				}
+			/etc/keepalived/chk_nginx.sh
+				#!/bin/bash
+				if [ `ps -C nginx --no-header  | wc -l` -eq 0 ];then 
+					killall keepalived
+				fi
+			chmod +x /etc/keepalived/chk_nginx.sh
+
+26. 	JAVA 安装：
+		tar  zxvf  jdkxxx.tar.gz
+		mv  jdkxxx  /usr/local/java
+		ln -s  /usr/local/jdkxxx /usr/local/java
+			
+		profile.d]# vim /etc/profile.d/java.sh
+					JAVA_HOME=/usr/local/java
+					CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar 
+					PATH=$JAVA_HOME/bin:$HOME/bin:$HOME/.local/bin:$PATH
+		source  /etc/profile.d/java.sh
+		java -version  -检查java 运行正常。
+		
+27. 	tomcat  安装
+		tar  zxvf  apach-tomcat.tar.gz
+		mv  apach-tomcat /usr/local
+		ln -s  apach-tomcat tomcat
+		vim /etc/profile.d/tomcat.sh
+			export JAVA_HOME=/usr/local/java
+			export JAVA_BIN=$JAVA_HOME/bin
+			export PATH=$PATH:$JAVA_HOME/bin
+			export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+			export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+        source  /etc/profile.d/tomcat.sh
+		/usr/local/tomcat/bin/startup.sh  -启动tomcat
+	yum 安装  tomcat			
+		yum install  java
+		yum  install tomcat
+			systemctl  start tomcat
+		安装管理包
+			yum install tomcat-webapps tomcat-admin-webapps 
+		安装文档软件包。
+			yum install tomcat-docs-webapp tomcat-javadoc
+
+28. vsftp:
+		yum install wget
+		wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		yum  install rpel-release
+		yum install vsftpd db4-utils
+
+		useradd vsftpd -M -s /sbin/nologin #建立Vsftpd服务的宿主用户
+		useradd ftpvload -M -s /sbin/nologin 	#建立Vsftpd虚拟宿主用户
+		修改vsftpd.conf配置文件
+		主要是下面的一些配置：
+
+			anonymous_enable=NO  #设定不允许匿名访问
+			local_enable=YES  #设定本地用户可以访问。注意：主要是为虚拟宿主用户，如果该项目设定为NO那么所有虚拟用户将无法访问。
+			write_enable=YES  #设定可以进行写操作。
+			local_umask=022  #设定上传后文件的权限掩码。
+			anon_upload_enable=NO  #禁止匿名用户上传。
+			anon_mkdir_write_enable=NO  #禁止匿名用户建立目录。
+			dirmessage_enable=YES  #设定开启目录标语功能。
+			xferlog_enable=YES  #设定开启日志记录功能。
+			connect_from_port_20=YES  #设定端口20进行数据连接。
+			chown_uploads=NO  #设定禁止上传文件更改宿主。
+			xferlog_file=/var/log/vsftpd.log . #设定Vsftpd的服务日志保存路径。注意，该文件默认不存在。必须要手动touch出来，并且由于这里更改了Vsftpd的服务宿主用户为手动建立的Vsftpd。必须注意给与该用户对日志的写入权限，否则服务将启动失败。
+			xferlog_std_format=YES  #设定日志使用标准的记录格式。
+			async_abor_enable=YES  #设定支持异步传输功能。
+			ascii_upload_enable=YES 
+			ascii_download_enable=YES  #设定支持ASCII模式的上传和下载功能。
+			ftpd_banner=This Vsftp server supports virtual users ^_^  #设定Vsftpd的登陆标语。
+			chroot_list_enable=NO  #禁止用户登出自己的FTP主目录。
+			ls_recurse_enable=NO  #禁止用户登陆FTP后使用"ls -R"的命令。该命令会对服务器性能造成巨大开销。如果该项被允许，那么当多用户同时使用该命令时将会对该服务器造成威胁。
+			listen=YES  #设定该Vsftpd服务工作在StandAlone模式下。
+			pam_service_name=vsftpd #设定PAM服务下Vsftpd的验证配置文件名。因此，PAM验证将参考/etc/pam.d/下的vsftpd文件配置。
+			userlist_enable=YES  #设定userlist_file中的用户将不得使用FTP。
+			tcp_wrappers=YES  #设定支持TCP Wrappers
+			#以下这些是关于Vsftpd虚拟用户支持的重要配置项目。默认Vsftpd.conf中不包含这些设定项目，需要自己手动添加配置
+			guest_enable=YES  #设定启用虚拟用户功能。
+			guest_username=ftpvload  #指定虚拟用户的宿主用户。
+			virtual_use_local_privs=YES  #设定虚拟用户的权限符合他们的宿主用户。
+			user_config_dir=/etc/vsftpd/vconf #设定虚拟用户个人Vsftp的配置文件存放路径。也就是说，这个被指定的目录里，
+										将存放每个Vsftp虚拟用户个性的配置文件，一个需要注意的地方就是这些配置文件名必须和虚拟用户名相同。
+			reverse_lookup_enable=NO #禁止反向域名解析，若是没有添加这个参数可能会出现用户登陆较慢，或则客户链接不上ftp的现象
+			allow_writeable_chroot=YES
+			use_localtime=YES 
+			chroot_local_user=YES 
+			pasv_enable=YES
+		pasv_max_port=1500 开启随机最大的端口号
+		pasv_min_port=1000 开启最小端口号
+ 
+
+			mkdir /etc/vsftpd/vconf/ -pv  #制作虚拟用户数据库文件
+			touch /etc/vsftpd/virtusers #新建一个测试用虚拟用户
+			vim /etc/vsftpd/virtusers #编辑这个虚拟用户名单文件，在其中加入用户的用户名和口令信息。格式很简单：“奇数行用户名，偶数行口令”。
+				virtusers文件格式如下：
+			test #用户名
+			test1234 #用户密码
+			db_load -T -t hash -f /etc/vsftpd/virtusers /etc/vsftpd/virtusers.db 生成虚拟用户数据文件：
+			cp /etc/pam.d/vsftpd /etc/pam.d/vsftpd.backup 编辑Vsftpd的PAM验证配置文件，把原来的配置文件全部注释掉（不注释掉虚拟用户会登录不上），添加如下行
+			#vim /etc/pam.d/vsftpd
+			auth sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+			account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/vusers
+			vi /etc/vsftpd/vconf/user1
+			local_root=/opt/vsftp/file
+			#指定虚拟用户仓库的具路径
+			anonymous_enable=NO
+			#设定不允许匿名访问
+			write_enable=YES
+			#允许写的操作
+			local_umask=022
+			#上传文件的权限掩码
+			anon_upload_enable=NO
+			#不允许匿名上传
+			anon_mkdir_write_enable=NO
+			#不允许匿名用户建立目录
+			idle_session_timeout=300
+			#设定空闲链接超时时间
+			data_connection_timeout=1000
+			#设定单次传输最大时间
+			max_clients=0
+			#设定并发客户端的访问数量
+			max_per_ip=0
+			#设定客户端的最大线程数
+			local_max_rate=0
+			#设定用户的最大传输速率，单位b/s
+		
+	查看selinux 设置上传
+		getsebool -a | grep ftpd
+		setsebool allow_ftpd_full_access on  #  selinux 
+
+		-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT（允许21端口通过防火墙）
+		-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT（允许20端口通过防火墙）
+		-A INPUT -m state --state NEW -m tcp -p tcp --dport 000:9045 -j ACCEPT（设置ftp被动模式的端口范围)
+
+		iptables -F
+		iptables -A INPUT -i lo -j ACCEPT
+		iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+		iptables -A INPUT -s 192.168.1.54 -p tcp --dport 22 -m state --state NEW -m connlimit ! --connlimit-above 3 -j ACCEPT  # ssh
+
+		iptables -P INPUT DROP
+		iptables -P OUTPUT DROP
+		iptables -A INPUT -d 192.168.0.176 -p tcp --dport 21 -m state --state NEW -j ACCEPT
+		iptables -A INPUT -m state --state RELATED -j ACCEPT
+		iptables -A OUTPUT -m state --state RELATED -j ACCEPT
+		-A INPUT -m state --state NEW -m tcp -p tcp --dport 20:21 -j ACCEPT
+		iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 30000:30999 -j ACCEPT
+
+		iptables -nvL
+29. ELK
+ELK +　　kafka
+           filebeat -> kafka ->logstash-> elasticsearch  -> kabana
+   -------------------------------filebeat ------------------
+		rpm -ivh filebeat
+		vi /etc/filebeat/filebeat.yml
+		filebeat.inputs:
+		- type: log
+		enabled: true
+		paths:
+			- /var/log/httpd/access_log
+		output.kafka:
+			enable: true
+			hosts: ["192.168.110.87:9092"]
+			topic:  "test"
+			
+		systemctl start  filebeat 
+		/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml
+
+
+    ---------------------------------filebeat------------------
+		filebeat.prospectors:
+		- type: log
+		enabled: true
+		paths:
+			- /usr/local/nginx/logs/access_json.log
+		json.message_key: log
+		json.keys_under_root: true
+		json.overwrite_keys: true
+		exclude_lines: ['^DBG',"^$"]
+		document_type: access-log
+		filebeat.config.modules:
+		path: ${path.config}/modules.d/*.yml
+		reload.enabled: false
+		setup.template.settings:
+		index.number_of_shards: 3
+		setup.kibana:
+		output.kafka:
+		hosts: ["192.168.6.71:9092","192.168.6.72:9092","192.168.6.73:9092"]
+		topic: elk-nginx
+		required_acks: 1
+
+    ---------------------------------------logstash-------------------
+			filebeat ->logstash -> kafka->logstash->elasticsearch->kibana
+			input {
+				beat {
+					port => 5044
+					codec => json     # 直接将filebeat保存在message中的json字串解析出来
+				}
+			}
+			filter {
+				mutate {
+					remove_field => ["tags", "beat"]    
+					#删除filebeat自动添加的字段
+					## 测试发现：如果换成drop {  remove_field =>
+					## 无输出
+				}
+			}
+			output {
+				stdout {
+					codec => rubydebug
+				}
+			}
+--------------
+		input {
+			beats {
+				port => 5044
+				}
+		}
+
+		output {
+			kafka {
+				bootstrap_servers => "192.168.11.12:9092,192.168.11.13:9092"
+				topic_id => "ecplogs"
+				}
+		}
+
+		/usr/local/logstash/bin/logstash -f logstash.conf --configtest --verbose
+		tar zxvf  logstash
+		vi /etc/logstash/logstash.conf
+		input {
+				kafka{
+						bootstrap_servers => "192.168.110.87:9092"
+						topics => ["test"]
+		}
+		}
+
+		filter {
+			grok {
+			match => { "message" => "%{COMBINEDAPACHELOG}" }
+			}
+		}
+
+		output {
+		elasticsearch {
+		hosts => ["http://192.168.110.87:9200"]
+		index => "logstash-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+		}
+		# stdout {
+		#  codec => rubydebug { }
+		}
+		}
+
+		/usr/share/logstash/bin/logstash -f /etc/logstash/logstash.conf
+
+     ---------------kafka --------------------------------------
+		tar   zxvf  kafka
+		vi kafka/config/zookeeper.properties
+		dataDir=/usr/share/zookeeper/data
+		server.1 = 192.168.1.2:2888:3888
+		server.2= 192.168.1.3:2888:3888
+		echo 1 > /usr/share/zookeeeper/data/myid
+		/usr/share/kafka/bin/zookeeper-server-start.sh /usr/share/kafka/config/zookeeper.properties
+
+		nohup bin/zookeeper-server-start.sh config/zookeeper-2.properties >>/dev/null 2>&1 &
+
+		vi kafka/config/server.properties
+		broker.id=0
+		log.dirs=/usr/share/kafka/data
+		zookeeper.connect=192.168.1.2:2181,192.168.1.3:2181,192.168.1.3:2181
+		/usr/share/kafka/bin/kafka-server-start.sh /usr/share/kafka/config/server.properties
+	测试：
+		(1)建立一个主题
+			[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic summer
+			#注意：factor大小不能超过broker数
+		(2)查看有哪些主题已经创建
+			[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --list --zookeeper 192.168.2.22:2181   #列出集群中所有的topic
+			bin/kafka-topics.sh --list --zookeeper localhost:2181
+			summer    #已经创建成功
+		(3)查看summer这个主题的详情
+			[ root @ kafka1 ~ ] # /usr/local/kafka/bin/kafka-topics.sh --describe --zookeeper 192.168.2.22:2181 --topic summer
+			Topic : summer PartitionCount : 1 ReplicationFactor : 3 Configs :
+			Topic : summer Partition : 0 Leader : 2 Replicas : 2 , 4 , 3 Isr : 2 , 4 , 3
+			#主题名称：summer
+			#Partition:只有一个，从0开始
+			#leader ：id为2的broker
+			#Replicas 副本存在于broker id为2,3,4的上面
+			#Isr:活跃状态的broker
+		(4)发送消息，这里使用的是生产者角色
+			bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+			[ root @ kafka1 ~ ] # /bin/bash /usr/local/kafka/bin/kafka-console-producer.sh --broker-list 192.168.2.22:9092 --topic summer
+			This is a messages
+			welcome to kafka     
+		(5)接收消息，这里使用的是消费者角色
+			in/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+			[ root @ kafka2 ~ ] # /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server   192.168.2.24:2181 --topic summer --from-beginning
+			This is a messages
+			welcome to kafka
+ 			如果能够像上面一样能够接收到生产者发过来的消息，那说明基于kafka的zookeeper集群就成功啦。
+
+	(1)修改webserver1上面的logstash配置，如下所示：各个参数可以到 官网 查询.
+			root @ webserver1 etc ] # cat logstash.conf
+			input {              #这里的输入还是定义的是从日志文件输入
+			file {
+			type = > "system-message"
+			path = > "/var/log/messages"
+			start_position = > "beginning"
+			}
+			}
+			output {
+			#stdout { codec => rubydebug }   #这是标准输出到终端，可以用于调试看有没有输出，注意输出的方向可以有多个
+			kafka {    #输出到kafka
+			bootstrap_servers = > "192.168.2.22:9092,192.168.2.23:9092,192.168.2.24:9092"   #他们就是生产者
+			topic_id = > "system-messages"    #这个将作为主题的名称，将会自动创建
+			compression_type = > "snappy"    #压缩类型
+			}
+			}
+			[ root @ webserver1 etc ] #
+	------------------------------elasticsearch --------------------
+		vi /etc/elasticsearch/elasticsearch.yml
+			network.host: 0.0.0.0
+
+		systemctl start elasticsearch
+
+	--------------------------------kabana---------------------------
+		vi /etc/kabana/kibana.yml
+			server.host: "0.0.0.0"
+			systemctl start kibana
+		
+		systemctl start elasticsearch
+
+	---------------------docker-------elk------------------------------
+		docker run -d  -p 9200:9200  -v ~/elasticsearch/data:/usr/share/elasticsearch/data  --name elasticsearch elasticsearch
+		docker run -d -p 4560:4560  -v ~/logstash.conf:/etc/logstash.conf  --link elasticsearch:elasticsearch  --name logstash logstash  logstash -f 
+		/etc/logstash.conf
+		docker run -d -p 5601:5601 --link elasticsearch:elasticsearch -e ELASTICSEARCH_URL=http://elasticsearch:9200 --name kibana kibana
+
+30. ------redis--------------------------------------
+	centos7 yum install redis
+		直接yum 安装的redis 不是最新版本
+			yum install -y epel-release
+			yum install redis
+			如果要安装最新的redis，需要安装Remi的软件源，官网地址：http://rpms.famillecollet.com/
+			yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+
+			然后可以使用下面的命令安装最新版本的redis：
+			yum --enablerepo=remi install redis
+			安装完毕后，即可使用下面的命令启动redis服务
+			service redis start
+			或者
+			systemctl start redis
+
+			**   redis  设置密码
+			vi /etc/redis.conf
+			requirepass password123   -- 设置密码
+			bind 127.0.0.1     -- 监听IP
+			port  6379         -- 监听端口
+			redis-cli  -h  127.0.0.1  -p  6379  -a  password123          ------ a  密码登陆
+
+
+31. -----------pure-ftp -------------------------------------------
+		pure-ftp
+		yum install wget
+		wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		yum  install rpel-release 
+		yum install pure-ftpd -y
+		vi /etc/pure-ftpd/pure-ftpd.conf
+			PureDB /etc/pure-ftpd/pureftpd.pdb   #  去掉注释
+		useradd pure-ftp -s /sbin/nologin -M
+		mkdir  -p  /data/ftp
+		chown -R  pure-ftp:pure-ftp /data/ftp
+		pure-pw useradd test1 -d /data/ftp/ -u pure-ftp  -m
+		pure-pw useradd maket1 -u maket1  -d /comany/market/market1  -m （–m（把用户密码加入PDB数据库中，不需要重启FTP）
+		pure-pw  userdel  
+		pure-pw mkdb
+		systemctl restart pure-ftpd
+
+32. ---------------lvs ---------------------
+	lvs
+		echo 1 > /proc/sys/net/ipv4/ip_forward
+		# 关闭icmp的重定向
+		echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+		echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
+		# 注意区分网卡名字，阿铭的两个网卡分别为ens33和ens37
+		echo 0 > /proc/sys/net/ipv4/conf/ens33/send_redirects
+		echo 0 > /proc/sys/net/ipv4/conf/ens37/send_redirects
+		# director 设置nat防火墙
+		iptables -t nat -F
+		iptables -t nat -X
+
+	lvs-NAT 模式:
+		RS——SERVER :网关指向 调度器， 调度器双网卡。
+		#! /bin/bash
+		# director 服务器上开启路由转发功能
+		echo 1 > /proc/sys/net/ipv4/ip_forward
+		# 关闭icmp的重定向
+		echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+		echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
+		# 注意区分网卡名字，阿铭的两个网卡分别为ens33和ens37
+		echo 0 > /proc/sys/net/ipv4/conf/ens33/send_redirects
+		echo 0 > /proc/sys/net/ipv4/conf/ens37/send_redirects
+		# director 设置nat防火墙
+		iptables -t nat -F
+		iptables -t nat -X
+		iptables -t nat -A POSTROUTING -s 192.168.188.0/24  -j MASQUERADE
+		# director设置ipvsadm
+		IPVSADM='/usr/sbin/ipvsadm'
+		$IPVSADM -C
+		$IPVSADM -A -t 192.168.147.144:80 -s wlc -p 300
+		$IPVSADM -a -t 192.168.147.144:80 -r 192.168.188.129:80 -m -w 1
+		$IPVSADM -a -t 192.168.147.144:80 -r 192.168.188.127:80 -m -w 1
+
+    lvs-DR模式
+		1. 在dr 服务器上设置网卡第二地址
+			ip address add 192.168.110.111/32 dev ens33:2
+			ip  route add 192.168.110.111/32 dev ens33:2
+		2. 设置ipvsadm
+			ipvsadm -C
+			ipvsadm -A -t 192.168.110.111:80 -s wrr
+			ipvsadm -a -t 192.168.110.111:80 -r 192.168.110.85:80  -g -w 1
+			ipvsadm -a -t 192.168.110.111:80 -r 192.168.110.86:80  -g -w 1
+		3.  在rs 设置
+			ip address add 192.168.110.111/32 dev lo:0
+			ip  route add 192.168.110.111/32 dev lo:0
+		4. 设置 arp 忽略
+			echo "1" >/proc/sys/net/ipv4/conf/all/arp_ignore
+			echo "2" >/proc/sys/net/ipv4/conf/all/arp_announce
+		arp_ignore:
+			定义对目标地址为本地IP的ARP询问不同的应答模式0
+			0 - (默认值): 回应任何网络接口上对任何本地IP地址的arp查询请求
+			1 - 只回答目标IP地址是来访网络接口本地地址的ARP查询请求
+			2 -只回答目标IP地址是来访网络接口本地地址的ARP查询请求,且来访IP必须在该网络接口的子网段内
+			3 - 不回应该网络界面的arp请求，而只对设置的唯一和连接地址做出回应
+			4-7 - 保留未使用
+			8 -不回应所有（本地地址）的arp查询 
+			确定了向外发送ARP请求的发出地址 也即使VIP 地址
+		arp_announce - INTEGER
+			对网络接口上，本地IP地址的发出的，ARP回应，作出相应级别的限制:  
+			确定不同程度的限制,宣布对来自本地源IP地址发出Arp请求的接口
+			0 - (默认) 在任意网络接口（eth0,eth1，lo）上的任何本地地址
+			1 -尽量避免不在该网络接口子网段的本地地址做出arp回应. 当发起ARP请求的源IP地址是被设置应该经由路由达到此网络接口的时候很有用.此时会检查来访IP是否为所有接口上的子网段内ip之一.如果改来访IP不属于各个网络接口上的子网段内,那么将采用级别2的方式来进行处理.
+			2 - 对查询目标使用最适当的本地地址.在此模式下将忽略这个IP数据包的源地址并尝试选择与能与该地址通信的本地地址.首要是选择所有的网络接口的子网中外出访问子网中包含该目标IP地址的本地地址. 如果没有合适的地址被发现,将选择当前的发送网络接口或其他的有可能接受到该ARP回应的网络接口来进行发送. 
+			限制了使用本地的vip地址作为优先的网络接口
+
+		keepalive——lvs：  dr
+			1.调度器安装 KEEPALIVED, IPVSADM
+			2. real——server 执行 按 nginx，
+			ip address add 192.168.110.111/32 dev lo:0
+			ip  route add 192.168.110.111/32 dev lo:0
+			echo "1" >/proc/sys/net/ipv4/conf/all/arp_ignore
+			echo "2" >/proc/sys/net/ipv4/conf/all/arp_announce
+	3. DR  的keepalived.cnf
+			vrrp_instance VI_1 {
+				#备用服务器上为 BACKUP
+				state MASTER
+				#绑定vip的网卡为ens33，你的网卡和阿铭的可能不一样，这里需要你改一下
+				interface ens33
+				virtual_router_id 51
+				#备用服务器上为90
+				priority 100
+				advert_int 1
+				authentication {
+					auth_type PASS
+					auth_pass aminglinux
+				}
+				virtual_ipaddress {
+					192.168.188.110
+				}
+			}
+			virtual_server 192.168.188.110 80 {
+				#(每隔10秒查询realserver状态)
+				delay_loop 10
+				#(lvs 算法)
+				lb_algo wlc
+				#(DR模式)
+				lb_kind DR
+				#(同一IP的连接60秒内被分配到同一台realserver)
+				persistence_timeout 60
+				#(用TCP协议检查realserver状态)
+				protocol TCP
+
+				real_server 192.168.188.129 80 {
+					#(权重)
+					weight 100
+					TCP_CHECK {
+					#(10秒无响应超时)
+					connect_timeout 10
+					nb_get_retry 3
+					delay_before_retry 3
+					connect_port 80
+					}
+				}
+				real_server 192.168.188.127 80 {
+					weight 100
+					TCP_CHECK {
+					connect_timeout 10
+					nb_get_retry 3
+					delay_before_retry 3
+					connect_port 80
+					}
+				 }
+			}
+
+	4.  backup 的keepalive  修改 keepalived.cnf 中：state BACKUP ,priority 100 
+
+33.keepalived  1.3.5 --------------------------------------------
+		yum  install  -y  epel-release
+		yum install -y nginx keepalived
+			vi /usr/sbin/check_nginx.sh
+				#时间变量，用于记录日志
+				d=`date --date today +%Y%m%d_%H:%M:%S`
+				#计算nginx进程数量
+				n=`ps -C nginx --no-heading|wc -l`
+				#如果进程为0，则启动nginx，并且再次检测nginx进程数量，
+				#如果还为0，说明nginx无法启动，此时需要关闭keepalived
+				if [ $n -eq "0" ]; then
+						systemctl start nginx
+						n2=`ps -C nginx --no-heading|wc -l`
+						if [ $n2 -eq "0"  ]; then
+								echo "$d nginx down,keepalived will stop" >> /var/log/check_ng.log
+								systemctl stop keepalived
+						fi
+				fi
+	[root@centos85 sbin]# vi /etc/keepalived/keepalived.conf
+			global_defs {
+			notification_email {
+				aming@aminglinux.com
+			}
+			notification_email_from root@aminglinux.com
+			smtp_server 127.0.0.1
+			smtp_connect_timeout 30
+			router_id LVS_DEVEL
+			}
+			vrrp_script chk_nginx {
+				script "/usr/sbin/check_nginx.sh"
+				interval 3
+			}
+			vrrp_instance VI_1 {
+				state BACKUP
+				interface ens33
+				virtual_router_id 51
+				priority 90
+				advert_int 1
+				authentication {
+					auth_type PASS
+					auth_pass 1111
+				}
+				virtual_ipaddress {
+					192.168.110.100
+				}
+				track_script {
+					chk_nginx
+				}
+			}
+
+24. mysql
+		#创建mysql用户组
+		#把用户mysql添加到mysql用户组， -r系统用户  -s /bin/nologin 用户不可登录 -M  不产生家目录
+		# useradd -r -s /bin/nologin  -M  mysql
+		# cd mysql
+		# mkdir -p /data/mysql
+		# chown  -R  mysql:mysql  /data/mysql
+		#改变文件的所有权 -R表示改变一个目录和其下文件（或者子目录）的所有权设置 
+		[root@localhost mysql]# chown -R mysql ./  #mysql下的所有目录和文件交给mysql用户
+		[root@localhost mysql]# chgrp -R mysql ./  #mysql下的所有目录和文件交给mysql组
+
+		wget http://repo.mysql.com/mysql57-community-release-el7-9.noarch.rpm
+		rpm -vih mysql57-community-release-el7-9.noarch.rpm
+		yum install mysql-community-server
+
+		systemctl stop mysqld
+		ln -s  /data/mysql/mysql.sock /var/lib/mysql/mysql.sock  #解决本地连接报 	ERROR 2002 错误
+			或更改 /etc/my.cnf  , 添加如下内容：
+			skip_grant_tables
+			validate_password_policy=0
+			validate_password_length=1
+			[client]
+			socket=/data/mysql/msyql.sock
+
+		systemctl start mysqld
+		change master to master_host='192.168.110.84',master_user='repl',master_password='pass',master_log_file='master-bin.000004',master_log_pos=159;
+
+  		grep 'temporary password' /var/log/mysqld.log 
+		cat /root/.mysql_secret # 查询密码
+	更改密码： 
+		mysqladmin -u root -p password  更改密码
+			mysql -u root -p   
+			mysql> 
+				set global validate_password_policy=0;  #再修改密码的长度
+				set global validate_password_length=1; #再次执行修改密码就可以了
+				ALTER USER 'root'@'localhost' IDENTIFIED BY 'pass'; #（ALTER等可以写成小写）
+				GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'pass' WITH GRANT OPTION;
+				FLUSH  PRIVILEGES;
+
+				set password for root@localhost = password(‘pass');
+
+		 		show tables或show tables from database_name或show database_name.tables;
+					解释：显示当前数据库中所有表的名称
+				show databases; 解释：显示mysql中所有数据库的名称
+				show processlist; 解释：显示系统中正在运行的所有进程，也就是当前正在执行的查询。大多数用户可以查看
+					他们自己的进程，但是如果他们拥有process权限，就可以查看所有人的进程，包括密码。
+				show table status; 解释：显示当前使用或者指定的database中的每个表的信息。信息包括表类型和表的最新更新时间
+				show columns from table_name from database_name; 或show columns from database_name.table_name;或show fields;
+					解释：显示表中列名称（和 desc table_name 命令的效果是一样的）
+				show grants for user_name@localhost; 解释：显示一个用户的权限，显示结果类似于grant 命令
+				show index from table_name;或show keys; 解释：显示表的索引
+				show status; 解释：显示一些系统特定资源的信息，例如，正在运行的线程数量
+				show variables; 解释：显示系统变量的名称和值
+				show privileges; 解释：显示服务器所支持的不同权限
+				show create database database_name; 解释：显示创建指定数据库的SQL语句
+				show create table table_name; 解释：显示创建指定数据表的SQL语句
+				show engies; 解释：显示安装以后可用的存储引擎和默认引擎。
+				show innodb status; 解释：显示innoDB存储引擎的状态
+				show logs; 解释：显示BDB存储引擎的日志
+				show warnings; 解释：显示最后一个执行的语句所产生的错误、警告和通知
+				show errors; 解释：只显示最后一个执行语句所产生的错误
+
+				上面的大部分命令都可以用like，比如 show table like ‘%abce%’  
+						show status 结果说明
+						列 	含义
+						Name 	表名
+						Type 	表的类型 (ISAM，MyISAM或HEAP)
+						Row_format 	行存储格式 (固定, 动态, 或压缩）
+						Rows 	行数量
+						Avg_row_length 	平均行长度
+						Data_length 	数据文件的长度
+						Max_data_length 	数据文件的最大长度
+						Index_length 	索引文件的长度
+						Data_free 	已分配但未使用了字节数
+						Auto_increment 	下一个 autoincrement(自动加1）值
+						Create_time 	表被创造的时间
+						Update_time 	数据文件最后更新的时间
+						Check_time 	最后对表运行一个检查的时间
+						Create_options 	与CREATE TABLE一起使用的额外选项
+						Comment 	当创造表时，使用的注释 (或为什么MySQL不能存取表信息的一些信息)。
+
+				show index 结果说明：
+						列 	含义
+						Table 	表名
+						Non_unique 	0，如果索引不能包含重复。
+						Key_name 	索引名
+						Seq_in_index 	索引中的列顺序号, 从 1 开始。
+						Column_name 	列名。
+						Collation 	列怎样在索引中被排序。在MySQL中，这可以有值A（升序) 或NULL（不排序)。
+						Cardinality 	索引中唯一值的数量。这可通过运行isamchk -a更改.
+						Sub_part 	如果列只是部分被索引，索引字符的数量。NULL，如果整个键被索引。
+
+				show variables 结果说明：
+						Aborted_clients 	由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。
+						Aborted_connects 	尝试已经失败的MySQL服务器的连接的次数。
+						Connections 	试图连接MySQL服务器的次数。
+						Created_tmp_tables 	当执行语句时，已经被创造了的隐含临时表的数量。
+						Delayed_insert_threads 	正在使用的延迟插入处理器线程的数量。
+						Delayed_writes 	用INSERT DELAYED写入的行数。
+						Delayed_errors 	用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。
+						Flush_commands 	执行FLUSH命令的次数。
+						Handler_delete 	请求从一张表中删除行的次数。
+						Handler_read_first 	请求读入表中第一行的次数。
+						Handler_read_key 	请求数字基于键读行。
+						Handler_read_next 	请求读入基于一个键的一行的次数。
+						Handler_read_rnd 	请求读入基于一个固定位置的一行的次数。
+						Handler_update 	请求更新表中一行的次数。
+						Handler_write 	请求向表中插入一行的次数。
+						Key_blocks_used 	用于关键字缓存的块的数量。
+						Key_read_requests 	请求从缓存读入一个键值的次数。
+						Key_reads 	从磁盘物理读入一个键值的次数。
+						Key_write_requests 	请求将一个关键字块写入缓存次数。
+						Key_writes 	将一个键值块物理写入磁盘的次数。
+						Max_used_connections 	同时使用的连接的最大数目。
+						Not_flushed_key_blocks 	在键缓存中已经改变但是还没被清空到磁盘上的键块。
+						Not_flushed_delayed_rows 	在INSERT DELAY队列中等待写入的行的数量。
+						Open_tables 	打开表的数量。
+						Open_files 	打开文件的数量。
+						Open_streams 	打开流的数量(主要用于日志记载）
+						Opened_tables 	已经打开的表的数量。
+						Questions 	发往服务器的查询的数量。
+						Slow_queries 	要花超过long_query_time时间的查询数量。
+						Threads_connected 	当前打开的连接的数量。
+						Threads_running 	不在睡眠的线程数量。
+						Uptime 	服务器工作了多少秒。
+							关于上面的一些注释：
+							如果Opened_tables太大，那么你的table_cache变量可能太小。
+							如果key_reads太大，那么你的key_cache可能太小。缓存命中率可以用key_reads/key_read_requests计算。
+							如果Handler_read_rnd太大，那么你很可能有大量的查询需要MySQL扫描整个表或你有没正确使用键值的联结(join)。
+
+	--------------------------------mysql----------主从复制------------------------------------------------------------
+			mysql  主从复制：
+			master 配置：
+			vi  my.cnf
+				[mysqld]
+				log-bin=mysql-bin
+				server-id=1
+				innodb-file-per-table =ON
+				replicate-do-db=db,db2
+				replicate-ignore-db=db3
+
+			systemctl  start mysqld
+			mysql > grant replication slave on *.* to 'rep'@‘%’ identified by 'pass';  -建复制账户
+					flush privileges;
+					flush table with read lock;
+			备份主数据库sqldump
+					show master status ;
+					unlock tables;
+			slave 配置：
+				vi my.cnf
+						[mysqld]
+						server-id=2
+						relay-log=mysql-relay
+						relay-log-index=relay-log.index
+						innodb-file-per-table =ON
+						replicate-do-db=db,db2
+						replicate-ignore-db=db3
+						read_only=1
+			mysql -u root -p -e "show global  variables like '%log%'"
+				1：限制从服务器为只读
+				在从服务器上设置：
+				read_only = ON,但是此限制对拥有SUPER权限 的用户均无效。
+				阻止所有用户：
+				mysq>FLUSH TABLES WITH READ LOCK;
+					stop slave;
+					change master to master_host='192.168.110.85',master_user='repl',master_password='pass',master_log_file='master.000002',master_log_pos=159;
+					start slave;
+					show slave status;
+					start slave ;
+					start slave IO_THREAD;
+
+	-----------------------------mariadb ------------------------
+	mariadb：
+		yum install mariadb-server -y
+		mkdir -p /data/mysql
+		chown -R  mysql:mysql /data/mysql
+		mysql_install_db  --datadir=/data/mysql
+		systemctl enable mariadb
+		systemctl start mariadb
+		mysqladmin -u root password pass  # 设置msyql  root 密码
+		mysql -u root -p   #登陆mysql
+		/usr/share/mysql/*.cnf  #标准配置文件  多个
+		cp /usr/share/mysql/my-small.cnf  /etc/my.cnf
+		vi /etc/my.cnf    # mysql 配置文件
+			/etc/my.cnf.d/*    # server 配置文件
+			datadir=
+			stock=
+	2、配置MariaDB的字符集
+		vi /etc/my.cnf 添加
+			[mysqld]
+			init_connect='SET collation_connection = utf8_general_ci' 
+			init_connect='SET NAMES utf8' 
+			character-set-server=utf8 
+			collation-server=utf8_general_ci 
+			skip-character-set-client-handshake
+
+		vi /etc/my.cnf.d/client.cnf 在[client]中添加
+			default-character-set=utf8
+			vi /etc/my.cnf.d/mysql-clients.cnf
+			在[mysql]中添加
+			default-character-set=utf8
+			全部配置完成，
+		重启mariadb
+		systemctl restart mariadb 
+		MariaDB查看字符集
+			mysql> show variables like "%character%";show variables like "%collation%";
+			显示为
+
+			+--------------------------+----------------------------+
+			| Variable_name            | Value                      |
+			+--------------------------+----------------------------+
+			| character_set_client    | utf8                      |
+			| character_set_connection | utf8                      |
+			| character_set_database  | utf8                      |
+			| character_set_filesystem | binary                    |
+			| character_set_results    | utf8                      |
+			| character_set_server    | utf8                      |
+			| character_set_system    | utf8                      |
+			| character_sets_dir      | /usr/share/mysql/charsets/ |
+			+--------------------------+----------------------------+
+			8 rows in set (0.00 sec)
+
+			+----------------------+-----------------+
+			| Variable_name        | Value          |
+			+----------------------+-----------------+
+			| collation_connection | utf8_unicode_ci |
+			| collation_database  | utf8_unicode_ci |
+			| collation_server    | utf8_unicode_ci |
+			+----------------------+-----------------+
+			3 rows in set (0.00 sec)
+
+		字符集配置完成。
+	3、添加用户，设置权限
+		创建用户命令
+			mysql>create user username@localhost identified by 'password'; 直接创建用户并授权的命令
+			mysql>grant all on *.* to username@localhost indentified by 'password'; 授予外网登陆权限 
+			mysql>grant all privileges on *.* to username@'%' identified by 'password'; 授予权限并且可以授权
+			mysql>grant all privileges on *.* to username@'hostname' identified by 'password' with grant option;
+
+		开启和停用Binlog
+		通过配置/etc/my.cnf配置文件的log-bin选项：
+			[mysqld]
+			log-bin=mysql-bin
+			binlog_format='ROW'          #放在mysqld模块下面
+			or
+			log_bin=ON
+			log_bin_basename=/var/lib/mysql/mysql-bin
+			log_bin_index=/var/lib/mysql/mysql-bin.index
+
+	4、	mysqlbinlog：
+		show variables like ‘%log_bin%’  
+		mysql> SHOW BINARY LOGS;
+			set global binlog_format='ROW';　　
+			show master status 可以查看binlog的状态
+			reset master 清空binlog日志文件
+			flush logs; - .通过flush logs 可以手动刷新日志，生成一个新的binlog文件
+
+	在使用二进制日志文件进行数据库恢复时，该过程中也会产生日志文件，就会进入一个循环状态，继续恢复该过程中的数据。因此，当使用mysqlbinlog命令时，要禁用二进制日志，请使用下面所示的-D选项： 
+		mysqlbinlog -D mysqld-bin.000001  禁止恢复过程产生日志
+		mysqlbinlog --disable-log-bin mysqld-bin.000001  禁止恢复过程产生日志
+		mysqlbinlog -database crm mysqld-bin.000001 > crm-events.txt
+		mysqlbinlog -s mysqld-bin.000001   仅显示sql语句  --short-form
+		mysqlbinlog mysqld-bin.000001 > output.out
+		mysqlbinlog -j 15028 mysqld-bin.000001 > from-15028.out  从位置编号为15028的二进制日志条目处开始读取
+		mysqlbinlog --start-datetime="2017-08-16 10:00:00" mysqld-bin.000001
+			当你想要从一个二进制文件中提取数据时，这是非常有用的，因为你希望使用它来恢复或重构在某个时间段内发生的某些数据库活动。时间戳的格式可以是MySQL服务器所理解的DATETIME和timestamp中的任何类型。
+		mysqlbinlog --stop-datetime="2017-08-16 15:00:00" mysqld-bin.000001 命令将读取到给定结束时间的条目
+		mysqlbinlog --stop-position=15028 mysqld-bin.000001 > upto-15028.out 就像前面的例子一样，你也可以从mysql二进制日志中截止到一个特定位置的条目
+		#mysqlbinlog --base64-output="decode-rows" -v mysql-bin.000001  Row模式下解析binlog日志

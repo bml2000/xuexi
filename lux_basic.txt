@@ -7,6 +7,8 @@
     设置用户启动环境
         /etc/profile.d/xxx.sh
             export PATH=$PATH:/opt/au1200_rm/build_tools/bin 设置环境变量
+    noset    环境变量取消设置
+
 
 1. 网络ip设置
     /etc/sysconfig/network-scripts/ifcfg-eth0
@@ -27,6 +29,12 @@
             -sT  ip   TCP 扫描
             -sP  ip   ping扫描
             -sS  ip   TCP SYN 扫描
+
+    禁用 IPV6 , CentOS7中禁用IPV6
+        vi /etc/sysctl.conf
+        net.ipv6.conf.all.disable_ipv6 = 1
+        net.ipv6.conf.default.disable_ipv6 = 1
+        sysctl -p       
     
 2、修改网关
 　　vi /etc/sysconfig/network
@@ -114,24 +122,46 @@
         traceroute
         ping
         nmap
+            是一款非常实用的扫描工具，适用于linux、windows、mac三大主流平台。 
+            $wget http://nmap.org/dist/nmap-7.01.tar.bz2
+            $tar -xvf nmap-7.01.tar.bz2 
+            nmap -v #检测是否安装成功：
+            nmap 192.168.1.2  #扫描特定主机：
+            nmap 192.168.1.1/24  #扫描整个子网
+            nmap 192.168.1.2 192.168.1.5  #扫描多个目标
+            nmap 192.168.1.1-100 (扫描IP地址为192.168.1.1-192.168.1.100内的所有主机) 
+                    # 扫描一个范围内主机
+            nmap -sn -PE -c 2 --send-ip 192.168.1.1 #向目标发送两个ping数据包
         netstat
             -a (all)显示所有选项，默认不显示LISTEN相关
             -t (tcp)仅显示tcp相关选项
             -u (udp)仅显示udp相关选项
             -n 拒绝显示别名，能显示数字的全部转化成数字。
             -l 仅列出有在 Listen (监听) 的服務状态
-            -p 显示建立相关链接的程序名
+            -p 显示建立相关链接的程序名 显示出socket所属的进程PID 以及进程名字
             -r 显示路由信息，路由表
             -e 显示扩展信息，例如uid等
             -s 按各个协议进行统计
             -c 每隔一个固定时间，执行该netstat命令。
                    提示：LISTEN和LISTENING的状态只有用-a或者-l才能看到
             # 查看Linux端口号
-        
+            --inet 显示ipv4相关协议的监听
+            查看IPV4端口上的tcp的监听
+            netstat -lntp --inet
             netstat -anp | grep 80          # 查看服务对应端口
             netstat -nlp
             netstat -alnpt  
 
+    centos7   mac 地址冲突解决
+    vmware  克隆后 网卡可能不好用        
+    执行  systemctl  stop NetworkManager
+          systemctl  start NetworkManager
+	查看网卡设备
+        mwcli  show con
+    新增加网卡
+        nmcli  con show - 查看网卡设备名称
+        nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
+    
 6.1 服务
     systemctl
         systemctl is-enabled firewalld.service 设置开机启动
@@ -141,6 +171,7 @@
         systemctl enable firewalld.service 在开机时启用一个服务：
         systemctl disable firewalld.service 在开机时禁用一个服务：
     chkconfig
+    将 abc.servic 复制到：/etc/init.d 目录中
         chkconfig --list        #列出所有的系统服务
         chkconfig --add httpd        #增加httpd服务
         chkconfig --del httpd        #删除httpd服务
@@ -149,6 +180,36 @@
         chkconfig --list mysqld        #列出mysqld服务设置情况
         chkconfig --level 35 mysqld on        #设定mysqld在等级3和5为开机运行服务，--level 35表示操作只在等级3和5执行，on表示启动，off表示关闭
         chkconfig mysqld on        #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级
+    
+    service 配置文件
+        [Service]
+        Type=forking
+        WorkingDirectory=/usr/local/abc/
+        ExecStart=/bin/bash uams.sh start
+        ExecStop=/bin/bash uams.sh stop
+        ExecReload=/bin/bash uams.sh restart
+        Restart=on-failure
+
+        [Install]
+        WantedBy=multi-user.target
+    例子：
+        启动abc服务
+        systemctl restart abc  #启动
+        systemctl enable abc   #配置自启
+        systemctl stop  abc   #停止服务
+        systemctl status  abc  #检测状态
+
+    后台运行nohup
+        如果你正在运行一个进程，而且你觉得在退出帐户时该进程还不会结束，那么可以使用nohup命令。
+        该命令可以在你退出帐户之后继续运行相应的进程。nohup就是不挂起的意思( no hang up)。 
+        该命令的一般形式为：
+    nohup conmmand &
+        如果使用nohup命令提交作业，那么在缺省情况下该作业的所有输出都被重定向到一个名为nohup.out的文件中，除非另外指定了输出文件：
+        nohup command > myout.file 2>&1 
+        在上面的例子中，输出被重定向到myout.file文件中。
+        1>/data/kafka/log/kafka.out 2>&1 &表示后台启动，将标准输出和错误输出到kafka.out文件
+        command >out.file 2>&1 &
+        在上面的例子中，2>&1表示所有的标准输出和错误输出都将被重定向到一个叫做out.file 的文件中。
         
 6.2 防火墙
     启动防火墙
@@ -163,7 +224,41 @@
     设置实例
         iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
         service iptables save
-      
+
+    iptables 配置文件位置： /etc/sysconfig/iptables-config
+        保存： iptables-save
+        恢复： iptables-restore
+        4个表  -t： filter、nat、mangle、raw 
+        5个链： RREROUTING 、INPUT、FORWARD、OUTPUT、POSTROUTING
+        动作 -j ：  ACCEPT  DROP  REJECT MASQUERADE
+        iptables -I INPUT -p icmp  --icmp-type 8 -j DROP   # 可以ping出， 不许ping 入
+        iptables -nvL
+        iptables -F  clean
+        iptables -P    设置某条规则链的默认动作
+        iptables  -P INPUT ACCEPT
+        iptables  -P  FORWARD  DROP
+        iptables -X  删除用户定义链
+    用 yum install iptables-services 安装或更新服务
+    再使用systemctl enable iptables 启动iptables
+    最后 systemctl start iptables 打开iptables
+    iptables:
+        iptables -A INPUT -i lo -j ACCEPT
+        iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+        iptables -A INPUT -p tcp --dport 20:21 -j ACCEPT
+        iptables -A INPUT -p tcp --dport 30000:30999 -j ACCEPT
+        iptables -A INPUT -p icmp --icmp-type 8  -j ACCEPT
+        iptables -A INPUT -m state --state NEW -m tcp -p tcp -s 192.168.1.54  --dport 22 -j ACCEPT
+        iptables -A OUTPUT   -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT  
+        iptables -A OUTPUT   -p tcp --sport 22  -j ACCEPT 
+        iptables -A OUTPUT   -p tcp --sport 20  -j ACCEPT 
+        iptables -A OUTPUT  -p icmp  -j ACCEPT
+        iptables -A OUTPUT  -d 192.168.1.54 -p tcp --sport 22 -m state --state RELATED,ESTABLISHED -j ACCEPT  
+        iptables -P INPUT DROP  
+        iptables -P FORWARD DROP  
+        iptables -P OUTPUT DROP  
+        [root@centos0176 wl]# iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 10050 -j ACCEPT
+        [root@centos0176 wl]# iptables-save
+              
 7. selinux：
     配置文件： /etc/sysconfig/seLinux
         enforcoing:启用
@@ -337,6 +432,17 @@
                 name=cdrom
                 baseurl=file:///media/
                 gpgcheck=0
+        4、yum 安装包保留
+                1、修改yum配置文件/etc/yum.conf
+                # vi /etc/yum.conf
+                [main]
+                cachedir=/var/cache/yum/$basearch/$releasever   
+                <----安装包存放路径
+                keepcache=1 
+                <-----改为1，1代表保留安装包
+                debuglevel=2
+        5、yum  仅下载， 不安装
+                 yum install unixODBC --downloadonly --downloaddir=/usr/local/src    
 11  系统监控
         ps
             -e 显示所有进程,环境变量
@@ -392,7 +498,24 @@
                          望将当前任务转移到后台，可以先 Ctrl+z 暂停任务，再使用 bg 命令。任务转移到后台可以空出终端，继续输入其他命令。
         
         df -h  显示当前文件夹及文件大小
-        
+
+        xargs  :   将管道符之前的命令执行的结果，作为arges 之后的输入参数
+            ls *.txt | xargs -n1 -i{} mv {} {}_bak  -- 批量改名
+                    #类似for循环 -n1 代表逐一对象进行处理 -i{} 代表前面的对象
+        find  + exec  组合使用
+                -exec 必须由一个 ; 结束，而因为通常 shell 都会对 ; 进行处理，所以用 \; 防止这种情况。 
+                {} 可能需要写做 '{}'，也是为了避免被 shell 过滤
+            find ./ -type f -exec grep iceskysl {} /dev/null \; 
+        screen  : 在一个终端打开多个会话：
+            screen  -ls
+            screen -r  [screen_no]
+            切换：  ctrl+A+D  
+            退出：　ctrl+D 或 exit
+        nohup - 后台运行
+        jobs -l 显示任务
+        fg -调入前台
+        bg -调入后天
+            ctrl+Z  暂停运行
 
         ntpdate ntp服务器域名或ip 设置时间同步
         date
@@ -815,7 +938,26 @@
                 PasswordAuthentication yes --运行口令认证
                  
     3.ssh-copy-id -i ~/.ssh/server_rsa.pub user@server   -- 自动把密钥追加到远程主机的 .ssh/authorized_key 上
-    
+    4. 免密码登陆
+        1、 生成密钥对儿
+            #ssh-keygen -t rsa
+            运行结束以后，在 $HOME/.ssh/ 目录下，会新生成两个文件：id_rsa.pub
+            和 id_rsa。前者是你的公钥，后者是你的私钥。再一次强调用户自己的目录（~/.ssh）必须不能有其他人可写的权限， .ssh
+            目录的权限必须是 700, chmod 700 ~/.ssh 必须。否则ssh服务器会拒绝登录。
+
+
+        2、 复制密钥至远程主机， 注意是公钥。
+            将密钥保存至服务端用户目录的.ssh/authorized_keys文件中。
+
+            ssh-copy-id [-i pubkey_file] Username@HOST
+            -i 指定公钥所在路径，默认是.ssh/id_rsa.pub文件。
+
+    5.ssh 只允许密钥登陆， 不允许root登陆
+            vi　/etc/ssh/sshd_config
+            PermitRootLogin no
+            PubkeyAuthentication yes
+            PasswordAuthentication no
+        
 23  systemctl
 
         systemctl list-unit-files |grep  enabled -查看enable的服务
@@ -827,3 +969,304 @@
         systemct  start /stop  /status       xxx  -- 启动停止查看 服务
         
         systemctl  daemon-reload
+
+24   设备
+    1. 系统增加硬盘--------设备识别------------------
+        新增硬盘， 不重启服务器， 识别设备操作如下：
+        cd /sys/class/scsi_host
+        ll
+        host0  host1  host2
+        echo "- - -" >  host0/scan
+        echo "- - -" >  host1/scan
+        echo "- - -" >  host2/scan
+        即可在 /dev/中查到新硬件
+25  LVM 磁盘管理
+    partprobe /dev/sda  -重读分区表
+
+    df -TH  查看硬盘空间
+        xfs 文件系统 扩容命令： xfs_growfs  
+        resize2fs  /dev/centos/root  -文件系统扩容
+
+        parted   -查看文件分区 可看文件系统格式
+        lsblk  -f  查看文件系统格式
+        ll  /dev/sd*
+    
+    扩容：
+        1. pvcreate /dev/sdb  新建物理卷
+            vgextend vgname   /dev/sdb  扩展组
+            lvextend -L +3000m /dev/centos/root  扩展逻辑卷
+            resize2fs  /dev/centos/root    ext 文件系统扩容
+            xfs_growfs  /dev/centos/root   xfs 文件系统扩容
+               扩容逻辑卷，扩容前需要先unmount后，扩容不影响扩容前磁盘里面的内容
+            lvresize -L 300M /dev/vg1/lv1 #重新设定大小
+            e2fsck -f /dev/vg1/lv1 #检查磁盘错误 （针对ext4执行）
+            resize2fs /dev/vg1/lv1 #更新逻辑卷信息（针对ext4执行）
+           xfs扩容，xfs可以不卸载unmount
+            kfs.xfs -f /dev/vg1/lv1 #重新格式化成xfs
+            mount  /dev/vg1/lv1 /mnt
+            lvs #查看大小
+            lvresize -L 400M /dev/vg1/lv1 #重新设定大小
+            xfs_growfs  /dev/vg1/lv1 #xfs文件系统需要执行，需要先挂载
+            df -h #扩容成功
+        2. 命令
+            pvdisplay
+            pvcreate
+            pvs
+            pvscan
+            lvcreate
+            lvdisplay
+            lvs
+            lvscan
+	1、 物理卷命令
+		一般维护命令：
+		pvscan #在系统的所有磁盘中搜索已存在的物理卷
+		pvdisplay 物理卷全路径名称 #用于显示指定物理卷的属性。
+		pvdata 物理卷全路径名称 #用于显示物理卷的卷组描述区域信息，用于调试目的。
+		pvchange Cx|--allocation {y|n} 物理卷全路径名 #用于改变物理卷的分配许可设置物理卷的创建与删除命令
+		pvcreate 设备全路径名 #用于在磁盘或磁盘分区上创建物理卷初始化信息，以便对该物理卷进行逻辑卷管理。
+		pvmove 源物理卷全路径我[目的物理卷全路径名] #用于把某物理卷中的数据转移到同卷组中其他的特刊卷中。
+
+	2、 卷组命令
+		一般维护命令
+		vgscan #检测系统中所有磁盘
+		vgck [卷组名] #用于检查卷组中卷组描述区域信息的一致性。
+		vgdisplay [卷组名] #显示卷组的属性信息
+		vgrename 原卷组名 新卷组名
+		vgchange -a y|n [卷组名] #改变卷组的相应属性。是否可分配
+		vgchange -l 最大逻辑卷数 #卷组可容纳最大逻辑卷数
+		vgchange -x y|n [卷组名] #卷是否有效
+		vgmknodes [卷组名|卷组路径] #用于建立（重新建立）已有卷组目录和其中的设备文件卷组配置的备份与恢复命令
+		vgcfgbackup [卷组名] #把卷组中的VGDA信息备份到“/etc/lvmconf”目录中的文件
+		vgcfgrestore -n 卷组名 物理卷全路命名 #从备份文件中必得指定物理卷的信息卷组的建立与删除命令
+		vgcreate 卷组名 物理卷全路径名[物理卷全路径名]
+		vgmove 卷组名
+
+		卷组的扩充与缩小命令
+		vgextend 卷组名 物理卷全路径名[物理卷全路径名]
+		vgreduce 卷组名 物理卷全路径名[物理卷全路径名]
+
+		卷组的合并与拆分
+		vgmerge 目的卷组名 源卷组名 #合并两个已经存在的卷组，要求两个卷组的物理区域大小相等且源卷组是非活动的。
+		vgsplit 现有卷组 新卷组 物理卷全路径名[物理卷全路径名]
+
+		卷组的输入与输出命令
+		vgexport 卷组名
+		vgimport 卷组名 卷组中的物理卷[卷组中的物理卷]
+
+	3、 逻辑卷命令
+		一般命令
+		lvscan
+		lvdisplay 逻辑卷全路径名[逻辑卷全路径名]
+		lvrename 旧逻辑卷全路径名 新逻辑卷全路径名
+		lvrename 卷组名 旧逻辑卷名 新逻辑卷名
+		lvchange
+		e2fsadm -L +|- 逻辑卷增减量 逻辑卷全路径名
+
+		逻辑卷的创建与删除命令
+		lvcreate
+		lvremove
+
+		逻辑卷的扩充与缩小命令
+		lvextend -L|--size +逻辑卷大小增量 逻辑卷全路径名
+		lvreduce q -L|--size +逻辑卷减小量 逻辑卷全路径名
+
+	4、 逻辑卷管理命令
+		lvmdiskscan #检测所有的SCSI、IDE等存储设备
+		lvmchange -R|--reset #复位逻辑卷管理器
+		lvmsadc [日志文件全路径名] #收信逻辑卷管理器读写统计信息，保存到日志文件中。
+        lvmsar 日志文件全路径名 #从lvmsadc命令生成的日志文件中读取并报告逻辑卷管理器的读写统计信息。
+
+26.  quota  -文件配额工具---------------------------------------------------------------
+        quota命令用于显示用户或者工作组的磁盘配额信息。输出信息包括磁盘使用和配额限制。
+            语法
+            quota(选项)(参数)
+            选项
+            -g：列出群组的磁盘空间限制；
+            -q：简明列表，只列出超过限制的部分；
+            -u：列出用户的磁盘空间限制；
+            -v：显示该用户或群组，在所有挂入系统的存储设备的空间限制；
+            -V：显示版本信息。  
+            
+27. ulimit
+        linux中limit参数设定一般可以通过ulimit命令或编辑/etc/security/limits.conf重新加载的方式使之生效， 通过ulimit比较直接,但只在当前的session有效,limits.conf中可以根据用户和限制项使用户在下次登录中生效.
+        ulimit命令
+        设置当前shell以及由它启动的进程的资源限制。
+        ulimit -a 显示当前的各种用户进程限制。
+
+        [root@localhost security]#ulimit -a
+
+            core file size          (blocks, -c) 0
+            data seg size           (kbytes, -d) unlimited
+            scheduling priority             (-e) 0
+            file size               (blocks, -f) unlimited
+            pending signals                 (-i) 30518
+            max locked memory       (kbytes, -l) 64
+            max memory size         (kbytes, -m) unlimited
+            open files                      (-n) 1024
+            pipe size            (512 bytes, -p) 8
+            POSIX message queues     (bytes, -q) 819200
+            real-time priority              (-r) 0
+            stack size              (kbytes, -s) 10240
+            cpu time               (seconds, -t) unlimited
+            max user processes              (-u) 1024
+            virtual memory          (kbytes, -v) unlimited
+            file locks                      (-x) unlimited
+
+        其他命令参数：
+        -a 　显示目前资源限制的设定。   
+            -c <core文件上限> 　设定core文件的最大值，单位为区块。     
+            -d <数据节区大小> 　程序数据节区的最大值，单位为KB。    
+            -f <文件大小> 　shell所能建立的最大文件，单位为KB。    
+            -H 　设定资源的硬性限制，也就是管理员所设下的限制。     
+            -m <内存大小> 　指定可使用内存的上限，单位为KB。     
+            -n <文件数目> 　指定同一时间最多可打开的文件数。    
+            -p <缓冲区大小> 　指定管道缓冲区的大小，单位512字节。    
+            -s <堆栈大小> 　指定堆叠的上限，单位为KB。      
+            -S 　设定资源的弹性限制。      
+            -t <CPU时间> 　指定CPU使用时间的上限，单位为秒。    
+            -u <进程数目> 　用户最多可启动的进程数目。   
+
+            -v <虚拟内存大小> 　指定可使用的虚拟内存上限，单位为KB。
+
+            limits.conf 文件实际是 Linux PAM（插入式认证模块，Pluggable Authentication Modules）中 pam_limits.so 的配置文件，而且只针对于单个会话。
+            　　limits.conf的格式如下：
+            username|@groupname type resource limit
+            username|@groupname：设置需要被限制的用户名，组名前面加@和用户名区别。也可以用通配符*来做所有用户的限制。
+            　　type：有 soft，hard 和 -，soft 指的是当前系统生效的设置值。hard 表明系统中所能设定的最大值。soft 的限制不能比har 限制高。用 - 就表明同时设置了 soft 和 hard 的值。
+            　　resource：
+            　　core - 限制内核文件的大小
+            　　date - 最大数据大小
+            　　fsize - 最大文件大小
+            　　memlock - 最大锁定内存地址空间
+            　　nofile - 打开文件的最大数目
+            　　rss - 最大持久设置大小
+            　　stack - 最大栈大小
+            　　cpu - 以分钟为单位的最多 CPU 时间
+            　　noproc - 进程的最大数目
+            　　as - 地址空间限制
+            　　maxlogins - 此用户允许登录的最大数目
+            　　要使 limits.conf 文件配置生效，必须要确保 pam_limits.so 文件被加入到启动文件中。查看 /etc/pam.d/login 文件中有：
+            　　session required /lib/security/pam_limits.so
+            
+            例如：修改文件描述符大小(65536)
+            vi  /etc/security/limits.conf
+            
+            *                               soft    nofile  65536
+            *                               hard    nofile  65536
+
+28.tcpdum
+        tcpdump命令是一款sniffer工具，它可以打印所有经过网络接口的数据包的头信息，也可以使用-w选项将数据包保存到文件中，方便以后分析。
+    语法
+    tcpdump(选项)
+    选项
+        -a：尝试将网络和广播地址转换成名称；
+        -c<数据包数目>：收到指定的数据包数目后，就停止进行倾倒操作；
+        -d：把编译过的数据包编码转换成可阅读的格式，并倾倒到标准输出；
+        -dd：把编译过的数据包编码转换成C语言的格式，并倾倒到标准输出；
+        -ddd：把编译过的数据包编码转换成十进制数字的格式，并倾倒到标准输出；
+        -e：在每列倾倒资料上显示连接层级的文件头；
+        -f：用数字显示网际网络地址；
+        -F<表达文件>：指定内含表达方式的文件；
+        -i<网络界面>：使用指定的网络截面送出数据包；
+        -l：使用标准输出列的缓冲区；
+        -n：不把主机的网络地址转换成名字；
+        -N：不列出域名；
+        -O：不将数据包编码最佳化；
+        -p：不让网络界面进入混杂模式；
+        -q ：快速输出，仅列出少数的传输协议信息；
+        -r<数据包文件>：从指定的文件读取数据包数据；
+        -s<数据包大小>：设置每个数据包的大小；
+        -S：用绝对而非相对数值列出TCP关联数；
+        -t：在每列倾倒资料上不显示时间戳记；
+        -tt： 在每列倾倒资料上显示未经格式化的时间戳记；
+        -T<数据包类型>：强制将表达方式所指定的数据包转译成设置的数据包类型；
+        -v：详细显示指令执行过程；
+        -vv：更详细显示指令执行过程；
+        -x：用十六进制字码列出数据包资料；
+        -w<数据包文件>：把数据包数据写入指定的文件。
+29. rsync   文件同步复制
+	rsync [OPTION]... SRC DEST
+	rsync [OPTION]... SRC [USER@]host:DEST
+	rsync [OPTION]... [USER@]HOST:SRC DEST
+	rsync [OPTION]... [USER@]HOST::SRC DEST
+	rsync [OPTION]... SRC [USER@]HOST::DEST
+	rsync [OPTION]... rsync://[USER@]HOST[:PORT]/SRC [DEST]
+		-v, --verbose 详细模式输出。
+		-q, --quiet 精简输出模式。
+		-c, --checksum 打开校验开关，强制对文件传输进行校验。
+		-a, --archive 归档模式，表示以递归方式传输文件，并保持所有文件属性，等于-rlptgoD。
+		-r, --recursive 对子目录以递归模式处理。
+		-R, --relative 使用相对路径信息。
+		-b, --backup 创建备份，也就是对于目的已经存在有同样的文件名时，将老的文件重新命名为~filename。可以使用--suffix选项来指定不同的备份文件前缀。
+		--backup-dir 将备份文件(如~filename)存放在在目录下。
+		-suffix=SUFFIX 定义备份文件前缀。
+		-u, --update 仅仅进行更新，也就是跳过所有已经存在于DST，并且文件时间晚于要备份的文件，不覆盖更新的文件。
+		-l, --links 保留软链结。
+		-L, --copy-links 想对待常规文件一样处理软链结。
+		--copy-unsafe-links 仅仅拷贝指向SRC路径目录树以外的链结。
+		--safe-links 忽略指向SRC路径目录树以外的链结。
+		-H, --hard-links 保留硬链结。
+		-p, --perms 保持文件权限。
+		-o, --owner 保持文件属主信息。
+		-g, --group 保持文件属组信息。
+		-D, --devices 保持设备文件信息。
+		-t, --times 保持文件时间信息。
+		-S, --sparse 对稀疏文件进行特殊处理以节省DST的空间。
+		-n, --dry-run现实哪些文件将被传输。
+		-w, --whole-file 拷贝文件，不进行增量检测。
+		-x, --one-file-system 不要跨越文件系统边界。
+		-B, --block-size=SIZE 检验算法使用的块尺寸，默认是700字节。
+		-e, --rsh=command 指定使用rsh、ssh方式进行数据同步。
+		--rsync-path=PATH 指定远程服务器上的rsync命令所在路径信息。
+		-C, --cvs-exclude 使用和CVS一样的方法自动忽略文件，用来排除那些不希望传输的文件。
+		--existing 仅仅更新那些已经存在于DST的文件，而不备份那些新创建的文件。
+		--delete 删除那些DST中SRC没有的文件。
+		--delete-excluded 同样删除接收端那些被该选项指定排除的文件。
+		--delete-after 传输结束以后再删除。
+		--ignore-errors 及时出现IO错误也进行删除。
+		--max-delete=NUM 最多删除NUM个文件。
+		--partial 保留那些因故没有完全传输的文件，以是加快随后的再次传输。
+		--force 强制删除目录，即使不为空。
+		--numeric-ids 不将数字的用户和组id匹配为用户名和组名。
+		--timeout=time ip超时时间，单位为秒。
+		-I, --ignore-times 不跳过那些有同样的时间和长度的文件。
+		--size-only 当决定是否要备份文件时，仅仅察看文件大小而不考虑文件时间。
+		--modify-window=NUM 决定文件是否时间相同时使用的时间戳窗口，默认为0。
+		-T --temp-dir=DIR 在DIR中创建临时文件。
+		--compare-dest=DIR 同样比较DIR中的文件来决定是否需要备份。
+		-P 等同于 --partial。
+		--progress 显示备份过程。
+		-z, --compress 对备份的文件在传输时进行压缩处理。
+		--exclude=PATTERN 指定排除不需要传输的文件模式。
+		--include=PATTERN 指定不排除而需要传输的文件模式。
+		--exclude-from=FILE 排除FILE中指定模式的文件。
+		--include-from=FILE 不排除FILE指定模式匹配的文件。
+		--version 打印版本信息。
+		--address 绑定到特定的地址。
+		--config=FILE 指定其他的配置文件，不使用默认的rsyncd.conf文件。
+		--port=PORT 指定其他的rsync服务端口。
+		--blocking-io 对远程shell使用阻塞IO。
+		-stats 给出某些文件的传输状态。
+		--progress 在传输时现实传输过程。
+		--log-format=formAT 指定日志文件格式。
+		--password-file=FILE 从FILE中得到密码。
+		--bwlimit=KBPS 限制I/O带宽，KBytes per second。
+		-h, --help 显示帮助信息。
+
+30.中文字体、 时区设置-- 时间同步
+        1 查看是否安装中文字体:
+           locale -a |grep "zh_CN" -查看安装的中文字体
+        2	yum  installgroup "fonts"
+        3.  locale
+        4.  localectl set-locale LANG=zh_CN.utf8    -设置区域
+            vim  /etc/profile
+              export  LANG=zh_CN.UTF-8
+            source /etc/profile
+        5.  timedatectl set-timezone "Asia/Shanghai" -设置时区
+            echo "00 */1 * * * root /usr/sbin/ntpdate 1.cn.pool.ntp.org;hwclock -w" >> /etc/    crontab     -#设置时间同步计划任务
+        6. 计划任务
+            systemctl status crond  -检查状态
+            crontab -e
+            /var/spool/cron/username     #文件
+            crontab -l  #显示任务
+            crontab -r  #删除任务

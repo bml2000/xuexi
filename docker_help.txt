@@ -1,4 +1,7 @@
 30 docker  相关命令
+容器时间同步加参数
+-v /etc/localtime:/etc/localtime:ro
+
 	1. 关闭selinux
 		sudo setenforce 0
 		sudo sed -i 's/enforcing/permissive/g' /etc/selinux/config 
@@ -1390,13 +1393,6 @@ docker rmi $(docker images | grep dns  | awk '{print $3}')
 
 
 
-
-
-
-
-
-
-
    
 31.gitlab
 		docker pull gitlab/gitlab-ce  
@@ -1449,3 +1445,141 @@ docker rmi $(docker images | grep dns  | awk '{print $3}')
     docker network create -d overlay  --subnet  10.25.0.0/24  overnet
     docker service create  --network overnet  nginx
 
+
+34. docker yum 源设置------------------------------------------
+
+      #docker yum源
+      cat >> /etc/yum.repos.d/docker.repo <<EOF
+      [docker-repo]
+      name=Docker Repository
+      baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+      enabled=1
+      gpgcheck=0
+      EOF
+
+      cat >> /etc/yum.repos.d/docker-engine.repo <<'EOF'
+      [dockerrepo]
+      name=Docker Repository
+      baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://yum.dockerproject.org/gpg
+      EOF
+
+35.docker--------influxdb+cadvisor+grafana--------------------------------------
+      docker  监控：
+      1.镜像准备
+        docker.io/tutum/influxdb
+        docker.io/google/cadvisor
+        docker.io/grafana/grafana
+      2. docker  run  -d -p 8086:8086 -v ~/influxdb:/var/lib/influxdb --name influxdb  tutum/influxdb
+          docker exec -ti influxdb  influx  --进行influxdb 数据库
+            create database 'test'
+            create user "root" with password 'password' with all privileges
+            quit
+          docker  run -d -v /:/rootfs  -v /var/run:/var/run -v /sys:/sys \
+            -v /var/lib/docker:/var/lib/docker  \
+            --volume /cgroup:/cgroup:ro \
+            --privileged=true  \
+            --link=influxdb:influxdb --name cadvisor google/cadvisor \
+            --storage_driver=influxdb  \
+            --storage_driver_host=influxdb:8086 \
+            --storage_driver_db=test \
+            --storage_driver_user=root \
+            --storage_driver_password=password
+      3. docker run -d -p 5000:3000 -v ~/grafana:/var/lib/grafana \
+          --link=influxdb:influxdb \
+          --name grafana  grafana/grafana
+      4. 打开localhost:5000来访问grafana的web服务
+          login: admin  admin
+
+36.docker------------zabbix  -------------------------------------
+      docker pull busybox
+      docker pull  monitoringartist/zabbix-xxl
+      docker pull monitoringartist/zabbix-db-mariadb
+      # create /var/lib/mysql as persistent volume storage
+      docker run -d -v /var/lib/mysql --name zabbix-db-storage busybox:latest
+
+      # start DB for Zabbix - default 1GB innodb_buffer_pool_size is used
+      docker run \
+            -d \
+            --name zabbix-db \
+            -v /backups:/backups \
+            -v /etc/localtime:/etc/localtime:ro \
+            --volumes-from zabbix-db-storage \
+            --env="MARIADB_USER=zabbix" \
+            --env="MARIADB_PASS=my_password" \
+            monitoringartist/zabbix-db-mariadb
+      # start Zabbix linked to started DB
+            docker run \
+            -d \
+            --name zabbix \
+            -p 80:80 \
+            -p 10051:10051 \
+            -v /etc/localtime:/etc/localtime:ro \
+            --link zabbix-db:zabbix.db \
+            --env="ZS_DBHost=zabbix.db" \
+            --env="ZS_DBUser=zabbix" \
+            --env="ZS_DBPassword=my_password" \
+            monitoringartist/zabbix-xxl
+        默认账号：Admin，密码：zabbix，这是一个超级管理员
+      # Backup of DB Zabbix - configuration data only, no item history/trends
+          docker exec \
+          -ti zabbix-db \
+          /zabbix-backup/zabbix-mariadb-dump -u zabbix -p my_password -o /backups
+      # Full backup of Zabbix DB
+          docker exec \
+          -ti zabbix-db \
+          bash -c "\
+          mysqldump -u zabbix -pmy_password zabbix | \
+          bzip2 -cq9 > /backups/zabbix_db_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.bz2"
+      # Restore Zabbix DB
+      # remove zabbix server container
+          docker rm -f zabbix
+      # restore data from dump (all current data will be dropped!!!)
+          docker exec -i zabbix-db sh -c 'bunzip2 -dc /backups/zabbix_db_dump_2016-05-25-02.57.46.sql.bz2 | mysql -uzabbix -p --password=my_password zabbix'
+      # run zabbix server again
+      --
+ 37. docker ---------------- grafana -----------------
+      # create /var/lib/grafana as persistent volume storage
+          docker run -d -v /var/lib/grafana --name grafana-xxl-storage busybox:latest
+      # start grafana-xxl
+          docker run \
+              -d \
+              -p 3000:3000 \
+              --name grafana-xxl \
+              -e UPGRADEALL=false \
+              --volumes-from grafana-xxl-storage \
+              monitoringartist/grafana-xxl:latest
+      docker run -d --name=grafana-xxl -p 3000:3000 -e UPGRADEALL=false monitoringartist/grafana-xxl
+      http://xxx.xxx.xxx.xxx:3000
+      默认账号 admin，密码：admin，这是一个超级管理员
+
+38.docker----------------prometheus- -------------------
+      prometheus：
+        tar xvfz prometheus-*.tar.gz
+        cd prometheus-*
+        prometheus.yml:
+            global:
+              scrape_interval:     15s # By default, scrape targets every 15 seconds.
+              # Attach these labels to any time series or alerts when communicating with
+              # external systems (federation, remote storage, Alertmanager).
+              external_labels:
+              monitor: 'codelab-monitor'
+            # A scrape configuration containing exactly one endpoint to scrape:
+            # Here it's Prometheus itself.
+            scrape_configs:
+              # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+              - job_name: 'prometheus'
+              # Override the global default and scrape targets from this job every 5 seconds.
+              scrape_interval: 5s
+              static_configs:
+                - targets: ['localhost:9090']
+        # Start Prometheus.
+        # By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+          ./prometheus --config.file=prometheus.yml
+          docker run -p 9090:9090 -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml \
+                  prom/prometheus
+        Or use an additional volume for the config:
+        docker run -p 9090:9090 -v /prometheus-data \
+              prom/prometheus --config.file=/prometheus-data/prometheus.yml
