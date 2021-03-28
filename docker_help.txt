@@ -1,4 +1,4 @@
-30 docker  相关命令
+docker  相关命令
 容器时间同步加参数
 -v /etc/localtime:/etc/localtime:ro
 
@@ -159,50 +159,52 @@
 				pipework
 				ip address show
 
-	docker pull jenkins    
-chmod 777 -R  /root/jenkins
-docker run -p 8080:8080 -p 50000:50000 -v /root/jenkins:/var/jenkins_home jenkins
+
+jenkins
+    docker pull jenkins    
+    chmod 777 -R  /root/jenkins
+    docker run -p 8080:8080 -p 50000:50000 -v /root/jenkins:/var/jenkins_home jenkins
 
 gitLab   
     
-docker pull gitlab/gitlab-ce  
-wget https://raw.githubusercontent.com/sameersbn/docker-gitlab/master/docker-compose.yml
-docker-compose up
+      docker pull gitlab/gitlab-ce  
+      wget https://raw.githubusercontent.com/sameersbn/docker-gitlab/master/docker-compose.yml
+      docker-compose up
 
-Start GitLab using:
+      Start GitLab using:
 
-docker-compose up
-Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
+      docker-compose up
+      Alternatively, you can manually launch the gitlab container and the supporting postgresql and redis containers by following this three step guide.
 
-Step 1. Launch a postgresql container
+      Step 1. Launch a postgresql container
 
-docker run --name gitlab-postgresql -d \
---env 'DB_NAME=gitlabhq_production' \
---env 'DB_USER=gitlab' --env 'DB_PASS=password' \
---env 'DB_EXTENSION=pg_trgm' \
---volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
-sameersbn/postgresql:9.6-2
-Step 2. Launch a redis container
+      docker run --name gitlab-postgresql -d \
+      --env 'DB_NAME=gitlabhq_production' \
+      --env 'DB_USER=gitlab' --env 'DB_PASS=password' \
+      --env 'DB_EXTENSION=pg_trgm' \
+      --volume /srv/docker/gitlab/postgresql:/var/lib/postgresql \
+      sameersbn/postgresql:9.6-2
+      Step 2. Launch a redis container
 
-docker run --name gitlab-redis -d \
---volume /srv/docker/gitlab/redis:/var/lib/redis \
-sameersbn/redis:latest
-Step 3. Launch the gitlab container
+      docker run --name gitlab-redis -d \
+      --volume /srv/docker/gitlab/redis:/var/lib/redis \
+      sameersbn/redis:latest
+      Step 3. Launch the gitlab container
 
-docker run --name gitlab -d \
---link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
---publish 10022:22 --publish 10080:80 \
---env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
---env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
---env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
---env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
---volume /srv/docker/gitlab/gitlab:/home/git/data \
-sameersbn/gitlab:10.5.6
-Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
+      docker run --name gitlab -d \
+      --link gitlab-postgresql:postgresql --link gitlab-redis:redisio \
+      --publish 10022:22 --publish 10080:80 \
+      --env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+      --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+      --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+      --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+      --volume /srv/docker/gitlab/gitlab:/home/git/data \
+      sameersbn/gitlab:10.5.6
+      Please refer to Available Configuration Parameters to understand GITLAB_PORT and other configuration options
 
-NOTE: Please allow a couple of minutes for the GitLab application to start.
+      NOTE: Please allow a couple of minutes for the GitLab application to start.
 
-Point your browser to http://localhost:10080 and set a password for the root user account
+      Point your browser to http://localhost:10080 and set a password for the root user account
 
 
 
@@ -246,11 +248,11 @@ docker 监控：
 				
 	
 		
-24 	ETCD
+ETCD
     etcd -static
-                https://discovery.etcd.io/new?3 --3个客户的
-                http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335       
-                etcd --name infra0 \
+          https://discovery.etcd.io/new?3 --3个客户的
+          http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335       
+            etcd --name infra0 \
                 --initial-advertise-peer-urls http://192.168.1.30:2380 \
                 --listen-peer-urls http://192.168.1.30:2380 \
                 --listen-client-urls http://192.168.1.30:2379,http://127.0.0.1:2379 \
@@ -260,9 +262,7 @@ docker 监控：
                 --initial-cluster-state new \
                 --data-dir /root/etcddir &
 
-
-
-                etcd --name infra1 \
+              etcd --name infra1 \
                 --initial-advertise-peer-urls http://192.168.1.31:2380 \
                 --listen-peer-urls http://192.168.1.31:2380 \
                 --listen-client-urls http://192.168.1.31:2379,http://127.0.0.1:2379 \
@@ -272,7 +272,7 @@ docker 监控：
                 --initial-cluster-state new \
                 --data-dir /root/etcddir &
 
-                etcd --name infra2  \
+              etcd --name infra2  \
                 --initial-advertise-peer-urls http://192.168.1.32:2380 \
                 --listen-peer-urls http://192.168.1.32:2380 \
                 --listen-client-urls http://192.168.1.32:2379,http://127.0.0.1:2379 \
@@ -282,11 +282,11 @@ docker 监控：
                 --initial-cluster-state new \
                 --data-dir /root/etcddir &
 
-	etcd-discovery
-                https://discovery.etcd.io/new?3 --3个客户的
-                http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335
+  	etcd-discovery
+            https://discovery.etcd.io/new?3 --3个客户的
+            http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335
 
-                etcd --name infra0 \
+              etcd --name infra0 \
                 --initial-advertise-peer-urls http://192.168.1.30:2380 \
                 --listen-peer-urls http://192.168.1.30:2380 \
                 --listen-client-urls http://192.168.1.30:2379,http://127.0.0.1:2379 \
@@ -294,9 +294,7 @@ docker 监控：
                 --data-dir /root/etcddir \
                 --discovery http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335 &
 
-
-
-                etcd --name infra1 \
+              etcd --name infra1 \
                 --initial-advertise-peer-urls http://192.168.1.31:2380 \
                 --listen-peer-urls http://192.168.1.31:2380 \
                 --listen-client-urls http://192.168.1.31:2379,http://127.0.0.1:2379 \
@@ -304,10 +302,7 @@ docker 监控：
                 --data-dir /root/etcddir \
                 --discovery http://discovery.etcd.io/7e4a9d839b4de8d66d47451c01740335 &
 
-
-
-
-                etcd --name infra2  \
+              etcd --name infra2  \
                 --initial-advertise-peer-urls http://192.168.1.32:2380 \
                 --listen-peer-urls http://192.168.1.32:2380 \
                 --listen-client-urls http://192.168.1.32:2379,http://127.0.0.1:2379 \
@@ -324,26 +319,26 @@ docker 监控：
     etcdctl ls -r /
     etcdctl mkdir 
 
-    ——ETCD集群搭建配置                                                                  
-            安装etcd服务                                                                                                                      
-                # yum -y install etcd
-                # cp /etc/etcd/etcd.conf /etc/etcd/etcd.conf.bak_$(date +%Y%m%d)
-                # vim /etc/etcd/etcd.conf
-                        ETCD_NAME=etcd_node1  // 节点名称
-                        ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-                        ETCD_LISTEN_PEER_URLS="http://192.168.100.110:2380"
-                        ETCD_LISTEN_CLIENT_URLS="http://192.168.100.110:2379,http://127.0.0.1:2379"  // 必须增加127.0.0.1否则启动会报错
-                        ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.100.110:2380"
-                        ETCD_INITIAL_CLUSTER="etcd_node1=http://192.168.100.110:2380,etcd_node2=http://192.168.100.111:2380"  // 集群IP地址
-                        ETCD_INITIAL_CLUSTER_STATE="new"
-                        ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
-                        ETCD_ADVERTISE_CLIENT_URLS="http://192.168.100.110:2379"
-                # systemctl enable etcd.service 
-                # systemctl start etcd.service && systemctl status etcd.service
-            验证etcd集群配置                                                                                                              
-                # etcdctl cluster-health
-                    member 7e218077496bccf9 is healthy: got healthy result from http://localhost:2379
-                cluster is healthy //表示安装成功 
+ETCD集群搭建配置                                                                  
+      安装etcd服务                                                                                                                      
+          # yum -y install etcd
+          # cp /etc/etcd/etcd.conf /etc/etcd/etcd.conf.bak_$(date +%Y%m%d)
+          # vim /etc/etcd/etcd.conf
+                  ETCD_NAME=etcd_node1  // 节点名称
+                  ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+                  ETCD_LISTEN_PEER_URLS="http://192.168.100.110:2380"
+                  ETCD_LISTEN_CLIENT_URLS="http://192.168.100.110:2379,http://127.0.0.1:2379"  // 必须增加127.0.0.1否则启动会报错
+                  ETCD_INITIAL_ADVERTISE_PEER_URLS="http://192.168.100.110:2380"
+                  ETCD_INITIAL_CLUSTER="etcd_node1=http://192.168.100.110:2380,etcd_node2=http://192.168.100.111:2380"  // 集群IP地址
+                  ETCD_INITIAL_CLUSTER_STATE="new"
+                  ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
+                  ETCD_ADVERTISE_CLIENT_URLS="http://192.168.100.110:2379"
+          # systemctl enable etcd.service 
+          # systemctl start etcd.service && systemctl status etcd.service
+      验证etcd集群配置                                                                                                              
+          # etcdctl cluster-health
+              member 7e218077496bccf9 is healthy: got healthy result from http://localhost:2379
+          cluster is healthy //表示安装成功 
                 
         [root@centos73 etcd]# vim etcd.conf
                     # [member]
@@ -452,8 +447,7 @@ docker 监控：
               -discovery=https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
               -advertise-client-urls http://192.168.1.30:4001 \
               -initial-advertise-peer-urls http://192.168.1.30:7001
-              
-              
+                  
         2     docker run \
               -d \
               -p 2379:2379 \
@@ -481,19 +475,14 @@ docker 监控：
               -discovery=https://discovery.etcd.io/90c99883cdce20a7420f964f2234cfec \
               -advertise-client-urls http://192.168.1.32:4001 \
               -initial-advertise-peer-urls http://192.168.1.32:7001
-        
-  
+    
     curl -L http://172.17.8.101:2379/version  --测试 etcd
         
-
 24  flannel
-
-                # flanneld --help
-                    Usage: flanneld [OPTION]...
-                            -etcd-endpoints string
-                                a comma-delimited list of etcd endpoints (default "http://127.0.0.1:2379")
-                    
-
+        # flanneld --help
+            Usage: flanneld [OPTION]...
+                    -etcd-endpoints string
+                        a comma-delimited list of etcd endpoints (default "http://127.0.0.1:2379")
         1.  yum install  flannel
                     /etc/sysconfig/flanneld --flanneld 配置文件
         
@@ -516,11 +505,9 @@ docker 监控：
         9.  sh ip add   --检查docker0 的网络是否与flannel0 设置的范围相同。
         10  etcdctl  ls /atomic.io/network/subnets
         11  etcdctl  get /automic.io/network/subnets/172.17.x.x-24
-    
-    
     cbcv    
     
-25  calico
+calico
         1.  curl -L http://172.17.8.101:2379/version --测试etcd
        
         2   vim  /etc/docker/daemon.json
@@ -560,182 +547,169 @@ docker 监控：
 docker  批量删除 镜像仓库
         docker rmi $(docker images | grep "none" | awk '{print $3}') 
       
-      
       docker network create --driver calico  --ipam-driver  calico-ipam  --subnet 192.168.x.x/24  mynet
         docker network ls
      
         calicoctl config set nodeTonodeMesh off  --关闭全互联模式
         --BGP Speaker RR模式，就是在网络中指定一个或多个BGP Speaker作为Router Reflection，RR与所有的BGP Speaker建立bgp连接。
                                                 关闭了全互联模式后，再将RR作为Global Peers添加到Calico中，Calico网络就切换到了RR模式，可以支撑容纳更多的node。     
-$ calicoctl apply -f - << EOF
-apiVersion: v1
-kind: ipPool
-metadata:
-  cidr: 172.16.0.0/16
-spec:
-  ipip:
-    enabled: true
-    mode: always
-  nat-outgoing: true
-EOF
-        
-        
+        $ calicoctl apply -f - << EOF
+        apiVersion: v1
+        kind: ipPool
+        metadata:
+          cidr: 172.16.0.0/16
+        spec:
+          ipip:
+            enabled: true
+            mode: always
+          nat-outgoing: true
+        EOF
        
 kubernetes
-
 0.          yum install etcd flanned ntpdate
-
                 timedatectl   查看时区
                 timedatectl set-timezone Asia/Shanghai
                 ntpdate -u  time.nist.gov  时间同步
                 hwclock -w   软件时间to硬件时钟
 0.1         指定docer 镜像仓库
 
-cat > /etc/docker/daemon.json <<EOF
-{
-"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
-}
-EOF
-
-
-
-                vim /etc/docker/daemon.json
-                    {
-                     "registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
-                    }
+      cat > /etc/docker/daemon.json <<EOF
+      {
+      "registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+      }
+      EOF
+      vim /etc/docker/daemon.json
+            {
+              "registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"]
+            }
 
 1   etcd
-            https://discovery.etcd.io/new?size=5
-            812490a4405328af0329f105628f8c09
+        https://discovery.etcd.io/new?size=5
+        812490a4405328af0329f105628f8c09
+        71：
+        etcd -name infra1 -initial-advertise-peer-urls http://192.168.110.71:2380 -listen-peer-urls http://192.168.110.71:2380 -listen-client-urls http://192.168.110.71:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.71:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+        72：
+        etcd -name infra2 -initial-advertise-peer-urls http://192.168.110.72:2380 -listen-peer-urls http://192.168.110.72:2380 -listen-client-urls http://192.168.110.72:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.72:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+        73
+        etcd -name infra3 -initial-advertise-peer-urls http://192.168.110.73:2380 -listen-peer-urls http://192.168.110.73:2380 -listen-client-urls http://192.168.110.73:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.73:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+        74
+        etcd -name infra4 -initial-advertise-peer-urls http://192.168.110.74:2380 -listen-peer-urls http://192.168.110.74:2380 -listen-client-urls http://192.168.110.74:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.74:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
 
-            71：
-            etcd -name infra1 -initial-advertise-peer-urls http://192.168.110.71:2380 -listen-peer-urls http://192.168.110.71:2380 -listen-client-urls http://192.168.110.71:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.71:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
-            72：
-            etcd -name infra2 -initial-advertise-peer-urls http://192.168.110.72:2380 -listen-peer-urls http://192.168.110.72:2380 -listen-client-urls http://192.168.110.72:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.72:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
-            73
-            etcd -name infra3 -initial-advertise-peer-urls http://192.168.110.73:2380 -listen-peer-urls http://192.168.110.73:2380 -listen-client-urls http://192.168.110.73:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.73:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
-            74
-            etcd -name infra4 -initial-advertise-peer-urls http://192.168.110.74:2380 -listen-peer-urls http://192.168.110.74:2380 -listen-client-urls http://192.168.110.74:2379,http://127.0.0.1:2379 -advertise-client-urls http://192.168.110.74:2379  -discovery https://discovery.etcd.io/812490a4405328af0329f105628f8c09 --data-dir /usr/local/kubernete_test/flanneldata  >> /usr/local/kubernete_test/logs/etcd.log 2>&1 &
+2     etcdctl  set  /atomic.io/network/config '{ "Network": "172.17.0.0/16" }'
+3     flanneld >> /usr/local/kubernete_test/logs/flanneld.log 2>&1 &
+      source /run/flannel/subnet.env 
+      /usr/libexec/flannel/mk-docker-opts.sh  -i  （生成 /run/docker_opts.env 运行参数文件）
+4     vim  /etc/sysconfig/docker
+            插入文件 /run/docker_opts.env 更改 运行参数
+5     systemctl  daemon-reload
+      systemctl  restart docker
+6     ip add sh  检查一下docker0 的ip 与flannel0 的IP 地址是否一致
+  
+      master：     yum install -y  kubernetes-master
+      client:     yum install -y  kubernetes-node
 
-2    etcdctl  set  /atomic.io/network/config '{ "Network": "172.17.0.0/16" }'
-3         flanneld >> /usr/local/kubernete_test/logs/flanneld.log 2>&1 &
-                source /run/flannel/subnet.env 
-                /usr/libexec/flannel/mk-docker-opts.sh  -i  （生成 /run/docker_opts.env 运行参数文件）
-4           vim  /etc/sysconfig/docker
-                插入文件 /run/docker_opts.env 更改 运行参数
-5       systemctl  daemon-reload
-        systemctl  restart docker
-6       ip add sh  检查一下docker0 的ip 与flannel0 的IP 地址是否一致
+      cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+      enabled=1
+      gpgcheck=0
+      EOF 
+    
+    master:
+       vim /etc/kubernetes
+          vim  config 
+          vim  apiserver  
+            ###
+            # kubernetes system config
+            #
+            # The following values are used to configure the kube-apiserver
+            #
 
-        
-master：     yum install -y  kubernetes-master
-client:     yum install -y  kubernetes-node
+            # The address on the local server to listen to.
+            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+            # The port on the local server to listen on.
+              KUBE_API_PORT="--port=8080"
+            # Port minions listen on
+            #KUBELET_PORT="--kubelet-port=10250"
+            # Comma separated list of nodes in the etcd cluster
+            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
+            # Address range to use for services
+      vim  /etc/kubernetes/apiserver
+            # kubernetes system config
+            #
+            # The following values are used to configure the kube-apiserver
+            #
+            # The address on the local server to listen to.
+            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+            # The port on the local server to listen on.
+              KUBE_API_PORT="--port=8080"
+            # Port minions listen on
+              KUBELET_PORT="--kubelet-port=10250"
+            # Comma separated list of nodes in the etcd cluster
+            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
+            # Address range to use for services
+            KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=10.254.0.0/16"
+            # default admission control policies
+            KUBE_ADMISSION_CONTROL="--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
+            # Add your own!
+            KUBE_API_ARGS=""                                                             
 
-cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
-[kubernetes]
-name=Kubernetes
-baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
-enabled=1
-gpgcheck=0
-EOF 
+        sytemctl daemon-reload
+        systemctl start kube-apiserver
+        systemctl start kube-controller-manager
+        systemctl start kube-scheduler
 
-master:
+        kubectl  get componentstatuses  （cs）
+        kubectl  get nodes
+        kubectl  get  podes
+        kubectl  get  endpoints
+        kubectl get deployment  (deploy)
+        kubectl  describe node xxx
+               
+  client:
+      vim /etc/kubernetes
+          vim config
+              # The following values are used to configure various aspects of all
+              # kubernetes services, including
+              #
+              #   kube-apiserver.service
+              #   kube-controller-manager.service
+              #   kube-scheduler.service
+              #   kubelet.service
+              #   kube-proxy.service
+              # logging to stderr means we get it in the systemd journal
+              KUBE_LOGTOSTDERR="--logtostderr=true"
 
-            vim /etc/kubernetes
-                        vim  config 
-                        vim  apiserver  
-                         ###
-                            # kubernetes system config
-                            #
-                            # The following values are used to configure the kube-apiserver
-                            #
+              # journal message level, 0 is debug
+              KUBE_LOG_LEVEL="--v=0"
 
-                            # The address on the local server to listen to.
-                            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
-                            # The port on the local server to listen on.
-                             KUBE_API_PORT="--port=8080"
-                            # Port minions listen on
-                            #KUBELET_PORT="--kubelet-port=10250"
-                            # Comma separated list of nodes in the etcd cluster
-                            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
-                            # Address range to use for services
-                     vim  /etc/kubernetes/apiserver
-                            # kubernetes system config
-                            #
-                            # The following values are used to configure the kube-apiserver
-                            #
-                            # The address on the local server to listen to.
-                            KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
-                            # The port on the local server to listen on.
-                             KUBE_API_PORT="--port=8080"
-                            # Port minions listen on
-                             KUBELET_PORT="--kubelet-port=10250"
-                            # Comma separated list of nodes in the etcd cluster
-                            KUBE_ETCD_SERVERS="--etcd-servers=http://192.168.110.71:2379,http://192.168.110.73:2379,http://192.168.110.74:2379"
-                            # Address range to use for services
-                            KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=10.254.0.0/16"
-                            # default admission control policies
-                            KUBE_ADMISSION_CONTROL="--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
-                            # Add your own!
-                            KUBE_API_ARGS=""                                                             
+              # Should this cluster be allowed to run privileged docker containers
+              KUBE_ALLOW_PRIV="--allow-privileged=false"
 
-                    sytemctl daemon-reload
-                    systemctl start kube-apiserver
-                    systemctl start kube-controller-manager
-                    systemctl start kube-scheduler
-
-                kubectl  get componentstatuses  （cs）
-                kubectl  get nodes
-                kubectl  get  podes
-                kubectl  get  endpoints
-                kubectl get deployment  (deploy)
-                kubectl  describe node xxx
-                
-                
-client:
-            vim /etc/kubernetes
-                vim config
-                    # The following values are used to configure various aspects of all
-                    # kubernetes services, including
-                    #
-                    #   kube-apiserver.service
-                    #   kube-controller-manager.service
-                    #   kube-scheduler.service
-                    #   kubelet.service
-                    #   kube-proxy.service
-                    # logging to stderr means we get it in the systemd journal
-                    KUBE_LOGTOSTDERR="--logtostderr=true"
-
-                    # journal message level, 0 is debug
-                    KUBE_LOG_LEVEL="--v=0"
-
-                    # Should this cluster be allowed to run privileged docker containers
-                    KUBE_ALLOW_PRIV="--allow-privileged=false"
-
-                    # How the controller-manager, scheduler, and proxy find the apiserver
-                    KUBE_MASTER="--master=http://192.168.110.71:8080"
-                vim kubelet
-                        # kubernetes kubelet (minion) config
-                        # The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
-                        KUBELET_ADDRESS="--address=192.168.110.73"
-                        # The port for the info server to serve on
-                        # KUBELET_PORT="--port=10250"
-                        # You may leave this blank to use the actual hostname
-                        KUBELET_HOSTNAME="--hostname-override=192.168.110.73"
-                        # location of the api-server
-                        KUBELET_API_SERVER="--api-servers=http://192.168.110.71:8080"
-                        # pod infrastructure container
-                         KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest"
-                        # Add your own!
-                        KUBELET_ARGS=""
-                vim kube-proxy
-                
-                
-        kubectl  run nginx  --image=nginx  --port=80 --replicas=5 
-        kubectl  expose deployment nginx --type=NodePort --name=nginx-service --external-ip=192.168.110.73
-        kubectl --server=192.168.110.71:80 get service nginx-service
-        kubectl --server=192.168.110.71:80 describe service nginx-service
-    测试：
+              # How the controller-manager, scheduler, and proxy find the apiserver
+              KUBE_MASTER="--master=http://192.168.110.71:8080"
+          vim kubelet
+                  # kubernetes kubelet (minion) config
+                  # The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+                  KUBELET_ADDRESS="--address=192.168.110.73"
+                  # The port for the info server to serve on
+                  # KUBELET_PORT="--port=10250"
+                  # You may leave this blank to use the actual hostname
+                  KUBELET_HOSTNAME="--hostname-override=192.168.110.73"
+                  # location of the api-server
+                  KUBELET_API_SERVER="--api-servers=http://192.168.110.71:8080"
+                  # pod infrastructure container
+                    KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest"
+                  # Add your own!
+                  KUBELET_ARGS=""
+          vim kube-proxy
+            
+    kubectl  run nginx  --image=nginx  --port=80 --replicas=5 
+    kubectl  expose deployment nginx --type=NodePort --name=nginx-service --external-ip=192.168.110.73
+    kubectl --server=192.168.110.71:80 get service nginx-service
+    kubectl --server=192.168.110.71:80 describe service nginx-service
+  测试：
     在client 是可以访问 10.254.x.x:80    
                 curl   10.254.x.x:80    
                 
@@ -744,62 +718,49 @@ client:
         在外网访问  external-ip 地址   
             curl  192.168.110.73:80
         
-        
-        
-          
-kube-apiserver --address=0.0.0.0  --insecure-port=8080 --service-cluster-ip-range='10.254.0.0/16' --log_dir=/usr/local/kubernete_test/logs/kube --kubelet_port=10250 --v=0 --logtostderr=false --etcd_servers=http://192.168.110.71:2379 --allow_privileged=false  >> /usr/local/kubernete_test/logs/kube-apiserver.log 2>&1 &
-kube-controller-manager  --v=0 --logtostderr=false --log_dir=/usr/local/kubernete_test/logs/kube --master=192.168.110.71:8080 >> /usr/local/kubernete_test/logs/kube-controller-manager 2>&1 &
-kube-scheduler  --master='192.168.110.71:8080' --v=0  --log_dir=/usr/local/kubernete_test/logs/kube  >> /usr/local/kubernete_test/logs/kube-scheduler.log 2>&1 &
+    kube-apiserver --address=0.0.0.0  --insecure-port=8080 --service-cluster-ip-range='10.254.0.0/16' --log_dir=/usr/local/kubernete_test/logs/kube --kubelet_port=10250 --v=0 --logtostderr=false --etcd_servers=http://192.168.110.71:2379 --allow_privileged=false  >> /usr/local/kubernete_test/logs/kube-apiserver.log 2>&1 &
+    kube-controller-manager  --v=0 --logtostderr=false --log_dir=/usr/local/kubernete_test/logs/kube --master=192.168.110.71:8080 >> /usr/local/kubernete_test/logs/kube-controller-manager 2>&1 &
+    kube-scheduler  --master='192.168.110.71:8080' --v=0  --log_dir=/usr/local/kubernete_test/logs/kube  >> /usr/local/kubernete_test/logs/kube-scheduler.log 2>&1 &
    
 kubeadm:
+    docker pull  index.tenxcloud.com/jimmy/elasticsearch:v2.4.1-2
+    docker pull   index.tenxcloud.com/jimmy/fluentd-elasticsearch:1.22
+    docker pull  index.tenxcloud.com/jimmy/kibana:v4.6.1-1
+    docker pull  index.tenxcloud.com/jimmy/heapster-grafana-amd64:v4.0.2
+    docker pull  index.tenxcloud.com/jimmy/heapster-amd64:v1.3.0-beta.1
+    docker pull  index.tenxcloud.com/jimmy/heapster-influxdb-amd64:v1.1.1
+    docker pull  index.tenxcloud.com/jimmy/kubernetes-dashboard-amd64:v1.6.0
+    docker pull  index.tenxcloud.com/jimmy/k8s-dns-kube-dns-amd64:1.14.1
+    docker pull  index.tenxcloud.com/jimmy/k8s-dns-dnsmasq-nanny-amd64:1.14.1
+    docker pull  index.tenxcloud.com/jimmy/k8s-dns-sidecar-amd64:1.14.1
+    docker pull 4admin2root/kube-controller-manager-amd64:v1.6.0
+    docker pull 4admin2root/kube-scheduler-amd64:v1.6.0
+    docker pull 4admin2root/kube-apiserver-amd64:v1.6.0
+    docker pull 4admin2root/etcd-amd64:3.0.17
+    docker pull 4admin2root/kube-proxy-amd64:v1.6.0
+    docker pull  4admin2root/k8s-dns-sidecar-amd64:1.14.1
+    docker pull  4admin2root/k8s-dns-dnsmasq-nanny-amd64:1.14.1
+    docker pull  4admin2root/pause-amd64:3.0
+    docker pull 4admin2root/etcd:2.2.1
+    docker pull 4admin2root/node:v1.1.0
+    docker pull 4admin2root/cni:v1.6.1
+    docker pull 4admin2root/kube-policy-controller:v0.5.4
 
-docker pull  index.tenxcloud.com/jimmy/elasticsearch:v2.4.1-2
-docker pull   index.tenxcloud.com/jimmy/fluentd-elasticsearch:1.22
-docker pull  index.tenxcloud.com/jimmy/kibana:v4.6.1-1
-docker pull  index.tenxcloud.com/jimmy/heapster-grafana-amd64:v4.0.2
-docker pull  index.tenxcloud.com/jimmy/heapster-amd64:v1.3.0-beta.1
-docker pull  index.tenxcloud.com/jimmy/heapster-influxdb-amd64:v1.1.1
-
-
-docker pull  index.tenxcloud.com/jimmy/kubernetes-dashboard-amd64:v1.6.0
-
-docker pull  index.tenxcloud.com/jimmy/k8s-dns-kube-dns-amd64:1.14.1
-docker pull  index.tenxcloud.com/jimmy/k8s-dns-dnsmasq-nanny-amd64:1.14.1
-docker pull  index.tenxcloud.com/jimmy/k8s-dns-sidecar-amd64:1.14.1
-
-docker pull 4admin2root/kube-controller-manager-amd64:v1.6.0
-docker pull 4admin2root/kube-scheduler-amd64:v1.6.0
-docker pull 4admin2root/kube-apiserver-amd64:v1.6.0
-docker pull 4admin2root/etcd-amd64:3.0.17
-docker pull 4admin2root/kube-proxy-amd64:v1.6.0
-docker pull  4admin2root/k8s-dns-sidecar-amd64:1.14.1
-docker pull  4admin2root/k8s-dns-dnsmasq-nanny-amd64:1.14.1
-docker pull  4admin2root/pause-amd64:3.0
-docker pull 4admin2root/etcd:2.2.1
-
-docker pull 4admin2root/node:v1.1.0
-docker pull 4admin2root/cni:v1.6.1
-docker pull 4admin2root/kube-policy-controller:v0.5.4
-
-
-CentOS 7  yum 源
-        wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-        或者
-        curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-        3、之后运行yum makecache生成缓存
-        
-        
-        使用说明
-        首先备份/etc/yum.repos.d/CentOS-Base.repo
-        mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-        下载对应版本repo文件, 放入/etc/yum.repos.d/(操作前请做好相应备份)
-            CentOS7
-            CentOS6
-            CentOS5
-        运行以下命令生成缓存
-            yum clean all
-            yum makecache
-            
+  CentOS 7  yum 源
+    wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    或者
+    curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    3、之后运行yum makecache生成缓存
+      使用说明
+      首先备份/etc/yum.repos.d/CentOS-Base.repo
+      mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+      下载对应版本repo文件, 放入/etc/yum.repos.d/(操作前请做好相应备份)
+          CentOS7
+          CentOS6
+          CentOS5
+      运行以下命令生成缓存
+          yum clean all
+          yum makecache
             
 kubernetes 1.5.2 yum源
         [virt7-docker-common-candidate]
@@ -808,8 +769,6 @@ kubernetes 1.5.2 yum源
         enabled=1
         gpgcheck=0
         EOF
-
-        
 
 docker-ce  安装
     CentOS 7 (使用yum进行安装)
@@ -823,92 +782,88 @@ docker-ce  安装
         # Step 4: 开启Docker服务
         sudo service docker start
 
+1. yum  源
+        tee /etc/yum.repos.d/kubernetes.repo << EOF
+          [kubernetes]
+          name=kubernetes
+          baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+          enabled=1
+          gpgcheck=0
+          EOF
+      
+          #kubernetes yum源
+          cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+          enabled=1
+          gpgcheck=0
+          EOF
+      
+      tee /etc/yum.repos.d/docker.repo << EOF
+          [dockerrepo]
+          name=Docker Repository
+          baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://yum.dockerproject.org/gpg    
+          EOF
+      
+      cat >> /etc/yum.repos.d/docker.repo <<EOF
+          [docker-repo]
+          name=Docker Repository
+          baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
+          enabled=1
+          gpgcheck=0
+          EOF
+      
+2.  yum clean all
+    yum makecache
 
-    1. yum  源
-             tee /etc/yum.repos.d/kubernetes.repo << EOF
-                [kubernetes]
-                name=kubernetes
-                baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
-                enabled=1
-                gpgcheck=0
-                EOF
+    yum list | grep docker | sort -r    
+    yum  list  installed  | grep docker*
+        
+3. 开启路由转发
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+        echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
+        sysctl -p
+禁用 swapp
+      swapoff  -a
+        
+4. 禁用ipv6
+        lsmod | grep -i ipv6
+        ifconfig | grep -i inet6
             
-                #kubernetes yum源
-                cat >> /etc/yum.repos.d/kubernetes.repo <<EOF
-                [kubernetes]
-                name=Kubernetes
-                baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
-                enabled=1
-                gpgcheck=0
-                EOF
+5. 清空iptables
+        iptables -X
+        iptables -Z
+        iptables -P INPUT ACCEPT
+        iptables -F
             
-            tee /etc/yum.repos.d/docker.repo << EOF
-                [dockerrepo]
-                name=Docker Repository
-                baseurl=https://yum.dockerproject.org/repo/main/centos/7/
-                enabled=1
-                gpgcheck=1
-                gpgkey=https://yum.dockerproject.org/gpg    
-                EOF
-            
-            cat >> /etc/yum.repos.d/docker.repo <<EOF
-                [docker-repo]
-                name=Docker Repository
-                baseurl=http://mirrors.aliyun.com/docker-engine/yum/repo/main/centos/7
-                enabled=1
-                gpgcheck=0
-                EOF
-            
-    2.  yum clean all
-        yum makecache
+6.  关闭防火墙
+        setenforce=0
+        systemctl disable firewalld.service
+        systemctl stop firewalld.service
 
-        yum list | grep docker | sort -r    
-        yum  list  installed  | grep docker*
-        
-        
-        
-    3. 开启路由转发
-            echo 1 > /proc/sys/net/ipv4/ip_forward
-            echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
-            echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
-            sysctl -p
-		禁用 swapp
-		     swapoff  -a
-        
-    4. 禁用ipv6
-            lsmod | grep -i ipv6
-            ifconfig | grep -i inet6
-            
-    5. 清空iptables
-            iptables -X
-            iptables -Z
-            iptables -P INPUT ACCEPT
-            iptables -F
-            
-    6.  关闭防火墙
-            setenforce=0
-            systemctl disable firewalld.service
-            systemctl stop firewalld.service
+5. 安装Docker
+    yum install -y docker
+    systemctl enable docker
+    systemctl start docker
 
-
-    5. 安装Docker
-        yum install -y docker
+6.  Docker,加速器，避免自己下载镜像速度太慢
+    修改/etc/docker/daemon.json 添加如下内容：
+        cat > /etc/docker/daemon.json <<EOF
+  {
+  "registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
+  }
+  EOF
+        systemctl daemon-reload
         systemctl enable docker
-        systemctl start docker
-
-    6.  Docker,加速器，避免自己下载镜像速度太慢
-        修改/etc/docker/daemon.json 添加如下内容：
-            cat > /etc/docker/daemon.json <<EOF
-			{
-			"registry-mirrors": ["https://9npjh5s8.mirror.aliyuncs.com"]
-			}
-			EOF
-            systemctl daemon-reload
-            systemctl enable docker
-            systemctl start docker      
+        systemctl start docker      
     
-    安装 kubeadm
-          yum install -y  kubelet kubeadm kubectl kubernetes-cni
+安装 kubeadm
+     yum install -y  kubelet kubeadm kubectl kubernetes-cni
 		 systemctl  eanble  kubelet
 		 systemctl  start  kubelet
 		 
@@ -957,7 +912,7 @@ docker-ce  安装
           kubectl apply -f http://docs.projectcalico.org/v2.1/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml --kubeconfig /etc/kubernetes/admin.conf
           kubectl apply -f http://docs.projectcalico.org/v2.1/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
 
-kubectl apply -f http://k8s.oss-cn-shanghai.aliyuncs.com/kube/kubernetes-dashboard1.5.0.yaml
+          kubectl apply -f http://k8s.oss-cn-shanghai.aliyuncs.com/kube/kubernetes-dashboard1.5.0.yaml
           
           kubectl --kubeconfig /etc/kubernetes/kubelet.conf get pod --all-namespaces /
 		  
@@ -965,85 +920,72 @@ kubectl apply -f http://k8s.oss-cn-shanghai.aliyuncs.com/kube/kubernetes-dashboa
 		  --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
 
 
-mirrorgooglecontainers/kube-proxy-amd64		  
-		  
-#!/bin/bash
-images=(kube-proxy-amd64:v1.10.0 kube-scheduler-amd64:v1.10.0 kube-controller-manager-amd64:v1.10.0 kube-apiserver-amd64:v1.10.0
-etcd-amd64:3.1.12 pause-amd64:3.1 kubernetes-dashboard-amd64:v1.8.3 k8s-dns-sidecar-amd64:1.14.8 k8s-dns-kube-dns-amd64:1.14.8
-k8s-dns-dnsmasq-nanny-amd64:1.14.8)
-for imageName in ${images[@]} ; do
-  docker pull mirrorgooglecontainers/$imageName
-  docker tag mirrorgooglecontainers/$imageName k8s.gcr.io/$imageName
-  docker rmi mirrorgooglecontainers/$imageName
-done
-
-
+    mirrorgooglecontainers/kube-proxy-amd64		  
+          
+      #!/bin/bash
+      images=(kube-proxy-amd64:v1.10.0 kube-scheduler-amd64:v1.10.0 kube-controller-manager-amd64:v1.10.0 kube-apiserver-amd64:v1.10.0
+      etcd-amd64:3.1.12 pause-amd64:3.1 kubernetes-dashboard-amd64:v1.8.3 k8s-dns-sidecar-amd64:1.14.8 k8s-dns-kube-dns-amd64:1.14.8
+      k8s-dns-dnsmasq-nanny-amd64:1.14.8)
+      for imageName in ${images[@]} ; do
+        docker pull mirrorgooglecontainers/$imageName
+        docker tag mirrorgooglecontainers/$imageName k8s.gcr.io/$imageName
+        docker rmi mirrorgooglecontainers/$imageName
+      done
 keveon/$imageName
-          
-docker  安装： 
-    yum  install -y  docker-engin
-    systemctl start docker
-    systemctl disable  firewalld
-    yum install -y iptables-services
-    systemctl enable iptables
-    systemctl start iptables
-    
-          
-#!/bin/bash
-set -o errexit
-set -o nounset
-set -o pipefail
+    docker  安装： 
+        yum  install -y  docker-engin
+        systemctl start docker
+        systemctl disable  firewalld
+        yum install -y iptables-services
+        systemctl enable iptables
+        systemctl start iptables
 
-KUBE_VERSION=v1.7.2
-KUBE_PAUSE_VERSION=3.0
-ETCD_VERSION=3.0.17
-DNS_VERSION=1.14.4
+    #!/bin/bash
+    set -o errexit
+    set -o nounset
+    set -o pipefail
 
-GCR_URL=gcr.io/google_containers
-ALIYUN_URL=registry.cn-hangzhou.aliyuncs.com/szss_k8s
+    KUBE_VERSION=v1.7.2
+    KUBE_PAUSE_VERSION=3.0
+    ETCD_VERSION=3.0.17
+    DNS_VERSION=1.14.4
 
-images=(kube-proxy-amd64:${KUBE_VERSION}
-kube-scheduler-amd64:${KUBE_VERSION}
-kube-controller-manager-amd64:${KUBE_VERSION}
-kube-apiserver-amd64:${KUBE_VERSION}
-pause-amd64:${KUBE_PAUSE_VERSION}
-etcd-amd64:${ETCD_VERSION}
-k8s-dns-sidecar-amd64:${DNS_VERSION}
-k8s-dns-kube-dns-amd64:${DNS_VERSION}
-k8s-dns-dnsmasq-nanny-amd64:${DNS_VERSION})
+    GCR_URL=gcr.io/google_containers
+    ALIYUN_URL=registry.cn-hangzhou.aliyuncs.com/szss_k8s
 
-for imageName in ${images[@]} ; do
-  docker pull $ALIYUN_URL/$imageName
-  docker tag $ALIYUN_URL/$imageName $GCR_URL/$imageName
- # docker push $ALIYUN_URL/$imageName
-  docker rmi $ALIYUN_URL/$imageName 
-done
+    images=(kube-proxy-amd64:${KUBE_VERSION}
+    kube-scheduler-amd64:${KUBE_VERSION}
+    kube-controller-manager-amd64:${KUBE_VERSION}
+    kube-apiserver-amd64:${KUBE_VERSION}
+    pause-amd64:${KUBE_PAUSE_VERSION}
+    etcd-amd64:${ETCD_VERSION}
+    k8s-dns-sidecar-amd64:${DNS_VERSION}
+    k8s-dns-kube-dns-amd64:${DNS_VERSION}
+    k8s-dns-dnsmasq-nanny-amd64:${DNS_VERSION})
 
+    for imageName in ${images[@]} ; do
+      docker pull $ALIYUN_URL/$imageName
+      docker tag $ALIYUN_URL/$imageName $GCR_URL/$imageName
+    # docker push $ALIYUN_URL/$imageName
+      docker rmi $ALIYUN_URL/$imageName 
+    done
 
+    cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
+    [Service]
+    Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/szss_k8s/pause-amd64:3.0"
+    EOF
 
-cat > /etc/systemd/system/kubelet.service.d/20-pod-infra-image.conf <<EOF
-[Service]
-Environment="KUBELET_EXTRA_ARGS=--pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/szss_k8s/pause-amd64:3.0"
-EOF
+  sed -i.bak 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
+  export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
+  export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
 
-sed -i.bak 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
 
+  kubectl --namespace kube-system apply -f https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
 
-export KUBE_REPO_PREFIX="registry.cn-hangzhou.aliyuncs.com/szss_k8s"
-export KUBE_ETCD_IMAGE="registry.cn-hangzhou.aliyuncs.com/szss_k8s/etcd-amd64:3.0.17"
-
-echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
-
-
-
-kubectl --namespace kube-system apply -f https://raw.githubusercontent.com/coreos/flannel/v0.8.0/Documentation/kube-flannel-rbac.yml
-
-sed -i 's/quay.io\/coreos\/flannel:v0.8.0-amd64/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel:v0.8.0-amd64/g' ./kube-flannel.yml
- kubectl --namespace kube-system apply -f ./kube-flannel.yml
- 
- 
-
+  sed -i 's/quay.io\/coreos\/flannel:v0.8.0-amd64/registry.cn-hangzhou.aliyuncs.com\/szss_k8s\/flannel:v0.8.0-amd64/g' ./kube-flannel.yml
+  kubectl --namespace kube-system apply -f ./kube-flannel.yml
  
 NODE INSTALL 
  http://blog.csdn.net/running_free/article/details/78398984

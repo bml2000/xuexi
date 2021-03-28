@@ -1,3 +1,5 @@
+http://blogs.studylinux.net
+
 常用命令：
     Stress- 压力测试工具
 	环境变量
