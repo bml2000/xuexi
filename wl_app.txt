@@ -709,6 +709,44 @@ After=network.target24 	mariadb
 					killall keepalived
 				fi
 			chmod +x /etc/keepalived/chk_nginx.sh
+	-------------------------------------------------------------		
+	zabbix-agent  for  mysql
+        编辑 /etc/zabbix/zabbix-agentd.d/userparameter_mysql
+		[root@pinzhdb zabbix_agentd.d]# pwd
+		/etc/zabbix/zabbix_agentd.d
+		[root@pinzhdb zabbix_agentd.d]# cat userparameter_mysql.conf
+			#template_db_mysql.conf created by Zabbix for "Template DB MySQL" and Zabbix 4.2
+			#For OS Linux: You need create .my.cnf in zabbix-agent home directory (/var/lib/zabbix by default) 
+			#For OS Windows: You need add PATH to mysql and mysqladmin and create my.cnf in %WINDIR%\my.cnf,C:\my.cnf,BASEDIR\my.cnf https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+			#The file must have three strings:
+			#[client]
+			#user=zbx_monitor
+			#password=<password>
+			#
+			UserParameter=mysql.ping[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysqladmin -h"$1" -P"$2" ping
+			UserParameter=mysql.get_status_variables[*],HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show global status"
+			UserParameter=mysql.version[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysqladmin -s -h"$1" -P"$2" version
+			UserParameter=mysql.db.discovery[*], HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sN -e "show databases"
+			UserParameter=mysql.dbsize[*], HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sN -e "SELECT SUM(DATA_LENGTH + INDEX_LENGTH) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='$3'"
+			UserParameter=mysql.replication.discovery[*],HOME=/var/lib/zabbix  /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show slave status"
+			UserParameter=mysql.slave_status[*],HOME=/var/lib/zabbix /usr/local/mysql/bin/mysql -h"$1" -P"$2" -sNX -e "show slave status"
+    操作数据库建监控账户并授权:
+			1.Install Zabbix agent and MySQL client.
+			2.Copy template_db_mysql.conf into folder with Zabbix agent configuration (/etc/zabbix/zabbix_agentd.d/ by default). Don't forget restart zabbix-agent. 
+			3.Create MySQL user for monitoring. For example:
+			CREATE USER 'zbx_monitor'@'%' IDENTIFIED BY '<password>';
+			GRANT USAGE,REPLICATION CLIENT,PROCESS,SHOW DATABASES,SHOW VIEW ON *.* TO 'zbx_monitor'@'%';
+	在/var/lib/zabbix/下新建文件 .my.cnf
+			For more information read the MYSQL documentation https://dev.mysql.com/doc/refman/8.0/en/grant.html , please. 
+			4.Create .my.cnf in home directory of Zabbix agent for Linux (/var/lib/zabbix by default ) or my.cnf in c:\ for Windows. For example:
+			[client]
+			user='zbx_monitor'
+			password='<password>'
+	systemctl restart zabbix-agent
+		在zabbix-server中指定模版： 
+	    Template DB MySQL by Zabbix agent
+
+
 
 26. 	JAVA 安装：
 		tar  zxvf  jdkxxx.tar.gz
