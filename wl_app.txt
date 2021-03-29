@@ -745,6 +745,96 @@ After=network.target24 	mariadb
 	systemctl restart zabbix-agent
 		在zabbix-server中指定模版： 
 	    Template DB MySQL by Zabbix agent
+	-------------------------zabbix  for nginx -------------------
+    检修 ngx_status.sh 脚本， 并授权执行权限
+ 			[root@youzan zabbix_agentd.d]# ll
+			-rw-r--r-- 1 root root  581 Mar 29 14:40 nginx.conf
+			-rwxr-xr-x 1 root root 1805 Mar 29 14:18 ngx_status.sh
+			[root@youzan zabbix_agentd.d]# cat ngx_status.sh 
+			#!/bin/bash
+			#function: monitor nginx1.16 for zabbix5.0
+			#定义Nginx status页面
+			ngx_status="http://127.0.0.1:8081/status"
+			#判断status页面是否存活
+			ngx_status_code() {
+					http_code=`curl -o /dev/null -s -w %{http_code} ${ngx_status}`
+					if [ ${http_code} == "200" ];then
+							return 1
+					else
+							echo "Nginx status is not running."
+					fi
+			}
+			#获取当前活动的客户端连接数
+			active() {
+					ngx_status_code || curl -s ${ngx_status} | grep "Active" | awk '{print $NF}'
+			}
+			#获取接收客户端连接的总数量
+			accepts() {
+					ngx_status_code || curl -s ${ngx_status} | awk NR==3 | awk '{print $1}'
+			}
+			#获取已处理的连接总数量
+			handled() {
+					ngx_status_code || curl -s ${ngx_status} | awk NR==3 | awk '{print $2}'
+			}
+			#获取客户端请求总数量
+			requests() {
+					ngx_status_code || curl -s ${ngx_status} | awk NR==3 | awk '{print $3}'
+			}
+			#获取正在读取请求标头的当前连接数量
+			reading() {
+					ngx_status_code || curl -s ${ngx_status} | grep "Reading" | awk '{print $2}'
+			}
+			#获取正在将响应写回到客户端的当前连接数量
+			writing() {
+					ngx_status_code || curl -s ${ngx_status} | grep "Writing" | awk '{print $2}'
+			}
+			#获取当前正在等待响应的客户端连接数量
+			waiting() {
+					ngx_status_code || curl -s ${ngx_status} | grep "Waiting" | awk '{print $2}'
+			}
+			#使用位置变量控制脚本输出
+			case $1 in
+					active)
+							active;;
+					accepts)
+							accepts;;
+					handled)
+							handled;;
+					requests)
+							requests;;
+					reading)
+							reading;;
+					writing)
+							writing;;
+					waiting)
+							waiting;;
+					*)
+							echo "Unknown options"
+			esac
+		[root@youzan zabbix_agentd.d]# cat nginx.conf
+			UserParameter=nginx.active,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh active
+			UserParameter=nginx.accepts,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh accepts
+			UserParameter=nginx.handled,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh handled
+			UserParameter=nginx.requests,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh requests
+			UserParameter=nginx.reading,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh reading
+			UserParameter=nginx.writing,bash /etc/zabbix/zabbix_agentd.d/ngx_status.sh writing
+			UserParameter=nginx.waiting,bash /etc/zabbix/zabbix_agnetd.d/ngx_status.sh waiting
+		[root@youzan zabbix_agentd.d]#
+      NGINX  配置文件的server 段添加配置
+				location /status {
+					stub_status on;
+						allow 127.0.0.1;
+						allow 192.168.0.71;
+						allow ::1;
+						deny all;
+				}
+        nginx -t  # 测试nginx 配置文件是否正确
+		nginx -s reload  # 应用nginx新配置
+		检查： curl  http://127.0.0.1:8081/status	# 显示有数据
+		在zabbix-server 端测试 zabbix的监控项是否采集到数据
+			zabbix-get -s  192.168.0.77 -k  nginx.active     # 显示连接数。
+        在zabbix 新建模版和监控项
+		在主机设置的图形界面加入新建的监控项。
 
 
 
