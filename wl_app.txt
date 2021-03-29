@@ -836,7 +836,26 @@ After=network.target24 	mariadb
         在zabbix 新建模版和监控项
 		在主机设置的图形界面加入新建的监控项。
 
-
+25.1   mongodb
+	1.  yum.repos.d/mongodb.repo
+		[mongodb-org-4.4]
+		name=MongoDB Repository
+		baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.4/x86_64/
+		gpgcheck=1
+		enabled=1
+		gpgkey=https://www.mongodb.org/static/pgp/server-4.4.asc
+	2.  yum  install  mongodb-org
+	3.  mkdir -p /data/mongodb
+	    mkdir -p /var/log/mongodb
+		chown -R mongod.mongod  /data/mongodb
+		chown -R mongod.mongod  /var/log/mongodb
+    4.  vi /etc/mongod.conf
+			path: /var/log/mongodb/mongod.log   # log path
+			dbPath: /data/mongodb          # dbpath
+	5.  systemctl start  mongod
+	6.  ss -alnpt   #  27017  port   mongodb
+	7.  mongo
+	    mongodb://[username:password@]host1[:port1][,host2[:port2]  #数据库连接
 
 26. 	JAVA 安装：
 		tar  zxvf  jdkxxx.tar.gz
