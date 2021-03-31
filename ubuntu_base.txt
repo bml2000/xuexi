@@ -6,6 +6,21 @@ mirrors.163.com
 mirrors.aliyun.com
 http://mirrors.ustc.edu.cn/  # 中科技大学
 
+
+msyql_xtrbackup:
+	https://www.percona.com/doc/percona-xtrabackup/8.0/installation/yum_repo.html
+	https://www.percona.com/downloads/Percona-XtraBackup-LATEST/
+	
+	wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
+	apt-get  update
+	sudo apt-get install percona-xtrabackup-80
+
+163 repos:
+	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+	wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
+	yum  cleanall
+	yum  makecache
+
 ====================    系统查看   ==========================================
 cat /etc/issue   查询系统版本
 cat /proc/version   查询系统版本信息
