@@ -1670,3 +1670,119 @@ ELK +　　kafka
 		mysqlbinlog --stop-datetime="2017-08-16 15:00:00" mysqld-bin.000001 命令将读取到给定结束时间的条目
 		mysqlbinlog --stop-position=15028 mysqld-bin.000001 > upto-15028.out 就像前面的例子一样，你也可以从mysql二进制日志中截止到一个特定位置的条目
 		#mysqlbinlog --base64-output="decode-rows" -v mysql-bin.000001  Row模式下解析binlog日志
+		
+======================  msyql8.0  ==========================
+
+		MSYQL 8.0 安装指导 https://dev.mysql.com/doc/refman/8.0/en/binary-installation.html
+	YUM 安装
+		https://dev.mysql.com/doc/refman/8.0/en/linux-installation-yum-repo.html
+		wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+		yum localinstall mysql80-community-release-el8-{version-number}.noarch.rpm
+		yum localinstall mysql80-community-release-el7-3.noarch.rpm
+		yum repolist enabled | grep "mysql.*-community.*"
+		yum repolist all | grep mysql
+		yum  install msyql-community-server -y
+		
+		mkdir -p /data/mysql
+		mkdir -p /var/lib/mysql
+		groupadd mysql
+		useradd mysql
+		chown -R mysql.mysql /data/mysql
+		chown -R mysql.mysql /var/lib/mysql
+		vi  /etc/my.cnf
+			datadir=/data/mysql
+			socket=/var/lib/mysql
+		
+#使用旧认证
+			default_authentication_plugin=caching_sha2_password  #使新认证
+	
+	-----------------------------------------------------	
+	/etc/my.cnf  #推荐配置
+		[mysqld]
+		datadir=/data/mysql
+		basedir=/usr/local/mysql
+		socket=/tmp/mysql.sock
+		pid-file=/tmp/mysqld.pid
+		# Disabling symbolic-links is recommended to prevent assorted security risks
+
+		symbolic-links=0
+
+		# Settings user and group are ignored when systemd is used.
+		# If you need to run mysqld under a different user or group,
+		# customize your systemd unit file for mariadb according to the
+		# instructions in http://fedoraproject.org/wiki/Systemd
+
+		#server-id                      = 1
+		port                           = 3306
+		
+		default-authentication-plugin=mysql_native_password   #使用
+
+		log-error                      = error.log
+		slow-query-log                 = 1
+
+		slow-query-log-file            = slow.log
+		long_query_time                = 0.2
+		log-bin                        = bin.log
+		binlog_format                 =ROW
+		character-set-client-handshake = FALSE
+		character-set-server           = utf8mb4
+		collation-server               = utf8mb4_unicode_ci
+		init_connect                   ='SET NAMES utf8mb4'
+		innodb_buffer_pool_size        = 200M
+		join_buffer_size               = 10M
+		sort_buffer_size               = 2M
+		read_rnd_buffer_size           = 2M
+		log_timestamps                 = SYSTEM
+		[mysqld_safe]
+		log-error=/var/log/mysqldb.log
+		#
+		# include all files from the config directory
+		#
+		!includedir /etc/my.cnf.d
+	-------------------------------------------------
+	
+		systemctl start mysqld
+		systemctl enable  mysqld
+	    cat /var/log/mysqld.log |grep password
+	    mysqladmin  -u root -p password   # 更改密码
+	    mysql -u root -p    #登陆mysql
+		   create user root@'%' identified by 'pass';
+		   alteruser  root@'%' identified with mysql_native_password by 'pass';  #设置native 密码
+		   grant all privileges on *.* to root@'%';   #设置权限
+		   flush privileges;
+		   \q                        #退出
+	
+	tar 安装：
+		tar  xvf mysql-8.0.23-linux-glibc2.12-x86_64.tar.xz
+		mv mysql-8.0.23-linux-glibc2.12-x86_64/ /usr/local
+		ln -vs /usr/local/mysql-8.0.23-linux-glibc2.12-x86_64/ /usr/local/mysql
+		
+		useradd  -r  -M -s /bin/nologin   mysql
+		mdir -p  /data/mysql
+		echo 'export PATH=$PATH:/usr/local/mysql/bin' >> /etc/profile
+		source   /etc/profile
+		vi /etc/my.cnf
+			[mysqld]
+			user=mysql
+			basedir=/usr/local/mysql
+			datadir=/data/mysql
+			pid-file=/data/mysql/mysqldb.pid
+			log-error=/var/log/mysql.log
+			#socket=/var/lib/mysql/mysql.sock
+			#validate_password.policy=0  #密码策略0
+			#validate_password.check_user_name=off
+			#validate_password.length=0  #密码长度
+			default-authentication-plugin=mysql_native_password
+			[mysqld_safe]
+			!includedir /etc/my.cnf.d
+
+		mysqld --initialzize-insecure   #安装 密码为空
+		mysqld  --initiazlize      #安装 自动生成密码
+		cp /usr/local/mysql/supports/mysql.server  /etc/init.d/
+		chkconfig -add  mysql.server     #设置服务
+		systemctl   start  mysql         #启动mysql
+		cat  /var/log/mysql.log  |grep  password    # 查看密码
+		mysqladmin  -u root  -p password            # 更改密码
+		
+		
+	    
