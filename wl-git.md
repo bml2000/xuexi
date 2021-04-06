@@ -45,7 +45,7 @@
 	- git checkout -- file    工作区内撤销
 	- git reset --hard HEAD ^  从本地库还原上次
 	- git reset --hard HEAD~2  从本地库还原上n次
-	- git reset --soft         撤销本地库
+	- git reset --soft         撤销本地库和暂定库， 工作区不变,
 	- git reset --mined 		撤销本地库和暂存库
 	- git reset --hard origin/master  重远程库撤销
 	- git revert                 撤销之前提交， 并重新做完提交保存
