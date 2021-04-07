@@ -1784,5 +1784,71 @@ ELK +　　kafka
 		cat  /var/log/mysql.log  |grep  password    # 查看密码
 		mysqladmin  -u root  -p password            # 更改密码
 		
-		
-	    
+SQL  主从复制
+			/etc/my.cnf
+				[mysqld]
+				log-bin=mysql-bin
+				server-id=39             # 必须唯一， 主和从不能相同
+				relay-log-index=slave-relay-bin.index
+				relay-log=slave-relay-bin
+				#binlog-do-db=palan-dev    #待同步的数据库
+				#binlog-ignore-db=mysql  #不同步的数据 
+				#expire_logs_days=7      #设置log文件保留天数
+		在master 执行：
+			show  master  status\G;
+			查看binlog文件 及pos 位置
+			新建复制用户并授权
+			create user mysync@'%' identified by 'pass';
+			grant replication slave on *.* to mysync@'%';
+			flush privileges;
+		在slave上执行
+			CHANGE MASTER TO 
+				MASTER_HOST='centos37',
+				MASTER_USER='mysync',
+				MASTER_PASSWORD='pass',
+				MASTER_PORT=3306,
+				MASTER_LOG_FILE='binlog.000001',
+				MASTER_LOG_POS=1,
+				MASTER_CONNECT_RETRY=10;
+		start slave；
+		show slave status\G;
+		查看：
+			Slave_IO_Running: Yes
+			Slave_SQL_Running: Yes
+
+binlong
+	show master logs  #查看log 信息
+	flush  logs       # 生成新的log文件
+	reset  master     # 清除所有binlog 文件
+	show variables like 'binlog_format';   # 查看binlog 格式
+						ROW    # 行 只记录更新，无上文
+						STATMENT   # 语句模式
+						MIXED  #混合模式
+	查看binlog
+		show binlog events [IN 'log_name'] [FROM pos] [LIMIT [offset,] row_count]
+		Event_type
+			QUERY_ EVENT 与数据无关的操作，begin、drop table、truncate table等
+			TABLE MAP EVENT 记录下一个操作所对应的表信息，存储了数据库名和表名
+			XID_ EVENT 标记事务提交
+			WRITE ROWS EVENT 插入数据,即insert操作
+			UPDATE ROWS EVENT 更新数据,即update操作
+			DELETE ROWS EVENT 删除数据,即delete操作
+      show binlog events in 'binlog.000001' from 417 limit 1, 2;  #例子
+mysqlbinlog
+    mysqlbinlog  --base64-output=decode-rows -v binlog.000001 > kk.sql  #查看binlog 并生成sql 
+	mysqlbinlog binlog.000001 --start-position=200  --stop-position=300 | mysql -u root -p   # 还原部分数据到数据库
+	mysqlbinlog node1_bin.000001 |mysql -uroot -p   # 将binlog 还原到数据库中
+	mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan 
+	mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan  --set-charset=utf8 #可转换字符集
+	mysqlbinlog  --read-from-remote-server --host=172.16.1.79 --user=repl --password=repl --port=3311 node1_bin.000001 | more #查看远程主机的binlog 需要有replaction slave  权限
+	mysqlbinlog --short-form node1_bin.000001 # 查看短格式log
+	mysqlbinlog --offset=10 node1_bin.000001  # 调过N条
+	mysqlbinlog -o 10 node1_bin.000001  # 调过N条 
+
+binlog  保留时间设置
+    show variables like 'expire_log%'; 
+	flush logs
+
+查看数据库字符集和字符序
+	use test_schema; 
+	SELECT @@character_set_database, @@collation_database; 
