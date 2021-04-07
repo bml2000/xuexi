@@ -1852,3 +1852,7 @@ binlog  保留时间设置
 查看数据库字符集和字符序
 	use test_schema; 
 	SELECT @@character_set_database, @@collation_database; 
+新建数据库	
+	CREATE DATABASE IF NOT EXISTS test_db_char 
+    -> DEFAULT CHARACTER SET utf8
+    -> DEFAULT COLLATE utf8_chinese_ci;
