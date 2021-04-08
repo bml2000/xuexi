@@ -1855,4 +1855,16 @@ binlog  保留时间设置
 新建数据库	
 	CREATE DATABASE IF NOT EXISTS test_db_char 
     -> DEFAULT CHARACTER SET utf8
-    -> DEFAULT COLLATE utf8_chinese_ci;
+    -> DEFAULT COLLATE utf8_general_ci;
+
+xtrabackup
+   wget https://repo.percona.com/yum/release/7/RPMS/x86_64/qpress-11-1.el7.x86_64.rpm
+   yum  localinstall    qpress.rpm
+ 全量备份并压缩
+   xtrabackup  --defaults-file=/etc/my.cnf  --host=192.168.110.39 --user=root --password=pass --socket=/tmp/mysql.sock   --port=3306  --backup --compress  --target-dir=/root/trabak
+   xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
+   xtrabackup  --prepare   --target-dir=/root/traback  
+   xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
+
+
+
