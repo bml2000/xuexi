@@ -1858,6 +1858,7 @@ binlog  保留时间设置
     -> DEFAULT COLLATE utf8_general_ci;
 
 xtrabackup
+   https://www.percona.com/doc/percona-xtrabackup/8.0/index.html#user-s-manual #使用手册
    wget https://repo.percona.com/yum/release/7/RPMS/x86_64/qpress-11-1.el7.x86_64.rpm
    yum  localinstall    qpress.rpm
  全量备份并压缩

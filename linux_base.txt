@@ -978,9 +978,7 @@ http://blogs.studylinux.net
         cd /sys/class/scsi_host
         ll
         host0  host1  host2
-        echo "- - -" >  host0/scan
-        echo "- - -" >  host1/scan
-        echo "- - -" >  host2/scan
+        
         即可在 /dev/中查到新硬件
 25  LVM 磁盘管理
     partprobe /dev/sda  -重读分区表
@@ -1272,3 +1270,10 @@ http://blogs.studylinux.net
             /var/spool/cron/username     #文件
             crontab -l  #显示任务
             crontab -r  #删除任务
+31.  ftp
+     ftp
+     open  ip
+     prompt    # 提示关闭或开启
+     mput  *   # upload
+     mget  *   # download
+     bye       #close
