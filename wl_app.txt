@@ -1784,125 +1784,127 @@ ELK +　　kafka
 		cat  /var/log/mysql.log  |grep  password    # 查看密码
 		mysqladmin  -u root  -p password            # 更改密码
 		
-SQL  主从复制
-			/etc/my.cnf
-				[mysqld]
-				log-bin=mysql-bin
-				server-id=39             # 必须唯一， 主和从不能相同
-				relay-log-index=slave-relay-bin.index
-				relay-log=slave-relay-bin
-				#binlog-do-db=palan-dev    #待同步的数据库
-				#binlog-ignore-db=mysql  #不同步的数据 
-				#expire_logs_days=7      #设置log文件保留天数
-		在master 执行：
-			show  master  status\G;
-			查看binlog文件 及pos 位置
-			新建复制用户并授权
-			create user mysync@'%' identified by 'pass';
-			grant replication slave on *.* to mysync@'%';
-			flush privileges;
-		在slave上执行
-			CHANGE MASTER TO 
-				MASTER_HOST='centos37',
-				MASTER_USER='mysync',
-				MASTER_PASSWORD='pass',
-				MASTER_PORT=3306,
-				MASTER_LOG_FILE='binlog.000001',
-				MASTER_LOG_POS=1,
-				MASTER_CONNECT_RETRY=10;
-		start slave；
-		show slave status\G;
-		查看：
-			Slave_IO_Running: Yes
-			Slave_SQL_Running: Yes
+	SQL  主从复制
+				/etc/my.cnf
+					[mysqld]
+					log-bin=mysql-bin
+					server-id=39             # 必须唯一， 主和从不能相同
+					relay-log-index=slave-relay-bin.index
+					relay-log=slave-relay-bin
+					#binlog-do-db=palan-dev    #待同步的数据库
+					#binlog-ignore-db=mysql  #不同步的数据 
+					#expire_logs_days=7      #设置log文件保留天数
+			在master 执行：
+				show  master  status\G;
+				查看binlog文件 及pos 位置
+				新建复制用户并授权
+				create user mysync@'%' identified by 'pass';
+				grant replication slave on *.* to mysync@'%';
+				flush privileges;
+			在slave上执行
+				CHANGE MASTER TO 
+					MASTER_HOST='centos37',
+					MASTER_USER='mysync',
+					MASTER_PASSWORD='pass',
+					MASTER_PORT=3306,
+					MASTER_LOG_FILE='binlog.000001',
+					MASTER_LOG_POS=1,
+					MASTER_CONNECT_RETRY=10;
+			start slave；
+			show slave status\G;
+			查看：
+				Slave_IO_Running: Yes
+				Slave_SQL_Running: Yes
 
-binlong
-	show master logs  #查看log 信息
-	flush  logs       # 生成新的log文件
-	reset  master     # 清除所有binlog 文件
-	show variables like 'binlog_format';   # 查看binlog 格式
-						ROW    # 行 只记录更新，无上文
-						STATMENT   # 语句模式
-						MIXED  #混合模式
-	查看binlog
-		show binlog events [IN 'log_name'] [FROM pos] [LIMIT [offset,] row_count]
-		Event_type
-			QUERY_ EVENT 与数据无关的操作，begin、drop table、truncate table等
-			TABLE MAP EVENT 记录下一个操作所对应的表信息，存储了数据库名和表名
-			XID_ EVENT 标记事务提交
-			WRITE ROWS EVENT 插入数据,即insert操作
-			UPDATE ROWS EVENT 更新数据,即update操作
-			DELETE ROWS EVENT 删除数据,即delete操作
-      show binlog events in 'binlog.000001' from 417 limit 1, 2;  #例子
-mysqlbinlog
-    mysqlbinlog  --base64-output=decode-rows -v binlog.000001 > kk.sql  #查看binlog 并生成sql 
-	mysqlbinlog binlog.000001 --start-position=200  --stop-position=300 | mysql -u root -p   # 还原部分数据到数据库
-	mysqlbinlog node1_bin.000001 |mysql -uroot -p   # 将binlog 还原到数据库中
-	mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan 
-	mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan  --set-charset=utf8 #可转换字符集
-	mysqlbinlog  --read-from-remote-server --host=172.16.1.79 --user=repl --password=repl --port=3311 node1_bin.000001 | more #查看远程主机的binlog 需要有replaction slave  权限
-	mysqlbinlog --short-form node1_bin.000001 # 查看短格式log
-	mysqlbinlog --offset=10 node1_bin.000001  # 调过N条
-	mysqlbinlog -o 10 node1_bin.000001  # 调过N条 
+	binlong
+		show master logs  #查看log 信息
+		flush  logs       # 生成新的log文件
+		reset  master     # 清除所有binlog 文件
+		show variables like 'binlog_format';   # 查看binlog 格式
+							ROW    # 行 只记录更新，无上文
+							STATMENT   # 语句模式
+							MIXED  #混合模式
+		查看binlog
+			show binlog events [IN 'log_name'] [FROM pos] [LIMIT [offset,] row_count]
+			Event_type
+				QUERY_ EVENT 与数据无关的操作，begin、drop table、truncate table等
+				TABLE MAP EVENT 记录下一个操作所对应的表信息，存储了数据库名和表名
+				XID_ EVENT 标记事务提交
+				WRITE ROWS EVENT 插入数据,即insert操作
+				UPDATE ROWS EVENT 更新数据,即update操作
+				DELETE ROWS EVENT 删除数据,即delete操作
+		show binlog events in 'binlog.000001' from 417 limit 1, 2;  #例子
+	mysqlbinlog
+			mysqlbinlog  --base64-output=decode-rows -v binlog.000001 > kk.sql  #查看binlog 并生成sql 
+			mysqlbinlog binlog.000001 --start-position=200  --stop-position=300 | mysql -u root -p   # 还原部分数据到数据库
+			mysqlbinlog node1_bin.000001 |mysql -uroot -p   # 将binlog 还原到数据库中
+			mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan 
+			mysqlbinlog node1_bin.000001 --start-datetime='2018-07-23 14:00:00' --stop-datetime='2018-07-23 16:10:00' --database=wuhan  --set-charset=utf8 #可转换字符集
+			mysqlbinlog  --read-from-remote-server --host=172.16.1.79 --user=repl --password=repl --port=3311 node1_bin.000001 | more #查看远程主机的binlog 需要有replaction slave  权限
+			mysqlbinlog --short-form node1_bin.000001 # 查看短格式log
+			mysqlbinlog --offset=10 node1_bin.000001  # 调过N条
+			mysqlbinlog -o 10 node1_bin.000001  # 调过N条 
 
-binlog  保留时间设置
-		show variables like 'expire_log%';  #临时设置
-		flush logs      #滚动第一个日志
-	/etc/my.cnf 
-	    expire_logs_days = 7     #永久设置 保留7天
-	  
-mysql 备份
-    mysqldump -h 192.168.0.76 -p -P 6033  --all-databases > /data/pzdbbak.db
-	mysqldump -uroot  -p --single-transaction --master-data=2 --databases hellodb > /backup/hellodb_`date +%F`.sql
-		--single-transaction: 基于此选项能实现热备InnoDB表；因此，不需要同时使用--lock-all-tables；
-		--master-data=2  记录备份那一时刻的二进制日志的位置，并且注释掉，1是不注释的
-		--databases hellodb 指定备份的数据库
+	binlog  保留时间设置
+			show variables like 'expire_log%';  #临时设置
+			flush logs      #滚动第一个日志
+		/etc/my.cnf 
+			expire_logs_days = 7     #永久设置 保留7天
+		
+	mysql 备份
+		mysqldump -h 192.168.0.76 -p -P 6033  --all-databases > /data/pzdbbak.db
+		mysqldump -uroot  -p --single-transaction --master-data=2 --databases hellodb > /backup/hellodb_`date +%F`.sql
+			--single-transaction: 基于此选项能实现热备InnoDB表；因此，不需要同时使用--lock-all-tables；
+			--master-data=2  记录备份那一时刻的二进制日志的位置，并且注释掉，1是不注释的
+			--databases hellodb 指定备份的数据库
+			
 	查看备份的position
-数据库还原前处理
-    mysql>  set  sql_log_bin =0   # 关闭binlog记录
-	        flush logs            #生成新的log日志文件
-			source  /root/db_backup.db   #还原数据库
-            source  /root/db_backup_inc.sql  # 还原增量备份
-			set  sql_log_bin =1  # 开启binlog记录
-	mysqlbinlog --start-position=15694 --stop-position=15982  \              #增量备份
-			/mydata/data/mysql-bin.000013 > /backup/hellodb_`date +$F_%H`.sql
+		数据库还原前处理
+			mysql>  set  sql_log_bin =0   # 关闭binlog记录
+					flush logs            #生成新的log日志文件
+					source  /root/db_backup.db   #还原数据库
+					source  /root/db_backup_inc.sql  # 还原增量备份
+					set  sql_log_bin =1  # 开启binlog记录
+			mysqlbinlog --start-position=15694 --stop-position=15982  \              #增量备份
+					/mydata/data/mysql-bin.000013 > /backup/hellodb_`date +$F_%H`.sql
 
-查看数据库字符集和字符序
-	use test_schema; 
-	SELECT @@character_set_database, @@collation_database; 
+	查看数据库字符集和字符序
+		use test_schema; 
+		SELECT @@character_set_database, @@collation_database; 
 
-	character_set_client      为客户端编码方式；
-	character_set_connection  为建立连接使用的编码；
-	character_set_database    为数据库的编码；
-	character_set_results     为结果集的编码；
-	character_set_server      为数据库服务器的编码；
-新建数据库	
-	CREATE DATABASE IF NOT EXISTS test_db_char 
-    -> DEFAULT CHARACTER SET utf8
-    -> DEFAULT COLLATE utf8_general_ci;
+		character_set_client      为客户端编码方式；
+		character_set_connection  为建立连接使用的编码；
+		character_set_database    为数据库的编码；
+		character_set_results     为结果集的编码；
+		character_set_server      为数据库服务器的编码；
+	新建数据库	
+		CREATE DATABASE IF NOT EXISTS test_db_char 
+		-> DEFAULT CHARACTER SET utf8
+		-> DEFAULT COLLATE utf8_general_ci;
 
-xtrabackup
-   https://www.percona.com/doc/percona-xtrabackup/8.0/index.html#user-s-manual #使用手册
-   wget https://repo.percona.com/yum/release/7/RPMS/x86_64/qpress-11-1.el7.x86_64.rpm
-   yum  localinstall    qpress.rpm
- 全量备份并压缩
-   xtrabackup  --defaults-file=/etc/my.cnf  --host=192.168.110.39 --user=root --password=pass --socket=/tmp/mysql.sock   --port=3306  --backup --compress  --target-dir=/root/trabak
-   xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
-   xtrabackup  --prepare   --target-dir=/root/traback  
-   xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
-查询数据库空间（M 兆）
-   select sum((data_length+index_length)/1024/1024) m from information_schema.tables where table_schema="dbname";
-   select table_schema, sum((data_length+index_length)/1024/1024) M from information_schema.tables where table_schema is not null group by table_schema;
-   select * from students where Age > 30 into outfile ‘/tmp/stud.txt' ;  #导出文件
-    mysql> load data infile '/tmp/stud.txt' into table students;   #导入文件
-查询
-	show grants for 'root'@'localhost';      #查询用户权限
-	show variables like '%max_connections%';   #查询最大连接数
-查询连接数
-show status like 'Threads%';
-	Threads_cached : 代表当前此时此刻线程缓存中有多少空闲线程。
-	Threads_connected :代表当前已建立连接的数量，因为一个连接就需要一个线程，所以也可以看成当前被使用的线程数。
-	Threads_created :代表从最近一次服务启动，已创建线程的数量。
-	Threads_running :代表当前激活的（非睡眠状态）线程数。并不是代表正在使用的线程数，有时候连接已建立，但是连接处于sleep状态，这里相对应的线程也是sleep状态。
+	xtrabackup
+		https://www.percona.com/doc/percona-xtrabackup/8.0/index.html#user-s-manual #使用手册
+		wget https://repo.percona.com/yum/release/7/RPMS/x86_64/qpress-11-1.el7.x86_64.rpm
+		yum  localinstall    qpress.rpm
+		全量备份并压缩
+		xtrabackup  --defaults-file=/etc/my.cnf  --host=192.168.110.39 --user=root --password=pass --socket=/tmp/mysql.sock   --port=3306  --backup --compress  --target-dir=/root/trabak
+		xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
+		xtrabackup  --prepare   --target-dir=/root/traback  
+		xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
+
+	查询数据库空间（M 兆）
+			select sum((data_length+index_length)/1024/1024) m from information_schema.tables where table_schema="dbname";
+			select table_schema, sum((data_length+index_length)/1024/1024) M from information_schema.tables where table_schema is not null group by table_schema;
+			select * from students where Age > 30 into outfile ‘/tmp/stud.txt' ;  #导出文件
+				mysql> load data infile '/tmp/stud.txt' into table students;   #导入文件
+		查询
+				show grants for 'root'@'localhost';      #查询用户权限
+				show variables like '%max_connections%';   #查询最大连接数
+		查询连接数
+			show status like 'Threads%';
+				Threads_cached : 代表当前此时此刻线程缓存中有多少空闲线程。
+				Threads_connected :代表当前已建立连接的数量，因为一个连接就需要一个线程，所以也可以看成当前被使用的线程数。
+				Threads_created :代表从最近一次服务启动，已创建线程的数量。
+				Threads_running :代表当前激活的（非睡眠状态）线程数。并不是代表正在使用的线程数，有时候连接已建立，但是连接处于sleep状态，这里相对应的线程也是sleep状态。
 
 
