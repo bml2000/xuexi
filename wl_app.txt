@@ -1846,12 +1846,36 @@ mysqlbinlog
 	mysqlbinlog -o 10 node1_bin.000001  # 调过N条 
 
 binlog  保留时间设置
-    show variables like 'expire_log%'; 
-	flush logs
+		show variables like 'expire_log%';  #临时设置
+		flush logs      #滚动第一个日志
+	/etc/my.cnf 
+	    expire_logs_days = 7     #永久设置 保留7天
+	  
+mysql 备份
+    mysqldump -h 192.168.0.76 -p -P 6033  --all-databases > /data/pzdbbak.db
+	mysqldump -uroot  -p --single-transaction --master-data=2 --databases hellodb > /backup/hellodb_`date +%F`.sql
+		--single-transaction: 基于此选项能实现热备InnoDB表；因此，不需要同时使用--lock-all-tables；
+		--master-data=2  记录备份那一时刻的二进制日志的位置，并且注释掉，1是不注释的
+		--databases hellodb 指定备份的数据库
+	查看备份的position
+数据库还原前处理
+    mysql>  set  sql_log_bin =0   # 关闭binlog记录
+	        flush logs            #生成新的log日志文件
+			source  /root/db_backup.db   #还原数据库
+            source  /root/db_backup_inc.sql  # 还原增量备份
+			set  sql_log_bin =1  # 开启binlog记录
+	mysqlbinlog --start-position=15694 --stop-position=15982  \              #增量备份
+			/mydata/data/mysql-bin.000013 > /backup/hellodb_`date +$F_%H`.sql
 
 查看数据库字符集和字符序
 	use test_schema; 
 	SELECT @@character_set_database, @@collation_database; 
+
+	character_set_client      为客户端编码方式；
+	character_set_connection  为建立连接使用的编码；
+	character_set_database    为数据库的编码；
+	character_set_results     为结果集的编码；
+	character_set_server      为数据库服务器的编码；
 新建数据库	
 	CREATE DATABASE IF NOT EXISTS test_db_char 
     -> DEFAULT CHARACTER SET utf8
@@ -1866,6 +1890,19 @@ xtrabackup
    xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
    xtrabackup  --prepare   --target-dir=/root/traback  
    xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
-
+查询数据库空间（M 兆）
+   select sum((data_length+index_length)/1024/1024) m from information_schema.tables where table_schema="dbname";
+   select table_schema, sum((data_length+index_length)/1024/1024) M from information_schema.tables where table_schema is not null group by table_schema;
+   select * from students where Age > 30 into outfile ‘/tmp/stud.txt' ;  #导出文件
+    mysql> load data infile '/tmp/stud.txt' into table students;   #导入文件
+查询
+	show grants for 'root'@'localhost';      #查询用户权限
+	show variables like '%max_connections%';   #查询最大连接数
+查询连接数
+show status like 'Threads%';
+	Threads_cached : 代表当前此时此刻线程缓存中有多少空闲线程。
+	Threads_connected :代表当前已建立连接的数量，因为一个连接就需要一个线程，所以也可以看成当前被使用的线程数。
+	Threads_created :代表从最近一次服务启动，已创建线程的数量。
+	Threads_running :代表当前激活的（非睡眠状态）线程数。并不是代表正在使用的线程数，有时候连接已建立，但是连接处于sleep状态，这里相对应的线程也是sleep状态。
 
 
