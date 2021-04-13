@@ -1852,6 +1852,10 @@ ELK +　　kafka
 			expire_logs_days = 7     #永久设置 保留7天
 		
 	mysql 备份
+	    备份前需要运行：
+		     flush tables with read lock;    # 施加锁，表示把位于内存上的表统统都同步到磁盘上去
+			 unlock tables；  #解锁
+	 
 		mysqldump -h 192.168.0.76 -p -P 6033  --all-databases > /data/pzdbbak.db
 		mysqldump -uroot  -p --single-transaction --master-data=2 --databases hellodb > /backup/hellodb_`date +%F`.sql
 			--single-transaction: 基于此选项能实现热备InnoDB表；因此，不需要同时使用--lock-all-tables；
@@ -1888,6 +1892,10 @@ ELK +　　kafka
 		yum  localinstall    qpress.rpm
 		全量备份并压缩
 		xtrabackup  --defaults-file=/etc/my.cnf  --host=192.168.110.39 --user=root --password=pass --socket=/tmp/mysql.sock   --port=3306  --backup --compress  --target-dir=/root/trabak
+		xtrabackup --user=root --password=123456 --defaults-file=/etc/my.cnf --database=zztx --stream=tar /data/back_data/ 2>/data/back_data/zztx.log | gzip     1>/data/back_data/zztx.tar.gz
+			--database=zztx 单独对zztx数据库做备份 ，若是不添加此参数那就那就是对全库做备份
+      		2>/data/back_data/zztx.log  输出信息写入日志中
+      		1>/data/back_data/zztx.tar.gz 打包压缩存储到该文件中
 		xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
 		xtrabackup  --prepare   --target-dir=/root/traback  
 		xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
