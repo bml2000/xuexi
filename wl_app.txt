@@ -1,4 +1,43 @@
 
+
+常规设置：
+yum provides ifconfig 或者 #可以查询到对应的软件包为 net-tools
+yum whatprovides ifconfig  #可以查询到对应的软件包为 net-tools
+
+curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+yum clean all
+yum makecache
+
+yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools zip unzip lsof iptables -y ipcutils
+
+yum install  vim iotop bc gcc gcc-c++ glibc glibc-devel pcre \
+pcre-devel openssl  openssl-devel zip unzip zlib-devel  net-tools \
+lrzsz tree ntpdate telnet lsof tcpdump wget libevent libevent-devel \
+bc  systemd-devel bash-completion traceroute -y iptables
+
+timedatectl set-timezone Asia/Shanghai
+ntpdate time1.aliyun.com
+yum  update
+ntpdat  time1.aliyun.com  # 同步时间服务器
+echo "00 */1 * * * root /usr/sbin/ntpdate time1.aliyun.com;hwclock -w" >> /etc/crontab
+
+timedatectl  
+localectl
+#升级内核
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+yum --enablerepo=elrepo-kernel  list  --showduplicates  |grep kernel*
+yum --enablerepo=elrepo-kernel  list   |grep kernel*
+yum --enablerepo=elrepo-kernel install -y kernel-ml kernel-ml-devel # mail 主线最新版本
+yum --enablerepo=elrepo-kernel install -y kernel-lt kernel-lt-devel  #长期支持版本
+
+grubby  --info=ALL  # 查看grub启动信息
+grubby  --default-index #查看默认启动
+grubby --set-default-index 0  #设置默认启动
+
+
+
 ---------------------------------pip ------------------------------
 pip  sources:
 https://pypi.tuna.tsinghua.edu.cn/simple/ # 清华大学
