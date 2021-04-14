@@ -1,4 +1,5 @@
 
+find / -name "*.qp" | xargs  rm -rfv  # 查找后缀 .qp 等文件并删除
 
 常规设置：
 yum provides ifconfig 或者 #可以查询到对应的软件包为 net-tools
@@ -1935,10 +1936,19 @@ ELK +　　kafka
 			--database=zztx 单独对zztx数据库做备份 ，若是不添加此参数那就那就是对全库做备份
       		2>/data/back_data/zztx.log  输出信息写入日志中
       		1>/data/back_data/zztx.tar.gz 打包压缩存储到该文件中
-		xtrabbackup  --depress  --target-dir=/root/traback  #解压缩
+		xtrabbackup  --decompress  --target-dir=/root/traback  #解压缩
+		xtrabackup --decompress --remove-original --target-dir=/root/trabak_p1  #解压并删除原压缩文件
 		xtrabackup  --prepare   --target-dir=/root/traback  
 		xtrabackup   --host=192.168.110.39 --user=root --password=pass   --port=3306  --datadir=/data1  --copy-back  --target-dir=/root/trabak  # 全量还原
-
+		增量备份：
+		xtrabackup --defaults-file=/etc/my.cnf --host=172.16.1.52 --user=root --password=xxxyyy --port=3310 --backup --parallel=3 --target-dir=/data/backup/
+		xtrabackup --defaults-file=/etc/my.cnf --host=172.16.1.52 --user=root --password=xxxyyy --port=3310 --backup --parallel=3 --target-dir=/data/backupIncr  --incremental-basedir=/data/backup
+		增量还原：
+		systemctl  stop mysql  #停数据库
+        xtrabackup --prepare --apply-log-only --target-dir=/data/backup
+		xtrabackup --prepare --apply-log-only --target-dir=/data/backup  --incremental-dir=/data/backupIncr
+		xtrabackup --host=172.16.1.52 --user=root --password=xxxyyy --port=3310 --datadir=/data/crm --copy-back --target-dir=/data/backup/
+ 
 	查询数据库空间（M 兆）
 			select sum((data_length+index_length)/1024/1024) m from information_schema.tables where table_schema="dbname";
 			select table_schema, sum((data_length+index_length)/1024/1024) M from information_schema.tables where table_schema is not null group by table_schema;
