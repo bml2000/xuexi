@@ -10,7 +10,7 @@ curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-
 yum clean all
 yum makecache
 
-yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools zip unzip lsof iptables -y ipcutils
+yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools zip unzip bzip2 lsof iptables -y ipcutils
 
 yum install  vim iotop bc gcc gcc-c++ glibc glibc-devel pcre \
 pcre-devel openssl  openssl-devel zip unzip zlib-devel  net-tools \
