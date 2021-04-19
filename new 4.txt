@@ -1,0 +1,32 @@
+cenots7
+
+http://mirrors.163.com/.help/CentOS7-Base-163.repo
+
+
+
+yum install  vim iotop bc gcc gcc-c++ glibc glibc-devel pcre \
+pcre-devel openssl  openssl-devel zip unzip zlib-devel  net-tools \
+lrzsz tree ntpdate telnet lsof tcpdump wget libevent libevent-devel \
+bc  systemd-devel bash-completion traceroute
+
+
+yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools unzip lsof iptables -y 
+
+
+
+
+
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+yum --disablerepo "*" --enablerepo "elrepo-kernel" list available
+yum --enablerepo=elrepo-kernel install kernel-ml	kernel-ml-devel
+
+
+grubby --info=ALL
+4.	查看默认执行内核
+grubby --default-kernel  -查看默认内核
+grubbu  --default-index  -查看启动顺序号
+5.	设置默认启动号
+grub2-set-default=1  -设置启动顺序号
+6. 删除旧内核（可选）
+内核有两种删除方式：通过 yum remove 命令或通过 yum-utils 工具。
