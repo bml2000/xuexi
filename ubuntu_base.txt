@@ -151,7 +151,7 @@ crontab  -e   #编辑计划任务
 sudo visudo ，打开 visudo；
 找到 %sudo ALL=(ALL:ALL) ALL 这⼀⾏修改为 %sudo ALL=(ALL:ALL) NOPASSWD:ALL
 #基本安装
-yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools unzip lsof iptables -y 
+yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools unzip lsof iptables -y ipcutils  sysstat dstat 
 
 ************************ 安装包管理  **************************************************
 
