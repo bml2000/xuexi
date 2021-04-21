@@ -1963,5 +1963,25 @@ ELK +　　kafka
 				Threads_connected :代表当前已建立连接的数量，因为一个连接就需要一个线程，所以也可以看成当前被使用的线程数。
 				Threads_created :代表从最近一次服务启动，已创建线程的数量。
 				Threads_running :代表当前激活的（非睡眠状态）线程数。并不是代表正在使用的线程数，有时候连接已建立，但是连接处于sleep状态，这里相对应的线程也是sleep状态。
+mysq  查询状态：
+		show full processlist   # 查询进程状态
+		show status            # 查询sql 状态
+		check  table  [tables]  #检查表
+		repair  table  [talbe]  #修复表
+        optimize table [table]  #优化表
+
+		mysqladmin -uroot -p  -h  192.168.1.11 status   #查询状态
+		mysqlcheck  -u root -p  -c --database DB1   #检查数据库
+		                       	A, –all-databases 表示所有库
+								-a, –analyze 分析表
+								-o, –optimize 优化表
+								-r, –repair 修复表错误
+								-c, –check 检查表是否出错
+								–auto-repair 自动修复损坏的表
+								-B, –databases 选择多个库
+								–auto-repair  自动修复
+		mysqlcheck -c DB1 table  -uroot -p  #检查指定数据库的表
+		
+
 
 
