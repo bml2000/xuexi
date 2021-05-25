@@ -12,6 +12,36 @@ yum makecache
 
 yum  install  wget  vim   ntpdate   lrzsz  bash-completion net-tools zip unzip bzip2 lsof iptables -y ipcutils
 
+#宝塔要安装的包：
+libcurl-devel wget tar zip unzip openssl openssl-devel gcc libxml2 libxml2-devel libxslt* zlib zlib-devel
+ libjpeg-devel libpng-devel libwebp libwebp-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron 
+ crontabs icu libicu-devel c-ares libffi-devel bzip2-devel ncurses-devel sqlite-devel readline-devel tk-devel
+ gdbm-devel db4-devel libpcap-devel xz-devel
+
+#尝试同步时间(从bt.cn)
+        echo 'Synchronizing system time...'
+        getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/index/get_time)
+        if [ "${getBtTime}" ];then
+                date -s "$(date -d @$getBtTime +"%Y-%m-%d %H:%M:%S")"
+        fi
+
+        if [ -z "${Centos8Check}" ]; then
+                yum install ntp -y
+                rm -rf /etc/localtime
+                ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+                #尝试同步国际时间(从ntp服务器)
+                ntpdate 0.asia.pool.ntp.org
+                setenforce 0
+        fi
+        startTime=`date +%s`
+关闭 selinux
+        sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+		
+
+
+
+
 yum install  vim iotop bc gcc gcc-c++ glibc glibc-devel pcre \
 pcre-devel openssl  openssl-devel zip unzip zlib-devel  net-tools \
 lrzsz tree ntpdate telnet lsof tcpdump wget libevent libevent-devel \
@@ -1925,6 +1955,9 @@ ELK +　　kafka
 		CREATE DATABASE IF NOT EXISTS test_db_char 
 		-> DEFAULT CHARACTER SET utf8
 		-> DEFAULT COLLATE utf8_general_ci;
+	#创建临时表
+	DROP TABLE IF EXISTS `wl_ognid_lasteday`;
+    create temporary table  wl_ognid_lasteday select ..  from ...
 
 	xtrabackup
 		https://www.percona.com/doc/percona-xtrabackup/8.0/index.html#user-s-manual #使用手册
