@@ -57,11 +57,15 @@ timedatectl
 localectl
 #升级内核
 rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-5.el7.elrepo.noarch.rpm
 yum --enablerepo=elrepo-kernel  list  --showduplicates  |grep kernel*
 yum --enablerepo=elrepo-kernel  list   |grep kernel*
 yum --enablerepo=elrepo-kernel install -y kernel-ml kernel-ml-devel # mail 主线最新版本
 yum --enablerepo=elrepo-kernel install -y kernel-lt kernel-lt-devel  #长期支持版本
+
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+yum install https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
+yum --enablerepo=elrepo-kernel install kernel-ml
 
 grubby  --info=ALL  # 查看grub启动信息
 grubby  --default-index #查看默认启动
@@ -1817,7 +1821,7 @@ ELK +　　kafka
 	    mysqladmin  -u root -p password   # 更改密码
 	    mysql -u root -p    #登陆mysql
 		   create user root@'%' identified by 'pass';
-		   alteruser  root@'%' identified with mysql_native_password by 'pass';  #设置native 密码
+		   alter user  root@'%' identified with mysql_native_password by 'pass';  #设置native 密码
 		   grant all privileges on *.* to root@'%';   #设置权限
 		   flush privileges;
 		   \q                        #退出
@@ -2018,3 +2022,129 @@ mysq  查询状态：
 
 
 
+ceph:
+		curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		
+		wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		yum  install epel-release  wget  vim   ntpdate   lrzsz  bash-completion net-tools zip unzip bzip2 lsof iptables -y ipcutils
+		
+		wget https://mirrors.aliyun.com/ceph/rpm-mimic/el7/noarch/ceph-release-1-1.el7.noarch.rpm
+		yum localinstall  ceph-release-1-1.el7.noarch.rpm -y
+		yum  clean all
+		yum  makecache
+		
+		       
+		yum  update		
+		timedatectl set-timezone Asia/Shanghai
+		ntpdate time1.aliyun.com
+		echo "00 */1 * * * root /usr/sbin/ntpdate time1.aliyun.com;hwclock -w" >> /etc/crontab
+		
+		yum install ceph-deploy python-setuptools  python2-subprocess32 -y
+		
+		useradd  cephadmin
+		passwd cephadmin
+		/etc/sudoers.d/cephadmin 
+		   cephadmin  ALL=(root)  NOPASSWD: ALL
+		scp   /etc/sudoers.d/cephadmin   root@centos52:/etc/sudoers.d/
+		
+		su -cephadmin
+		ssh-keygen -t rsa  -P  ''
+		ssh_copy_id   cephadmin@centos52
+		
+		cd ~  （/home/cephadmin)
+		mkdir   ceph-cluster
+		ceph-deploy  install centos52 centos53 centos54 centos55
+		or:
+		yum  install ceph  ceph-redosgw  -y   ( centos 52-55  yum install )
+		
+		centos51:
+		yum  install ceph-common   （admin  安装 client命令）
+		
+		cephadmin 用户下：
+		cd /home/cephadmin/ceph-cluster
+		ceph-deploy new --cluster-network 192.168.110.0/24 --public-network 192.168.120.0/24  centos52
+		
+		ceph-deploy  install  --no-adjust-repos  centos52 centos52 centos54 centos55
+				
+		ceph-deploy mon create-initial
+		ceph-deploy admin  centos51 centos52 centos53 centos54 centos55  (copy  key and config to client)
+		
+		sudo setfacl -m u:cephadmin:rw /etc/ceph/ceph.client.admin.keyring  (每个client要设置权限）
+		ceph-deploy mon  add   centos54
+	    ceph-deploy mgr create  centos54
+		ceph-deploy mgr create centos53
+		
+		ceph -status   (查看状态）
+		
+		ceph-deploy disk  list  centos51 centos52 centos53  centos54 centos55
+		ceph-deploy disk zip centos52 /dev/sdb
+		ceph-deploy disk zip centos52 /dev/sdc
+		
+		ceph-deploy osd create --data  /dev/sdb  centos52
+		ceph-deploy osd create --data  /dev/sdc  centos52
+		
+		ceph-deploy  
+		ceph-deploy mon add  centos53 centos54
+		
+		
+		ceph  osd  pool  create  mypool  32 32 
+		ceph  osd pool ls
+		ceph  osd lspools  查看pool 池
+		ceph quorum_status --f json-pretty  （查看成员状态）
+		
+		ceph  osd  map mypool   xxxx
+		ceph os  rm pool  mypool  mypool --yes-i-really-really-mean-it
+        ceph quorum_status -f json-pretty  (查看状态）
+		ceph osd pool get mypool size  （查看副本数量）
+        ceph health detail
+		ceph osd pool  applicatin  eanble mypool
+        ceph osd pool application enable mypool1 mypool1  --yes-i-really-mean-it rbc    (对pool 进行应用分类）
+
+		
+		
+		
+		rados  put   xxx  /etc/xxx  -p mypool
+		rados ls -p  mypool
+		rados  get  xxx  /xxx   -p  mypool
+		rados  rm  xxx -p  mypool
+		
+		rbd create -p mypool  --image  imageaaaa.img --sieze  5G  
+		rbd -p mypool ls 
+		rbd -p mypool ls -l
+		rbd -p  mypool  info  imageaaaa.imge
+		rbd resize -p mypool --image imagdx.img  -s 6G   （更改大小）
+		rbd  rm -p  mypool   imagexx.img
+
+	
+		rbd showmapped
+
+		
+		
+    	 rbd -p mypool --image imagdx.img feature disable deep-flatten
+		 rbd -p mypool --image imagdx.img feature disable fast-diff
+		 rbd -p mypool --image imagdx.img feature disable object-map
+		 rbd -p mypool --image imagdx.img feature disable exclusive-lock
+
+         rbd map  -p mypool  --image  imagdx.img
+         rbd showmapped
+         rbd unmap  /dev/rbd0
+         ceph osd pool application enable mypool mypool  --yes-i-really-mean-it
+ 
+        resize2fs    (扩容文件系统）
+		 
+		
+		
+		
+		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		ceph-deploy  install  
