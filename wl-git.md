@@ -4,6 +4,7 @@
     - git config -e [--global]
     - git config  user.name "name“  
     - git config  user.email "email address"
+	
 2. 配置全局用户信息
     - git config -global  user.name "username"
     - git config -global  user.email "email addressw"
@@ -28,6 +29,8 @@
 	- git add file file
 	- git add dir
 	- git add .
+	- git add  -A   dir     # A= --all
+	- git add --all  dir     #将目录下的全部文件加入
 	- git add -p  
 	- git rm  file
 	- git rm -f  file
@@ -53,6 +56,7 @@
 	- git remote -v   		            	查看
 	- git remote add origin branch			添加远程仓库链接
 	- git remote remove 					删除远程仓库链接
+	- git remote rename    					改名远程仓库链接
 13. 分支处理
 	
 	- git switch name 				转换分支
