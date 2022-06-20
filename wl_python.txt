@@ -470,3 +470,138 @@ mysql -u root -p   #登陆mysql
 grant all privileges on *.* to root@'%' identified by 'pass';
 flush privileges;
 \q
+
+======================PYTHON:   迭代器-生成器-装饰器=========================================
+PYTHON:   迭代器-生成器-装饰器
+
+# #迭代器
+from ast import arg
+from collections.abc import Iterable
+from xml.dom.expatbuilder import InternalSubsetExtractor
+
+from numpy import iterable
+
+mylist=[1,2,3,4,5]
+for i in mylist:
+    print(i)
+
+#Iterable     Iter
+#能够被迭代的 : 序列，  list tuple  string  set dict bytes
+
+print(isinstance(mylist , Iterable))
+print(isinstance('string' , Iterable))
+print(isinstance(123 , Iterable))
+
+mylsit=[1,2,3,4,5]
+it=iter(mylist)
+print(next(it))
+print(next(it))
+print(next(it))
+
+#生成器  ()  generator
+#边迭代， 边输出
+gen=(x for x in range(1,4000000000))
+print(isinstance(gen,Iterable))
+print(next(gen))
+print(next(gen))
+print(next(gen))
+#斐波那契数列
+def fib(n):
+    a , b = 0,1
+    count=0
+    res=[]
+    while True:
+        if count> n :
+            break
+        res.append(a+b)
+        a,b = b, a+b
+        count +=1
+    return res
+print(fib(10))
+
+
+def fib(n):
+    a,b=0,1
+    count=0
+    while True:
+        if count > n:
+            break
+        yield a +b    
+        a ,b =b , a+b
+        count +=1
+
+gen=fib(10)
+for i in gen:
+    print(i)
+
+gen=fib(10000000)
+for i in gen:
+    if i> 1000:
+        break
+    print(i)
+
+
+#装饰器
+def check(fun):
+    def wapper(*args,**kwargs):
+        print('this is check')
+        fun(*args,**kwargs)
+    return wapper
+
+def check1(fun):
+    def wapper():
+      fun()
+      print('this is check11')
+    return wapper
+
+# @check1
+@check
+def  fun1(x):
+    print('this is fun1',x)
+@check
+def  fun2(x,y,**kwargs):
+    print('this is fun2',x,y)
+    print(kwargs)
+@check1
+def  fun3():
+    print('this si print3')
+
+a='ooooooooooo'
+fun1(a)
+fun2('aa','bb',a=1,b=2,c=3)
+fun3()
+
+
+
+========================== python  列表推导式======================
+res=[]
+for i in range(1,11):
+    if  i % 2 ==0 :
+        res.append(i**2)
+print(res)
+
+# res=[x ** 2 for  x in range(1,11)]
+res=[x ** 2 for  x in range(1,11) if x % 2 ==0]
+print(res)
+
+res=[x for x in "python"]
+res=[x + y for x in "python" for y in '123']
+print(res)
+
+
+res =tuple(x **2  for x in range(1,11) if i %2 ==0)
+print(res)
+
+#dict
+dic={x:x**2 for x in range(1,11)}
+print(dic)
+#set
+
+ss={x for x in range(1,11)}
+print (ss)
+ss1={x for x in 'abc123abc'}
+print(ss1)
+ss2=[x for x in 'abc123abc']
+print(ss2)
+
+

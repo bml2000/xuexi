@@ -1,3 +1,8 @@
+centos7  最小安装推荐：
+yum -y install vim-enhanced tcpdump lrzsz tree telnet bash-completion net-tools wget bzip2 
+lsof tmux man-pages zip unzip nfs-utils gcc make gcc-c++ glibc glibc-devel pcre pcre-devel 
+openssl  openssl-devel systemd-devel zlib-devel
+
 
 find / -name "*.qp" | xargs  rm -rfv  # 查找后缀 .qp 等文件并删除
 

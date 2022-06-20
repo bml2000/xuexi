@@ -1312,7 +1312,8 @@ http://blogs.studylinux.net
     reinstall	
 	remove
 	repolist  [all]   #查看可用的源 全部源
-	clean all  # 删除缓存
+	clean all	# 删除缓存
+	makecache   #生成缓存
 	provides command  # 查看命令对应的包名
 	info               # 查看包信息
 	check-update      #检查所有可更新包
