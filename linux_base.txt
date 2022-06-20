@@ -220,14 +220,17 @@ http://blogs.studylinux.net
         iptables -L  
     清除规则    
         iptables -F
-        
+     
+    查看规则：
+		iptables -nvL  --line-number    # 显示行号和端口号及详情
+       	
     system-config-firewall-tui 图形界面设置防火墙
     
     设置实例
         iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
         service iptables save
 
-    iptables 配置文件位置： /etc/sysconfig/iptables-config
+    iptables 配置文件位置： /etc/sysconfig/iptables  iptables/  iptables-config
         保存： iptables-save
         恢复： iptables-restore
         4个表  -t： filter、nat、mangle、raw 
@@ -260,6 +263,8 @@ http://blogs.studylinux.net
         iptables -P OUTPUT DROP  
         [root@centos0176 wl]# iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 10050 -j ACCEPT
         [root@centos0176 wl]# iptables-save
+		iptables-server  >iptables.cfg   #backup
+		iptables-resotre <iptables.cfg   #restore
               
 7. selinux：
     配置文件： /etc/sysconfig/seLinux
@@ -280,6 +285,21 @@ http://blogs.studylinux.net
         systemctl status  firewalld
         systemctl enable  firewalld  -开机启动
         systemctl  disable firewalld
+		firewall-cmd  --get-zones  # 查看zone 名
+		firewall-cmd  --get-default-zone   # 当前的zone
+		firewall-cmd  --set-default-zone=work  #设置zone
+		firewall-cmd  --get-services   # 当前zone下的全部服务
+		firewall-cmd --zone=public  --list-services  #zone 下的服务
+		firewall-cmd  --zone=public --add-service=https  # 添加service
+		firewall-cmd  --zone=public  --remove-service=http  #删除service
+		配置模版： /usr/lib/firewalld/services
+		运行的服务：  /etc/firwalld/services
+		firewall-cmd --get-zone-of-interface=ens33  #查看网卡所在zone
+		firewall-cmd --get-active-zone #查看系统网卡所在的zone
+		firewall-cmd --zone=dmz  --change-interface=ens37  #将万科放到dmz的zone中
+		firewall-cmd  --zone=dmz  --add-interface=lo  #设置网卡到zone中
+		firewall-cmd  --zone=dmz  --remove-interface=lo  #删除zone中的网卡
+		
         firewall-cmd --help 帮助
         firewall-cmd --zone=public --add-port=80/tcp --permanent 设置防火墙永久打开80 端口
         firewall-cmd --reload                                       更新防火墙规则
@@ -290,6 +310,8 @@ http://blogs.studylinux.net
         firewall-cmd --zone= public --remove-port=80/tcp --permanent  删除规则拒绝所有包：firewall-cmd --panic-on
         firewall-cmd --panic-off 取消拒绝状态： 
         firewall-cmd --query-panic 查看是否拒绝
+		firewall-cmd --reload   重新加载
+		
 
         
      
@@ -369,6 +391,9 @@ http://blogs.studylinux.net
 		或者
 		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 		之后运行yum makecache生成缓存
+		
+		wget http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+		yum  localinstall  remi-release-7.repm
 	
         /etc/yum.conf
             • 各仓库文件的公共配置，或者不属于仓库的配置，格式如下：
@@ -1277,3 +1302,28 @@ http://blogs.studylinux.net
      mput  *   # upload
      mget  *   # download
      bye       #close
+	
+32. dnf   包管理
+    
+	search   #查找
+	list  all [installed]  [available]   #显示全部包、  已安装包 可安装的包
+	update
+	install  
+    reinstall	
+	remove
+	repolist  [all]   #查看可用的源 全部源
+	clean all  # 删除缓存
+	provides command  # 查看命令对应的包名
+	info               # 查看包信息
+	check-update      #检查所有可更新包
+	upgrade           #升级包
+	autoremove        #删除无用的依赖吧
+	grouplist
+	groupinstall
+	groupremove
+	groupupdate 
+	dnf –enablerepo=epel install phpmyadmin    #指定源安装包
+	dnf distro-sync   #更新到稳定版本
+	
+	
+	
