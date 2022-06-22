@@ -1326,5 +1326,11 @@ http://blogs.studylinux.net
 	dnf –enablerepo=epel install phpmyadmin    #指定源安装包
 	dnf distro-sync   #更新到稳定版本
 	
+33. chrony
+    systemctl  start chronyd
+	systemctl  enable chronyd
+	/etc/chrony.conf 
+	    server  npt1.aliyuncom
+	
 	
 	
