@@ -471,6 +471,216 @@ grant all privileges on *.* to root@'%' identified by 'pass';
 flush privileges;
 \q
 
+
+===============  配置文件 的使用 =============================
+1. JSON：                       #json 配置读取
+config.json
+{
+    "db":{
+        "host": "192.168.110.39",
+        "user": "root",
+        "password": "pass",
+        "port": 3306,
+        "database": "db1"
+    }
+}
+
+config_json_load.py
+import json
+import pymysql
+from pprint import pprint
+with  open ('./config.json') as j:
+    cfg = json.load(j)['db']
+con= pymysql.connect(**cfg)
+cursor=con.cursor()
+sqltxt = 'select * from tb1'
+cursor.execute(sqltxt)
+print(cursor.fetchall())
+cursor.close()
+con.close()
+print(sqltxt)
+
+2. yaml                             #yaml 配置文件读取
+config_yaml.yaml
+mysql:
+  host: "192.168.110.39"
+  port: 3306
+  user: "root"
+  password: "pass"
+  database: "db1"
+
+
+  parameter:
+    pool_size: 5
+    charset: "utf8"
+
+  fields:
+    pandas_cols: 
+      - id
+      - name
+      - age
+      - date
+	
+config_yaml_load.py
+import os
+import yaml
+import pymysql
+from pprint import pprint
+with open(os.path.expanduser('./config.yaml'),'r') as config:
+    cfg = yaml.safe_load(config)
+pprint(cfg)
+
+3. ini                          #ini  配置读取
+config.ini
+[db]
+host     = 192.168.110.39
+user     = root
+password = pass
+port     = 3306
+database = db1
+
+config_ini_load.py
+import os
+import yaml
+import pymysql
+from pprint import pprint
+with open(os.path.expanduser('./config.yaml'),'r') as config:
+    cfg = yaml.safe_load(config)
+pprint(cfg)
+
+4. toml                          #toml配置读取
+config.toml
+[mysql]
+host     = "192.168.110.39"
+user     = "root"
+port     = 3306
+database = "db1"
+
+[mysql.parameters]
+pool_size = 5
+charset   = "utf8"
+
+[mysql.fields]
+pandas_cols = [ "id", "name", "age", "date"]
+
+config_toml_load.py                    #
+import pymysql
+import toml,os
+from pprint import pprint
+# cfg = toml.load(os.path.expanduser('./configtest.toml'))
+cfg1 = toml.load(os.path.expanduser('./config.toml'))
+cfg1 = toml.load(('./configtest.toml'))
+pprint(cfg)
+pprint(cfg1)
+con= pymysql.connect(**cfg['mysql'])
+cursor=con.cursor()
+sqltxt = 'select * from tb1'
+cursor.execute(sqltxt)
+print(cursor.fetchall())
+cursor.close()
+con.close()
+print(sqltxt)
+
+
+零基础Python手把手学编程课程2020
+https://www.bilibili.com/video/BV1Fg4y1z7eP?p=37&vd_source=7c1f1c685bdbe61dee8088e7b1a39807
+
+
+=====================  数据库操作 ==========
+#  连接数据库，  2  拿到游标  3  操作数据库  4 关闭游标  5 关闭数据库。 
+
+import  sqlite3
+conn= sqlite3.connect('test1.db')
+cursor=conn.cursor()
+try:
+
+    # sql='create table user(id int(11) primary key, name varchar(20))'
+    # sql ="insert into user(id,name) values(4,'王4')"
+    # sql ="select  * from user"
+    sql="update user set name='赵明' where id = 7"
+    cursor.execute(sql)
+    # sql="delete from  user  where id = 1"
+    # cursor.execute(sql)
+
+    sql="select * from user"
+    cursor.execute(sql)
+    result=cursor.fetchall()
+    # print(result)
+    for r  in result:
+        print("我是%d号， 我的名字%s" % r)
+    conn.commit()
+except  Exception as e:
+    conn.rollback()
+finally:
+    cursor.close()
+    conn.close()
+
++++++++   mongodb  +++++
+import  pymongo
+import re
+
+
+pymongo_client = pymongo.MongoClient("mongodb://192.168.110.38:27017")
+pymongo_db= pymongo_client["imocc"]
+pymongo_collection = pymongo_db['pymongo_test']
+
+# data ={
+#     "name": "wal",
+#     "flag":  1,
+#     "url": "www.sina.com"
+# }
+# pymongo_collection.insert_one(data)
+
+# mylist =[
+#     {"name": "aa","flag": "100","url":"www.163.com"},
+#     {"name": "bb", "flag": "101","url":"www.ifeng.com"},
+#     {"name": "cc", "flag":102,"url":"www.qq.com"}
+# ]
+# pymongo_collection.insert_many(mylist)
+#所有数据 2#是过滤
+result= pymongo_collection.find({},{"_id":0,"name":1,"flag":1})
+for item in result:
+    print(item)
+#只查询一条
+# find_one= pymongo_collection.find_one()
+# print(find_one)
+
+# pymongo_collection.delete_one({"url":"www.sina.com"})
+
+#条件过滤
+# result= pymongo_collection.find({"flag":{"$gt":99}},{"_id":0})
+#正则表达式
+result= pymongo_collection.find({"name":{"$regex":"^a"}},{"_id":0,"name":1})
+for item in result:
+    print(item)
+
+#数据更新：
+
+# pymongo_collection.update_one({"name":{"$regex":"^a"}},{"$set":{"name":"baidu"}})
+
+# pymongo_collection.update_many({},{"$set":{"flag":1000}})
+
+++++++++  mysql  +++++
+#  连接数据库，  2  拿到游标  3  操作数据库  4 关闭游标  5 关闭数据库。 
+
+import  pymysql
+conn= pymysql.connect(host='192.168.110.39',user='root',password='pass',database='testdb')
+cursor=conn.cursor()
+aa=(20,"网络")
+
+sql='insert into user(id,name) values(%s,%s)'
+print(sql)
+
+cursor.execute(sql,aa)
+
+conn.commit()
+
+cursor.close()
+conn.close()
+
+
+
+
 ======================PYTHON:   迭代器-生成器-装饰器=========================================
 PYTHON:   迭代器-生成器-装饰器
 
@@ -604,4 +814,546 @@ print(ss1)
 ss2=[x for x in 'abc123abc']
 print(ss2)
 
+
+=================  python  匿名表达式 ======================
+# 匿名表达式 lambda
+def add(x,y):
+    #语句块
+    return x+y
+print(add(5,6))
+
+f=lambda x,y : x+y
+print(f(1,2))
+
+f= lambda x,y: x if x>y else y
+print(f(7,5))                                                                                                                                                                                                                                                                                                                                          
+
+#三目表达式
+#  x > y ?  x: y  
+
+#sorted
+# 排序  sorted
+my_list=[1,2,3,1,3,3,5,1]
+print(sorted(my_list))
+
+
+mylist= [
+    ('a', 2),
+    ('b',  5),
+    ('c', 1)
+]
+print(mylist)
+print(sorted(mylist,key=lambda x: x[1] ))
+print(sorted(mylist,key=lambda x: x[1] ,reverse=True))
+
+#高阶函数
+mylist= [1,2,3,4,5,6]
+res=[]
+for i in mylist:
+    res.append(i**2)
+print(res)
+#map 映射 结合 lambda
+res=map(lambda x: x**3 , mylist)
+print(type(res))
+print(res)
+print(list(res))
+
+mylist1= [1,2,3,4,5,6]
+mylist2= [1,2,3,4,5,6]
+res=map(lambda x,y: x+y, mylist1,mylist2)
+print(list(res))
+
+
+from  functools  import reduce
+#reduce 规约
+mylist1= [1,2,3,4,5,6]
+res=reduce(lambda x,y: x+y , mylist)
+print(res)
+# 1+.. 100 sumer
+res=0
+for i in range(1,101):
+    res +=i
+print(res)
+
+from  functools import reduce
+
+res=0
+res=reduce(lambda x,y : x+y, range(1,101))
+res=reduce(lambda x,y : x+y, range(1,101,199))
+print(res)
+
+mylist=['1','2','3','4','5']
+vmylist=['1','2','3','4','5']
+res=0
+res=reduce(lambda x,y: x+y ,range(1,101),200)
+print(res)
+mylist=['1','2','3','4','5']
+res=reduce(lambda x,y: x+y ,mylist,'aaa')
+print(res)
+
+#高阶函数   过滤 filter
+my_list=[1,2,3,1,3,3,5,1]
+res=[]
+res=filter(lambda x : True if x !=1 else False,my_list)
+print(list(res))
+
+===============  file   文件操作  ===============
+import sys
+import os
+from posixpath import split
+# print(os.system('ipconfig'))
+print(os.getcwd())
+file1=os.getcwd()+'/py3.py'
+file='py31.py'
+print(os.path)
+print(os.path.split(file1))
+print(os.path.isabs(file))
+print(os.path.exists(file))
+# os.mkdir('test')
+# os.system('cd d:\\')
+# print(os.environ.split(';'))
+# print(os.getcwd())
+
+print(sys.version)
+print(sys.platform)
+print(sys.copyright)
+print(sys.maxsize)
+print(sys.argv)
+print(sys.path)
+# sys.exit(0)
+print(sys.getdefaultencoding())
+print(sys.getfilesystemencoding())
+print(sys.getrecursionlimit())
+sys.setrecursionlimit(200)
+print(sys.getrecursionlimit())
+
+def recuFunc(i):
+    print(i)
+    recuFunc(i+1)
+
+recuFunc(1)
++++
+
+
+
+# with open ('data_cn.txt','w',encoding='utf-8') as file:
+#     file.write('我爱python')
+
+# with open('data_cn.txt','r',encoding='utf-8') as  file:
+#     print(file.read())
+
+import  os
+import  shutil
+print(os.getcwd())
+dirpath= r'd:\dirdemo'
+# if not os.path.exists(dirpath):
+#     os.mkdir(dirpath)
+# else:
+#     os.rmdir(dirpath)
+
+filenames= os.listdir(os.getcwd())
+# for fname in filenames:
+#     print(fname)
+for dirpath,subdirs,files in os.walk(os.getcwd()):
+    for name in subdirs:
+        print("dir",os.path.join(dirpath,name))
+    for name in files:
+        print("wenj",os.path.join(dirpath,name))# r  read  
+
+
+# w write 
+# a+  读写
+
+# file = open('d:\\data.txt','r')
+# file = open('d:/data.txt','r')
+file = open(r'd:/data.txt','r')
+file.seek(6)
+print(file.readable())
+print(file.writable())
+data=file.read(6)
+
+data=file.readline()
+while data:
+   print(data, end='')
+   data=file.readline()
+
+datas=file.readlines()
+print(type(datas))
+for line  in datas:
+    print(line,end='')
+file.close()
+
+with open ('file_write.txt','a') as file:
+    # data ='hell python\n'
+    # file.write(data)
+    # data ='i am snipe'
+    # file.write(data)
+
+    datas=['hello python','i am sniipe','i like 1']
+
+    # for data in datas:
+    #     file.write(data+'\n')
+
+    # file.writelines([data+'\n' for data in datas])
+    # file.writelines('\n'.join(datas))
+    file.write('\n'.join(datas))
+ 
+======================  字符串格式化 ============
+# # print("heello%s" %"hello") 
+# ss="hello world |%+20.2s|"
+# print(ss  % "hello")
+
+dd="hello world |%20.2d|"
+print(dd  % 13.9876)
+print(dd  % -13)
+
+name =["wanglong",12,"zq"]
+age=-18
+gongzi=3232342.3342
+print(("name is {}, age is {}, gongzi is {}").format(name,age,gongzi))
+# print((f"name is {name[1]:#b20}, age is {age:^+010}, gongzi is {gongzi:,.2f}"))
+print((f"name is {name}, age is {age:^+010}, gongzi is {gongzi:,.2f}"))
+
+par={'x':1,'y':2,'z':3}
+print("dict: {0[x]}  {0[y]}  {0[z]}".format(par))
+print("dict: {0}  {0}  {0}".format(par))
+
+print("name is {}, age is {}, gongzi is {}".format(name[0],age,gongzi))
+
+===================  闭包 ==================
+rate =6
+def func_out():
+    # rate =6
+    def  transfer(doller):
+        return doller * rate
+    return transfer
+
+rate=7
+f=func_out()
+print(f(10))
+
+++++
+orgin = 0
+def creater(start):
+    def gogo(step):
+        nonlocal start
+        target = start + step
+        start = target
+        
+        return target
+    return gogo
+
+f = creater(orgin)
+print(f(2))
+print(f(3))
+print(f(6))
+
+===================== 正则表达式  ===================
+import re
+match=re.search(r'[1-9]\d{5}','bti 100081 200881')
+if match:
+    print(match.group(0))
+print("****************")
+match=re.match(r'[1-9]\d{5}','bti 100081')
+if match:
+    print(match.group(0))
+print("****************1")
+match=re.match(r'[1-9]\d{5}','100081 bit')
+if match:
+    print(match.group(0))
+
+print("****************2")
+match=re.findall(r'[1-9]\d{5}','bti 100081 200881')
+print(match)
+
+print("****************3")
+aa=re.split(r'[1-9]\d{4}', 'bit10081   tsu10084')
+print(aa)
+
+print("****************5")
+aa=re.split(r'[1-9]\d{5}', 'bit100081   tsu100084' , maxsplit=1)
+print(aa)
+print(re.split(r'[1-9]\d{5}', 'bit100081   tsu100084' , maxsplit=2))
+
+print("****************6")
+for m in re.finditer(r'[1-9]\d{5}','bti 100081 tsu100084'):
+    if m:
+        print(m.group(0))
+print("****************7")
+print(re.sub(r'[1-9]\d{5}',':zipcode', 'bit100081  tsu100084'))
+
+print('************8')
+pat=re.compile(r'[1-9]\d{5}')
+rst = pat.search('bit100081 bit100082')
+print(rst.group(0))
+# print(rst.group(1))
+
+a = "123abc456"
+print( re.search("([0-9]{3})([a-z]{3})([0-9]{3})",a).group(0))
+print( re.search("([0-9]{3})([a-z]{3})([0-9]{3})",a).group(1))
+print( re.search("([0-9]{3})([a-z]{3})([0-9]{3})",a).group(2))
+print( re.search("([0-9]{3})([a-z]{3})([0-9]{3})",a).group(3))
+
+a= "//quote.eastmoney.com/unify/r/1.605303"
+match=re.findall(r'6\d{5}$',a)
+print(match)
+
++++++
+import re
+# # htmlstr='''
+# # <td>pythonc</td><td>$123</td><td>12345@qq.com</td>'''
+# # result=re.findall(r"<td>(.+?)</td>",htmlstr)
+# # print(result)
+# # # /
+
+# # str="""
+# # 'hello'  "python" 'love" "hehe'
+# # """
+# # result=re.findall(r"('|\")(\w+)(\1)",str)
+# # print(result)
+# # print([x[1] for x in result])
+
+# # result=re.findall(r"^\d{11}$","13795115470")
+# # print(result)
+# # result=re.findall(r"a+","abc123abbbef")
+# print(result)
+# print(result.group())
+# print(result.group(0))
+# # print(result.group(1))
+
+# result=re.findall(r"indunisr(?:y|ies)","indunisrie")
+# print(result)
+
+# result=re.findall(r"Windows(?!=95|98|NT|2000)","Windows2000")
+# print(result)
+result=re.findall(r"(?:=95|98|NT|2000)Windows","98windows",re.I)
+print(result)
+
+# result=re.findall(r"#[a-z0-9_\.-]+)@([da-z]\.-)\.([a-z\.]{2,6}$","wangl@163.com")
+# print(result)
+# # # result=re.findall(r"(?<!95|98|NT|2000)Windows","3.1windows")
+# print(result)
+
+# result=re.findall(r"(?=95|85|nt|2000)windows","2000windows")
+# print(result)
+
+
+
+=============== 随机数 ============
+import random
+#整数
+print(random.randint(1,100))
+print(random.randrange(2,102,2)) #偶数
+print(random.randrange(1,101,2)) #奇数
+#浮点数
+print(random.random())
+print(random.uniform(11.1,13.1))
+#非数字型随机抽样
+targetlits=['a','b','c','e','f']
+print(random.choice(targetlits))
+#乱序
+print(targetlits)
+random.shuffle(targetlits)
+print(targetlits)
+
+print(random.sample(targetlits,4))
+print(targetlits)
++++
+
+import random,string
+
+def gen_radom_string(length):
+    numcount=random.randint(1,length-1)
+    lettercount=length-numcount
+
+    numlist=[random.choice(string.digits) for _ in range(numcount)]
+    letterlist=[random.choice(string.ascii_letters) for _ in range(lettercount)]
+    alllist=numlist+letterlist
+
+    random.shuffle(alllist)
+    result="".join(alllist)
+    return result
+
+for _ in range(10):
+    string1=gen_radom_string(18)
+    print(string1)
+
+=======================datetime  =====================
+import  logging
+import datetime,time
+# 生成日期
+d=datetime.date.today()
+print(d,type(d))
+d=datetime.date(2022,8,24)
+print(d,type(d))
+
+d=datetime.date.fromtimestamp(time.time())
+print(d)
+#类属性
+print(datetime.date.min)
+print(datetime.date.max)
+print(datetime.date.resolution)
+#date对象-结构化对象
+print(d.timetuple())
+
+#实例属性
+print(d.year)
+print(d.month)
+print(d.day)
+
+print(d.replace(2030))
+print(d.replace(d.year,9))
+print(d.replace(day=19))
+print(d.replace(d.year,d.month,24))
+print(d.toordinal())
+print(d.weekday())
+print(d.isoweekday())
+print(d.isoformat())
+# print(d.strftime("%Y年%m月%d日"))
+
+print('{:=^50}'.format("datetime.time."))
+t=datetime.time(15,20,45,8888)
+print(t,type(t))
+#类方法
+print(datetime.time.min)
+print(datetime.time.max)
+print(datetime.time.resolution)
+#实例属性
+print(t.hour)
+print(t.minute)
+print(t.second)
+print(t.microsecond)
+#其他方法
+print(t.isoformat())
+print(t.strftime("%H-%m-%d  %f"))
+
+print('{:=^50}'.format("datetime.datatime."))
+dt=datetime.datetime(2020,8,20,13,40,33,888888)
+print(dt,type(dt))
+dt=(datetime.datetime.today())
+print(dt,type(dt))
+dt=(datetime.datetime.now())
+print(dt,type(dt))
+dt=(datetime.datetime.utcnow())
+print(dt,type(dt))
+print("*****************&&&&&&&&&&&&***********************")
+dt=datetime.datetime.fromtimestamp(time.time())
+print(dt,type(dt))
+dt=datetime.datetime.strptime("2020-07-14 03:14:46","%Y-%m-%d %H:%M:%S")
+dt=datetime.datetime.combine(d,t)
+print(dt)
+#实例属性
+print(dt,type(dt))
+print(dt.year)
+print(dt.month)
+print(dt.day)
+print(dt.hour)
+print(dt.minute)
+print(dt.second)
+print(dt.microsecond)
+#replace
+print(dt.replace(second=59,day=11))
+print(dt.timetuple())
+print(dt.timestamp())
+print(dt.strftime('%Y-%m-%d %H:%M:%S %f'))
+print(datetime.datetime.fromtimestamp(time.mktime(time.localtime())))
+
+# datetime.timedelta
+print('{:=^50}'.format("datetime.timedelta."))
+td=datetime.timedelta(days=10)
+print(td)
+td=datetime.timedelta(days=10,hours=5)
+print(td)
+td=datetime.timedelta(days=-5,hours=-8)
+print(td)
+td=datetime.timedelta(weeks=2)
+print(td,type(td))
+td=datetime.timedelta(hours=75)
+print(td,type(td))
+
+print('{:=^50}'.format("logging"))
+#标准库 logging
+
+
+
+#默认日志级别为Warning
+#使用baseconfig()来制定输出级别
+
+# print("this hsi print log")
+logging.basicConfig(level=logging.WARN,filename='log.txt',filemode='a')
+logging.debug("this his debug log")
+logging.info("this his info log")
+logging.warning("this his warning log")
+logging.error("this his error log")
+logging.critical("this critical log")
+
+# #向日志输出变量
+# logging.basicConfig(level=logging.DEBUG)
+# name ='张三'
+# age = 18
+# print("test")
+# logging.debug("姓名 %s,  年龄 %d" ,name, age)
+# logging.debug("姓名 %s,  年龄 %d" %(name, age))
+# logging.debug("姓名 {},  年龄 {}".format(name, age))
+# logging.debug(f"姓名{name},  年龄{age} " )
+
+===============  time  =======================
+import time
+# #时间戳 结构化时间对象， 结构化字符串
+# #时间戳 1970.1.1开始的时间， 单位是秒
+print(time.time())
+print(time.time()-3600) #一个小时前
+
+st=time.localtime()
+print(type(st))
+# print(st)              #tm_wday 0=星期一
+print('today is {}-{}-{:02d}'.format(st[0],st[1],st[2]))
+print('today is 星期  {}'.format(st.tm_wday+1))
+# #对象是只读的， 不能更改
+
+# #格式化时间字符串
+print(time.ctime())
+#strftime(时间格式） '%Y-%m-%d %H:%M:%S')
+print(time.strftime('%Y-%m-%d %H:%M:%S'))
+print(time.strftime('%Y-%m-%d %H:%M:%S %a' ))
+print(time.strftime('%Y-%m-%d %H:%M:%S %A'  ))
+print(time.strftime('%Y-%m-%d %H:%M:%S %b'))
+print(time.strftime('%Y-%m-%d %H:%M:%S %B'))
+print(time.strftime('%Y-%m-%d %H:%M:%S %w'))
+print(time.strftime('%Y-%m-%d %H:%M:%S %W'))
+print(time.strftime('%Y-%m-%d %H:%M:%S %p'))
+print(time.strftime('%Y-%m-%d %I:%M:%S %p'))
+# print(time.strftime('%Y年%m月%d日 %H:%M:%S'))
+
+# #sleep
+t1=time.time()
+
+print("sleep begin")
+time.sleep(1.23)
+print('sleep end')
+t2=time.time()
+print('runing time {:.3f}'.format(t2-t1))
+
+# #UTC   格林威治时间
+print(time.gmtime())
+print(time.gmtime(time.time()))
+#local
+print(time.localtime)
+print(time.localtime(time.time()))
+
+print(time.time())
+print(time.localtime())
+print(time.mktime(time.localtime()))
+
+print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()))
+print(time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime()))
+
+#格式化字符转时间对象
+#strptime(str,format)
+
+strtime='2020-07-25 13:23:18'
+print(time.strptime(strtime,'%Y-%m-%d %H:%M:%S'))
+
+time.timezone(9)
+time.time()
 
