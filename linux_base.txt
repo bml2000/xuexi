@@ -1332,5 +1332,18 @@ http://blogs.studylinux.net
 	/etc/chrony.conf 
 	    server  npt1.aliyuncom
 	
-	
+34.  忘记root密码处理：
+     grub -e
+     编辑启动项， 将ro  更改 rw  init=/sysroot/bin/bash    #启动bash 并设置rw
+       [或者 在 linux 行中更改ro 为 rw  rd.break     #中断启动 ]
+     ctrl-X  启动此项
+      [ #mount                       #查看 sysroot 是否 是rw ，否则需要重新挂账sysroot
+        #mount -o remount,rw  /sysroot     #重新挂载sysroot并设置rw  ]
+     #chroot  /sysroot/          #切换到伪根
+     #Lang=en                    #设置语言
+     #passwd                     # 重新设置root密码
+     #touch /.autorelabel        # 重新加载selinux的
+     #exit
+     #reboot          
+
 	
