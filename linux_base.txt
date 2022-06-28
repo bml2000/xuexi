@@ -1330,7 +1330,7 @@ http://blogs.studylinux.net
     systemctl  start chronyd
 	systemctl  enable chronyd
 	/etc/chrony.conf 
-	    server  npt1.aliyuncom
+	    server  npt1.aliyun.com
 	
 34.  忘记root密码处理：
      grub -e
@@ -1346,4 +1346,19 @@ http://blogs.studylinux.net
      #exit
      #reboot          
 
-	
+35. #升级内核
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+yum install https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-5.el7.elrepo.noarch.rpm
+yum --enablerepo=elrepo-kernel  list  --showduplicates  |grep kernel*
+yum --enablerepo=elrepo-kernel  list   |grep kernel*
+yum --enablerepo=elrepo-kernel install -y kernel-ml kernel-ml-devel # mail 主线最新版本
+yum --enablerepo=elrepo-kernel install -y kernel-lt kernel-lt-devel  #长期支持版本
+
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+yum install https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm
+yum --enablerepo=elrepo-kernel install kernel-ml
+
+grubby  --info=ALL  # 查看grub启动信息
+grubby  --default-index #查看默认启动
+grubby --set-default-index 0  #设置默认启动	
