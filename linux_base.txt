@@ -1369,4 +1369,4 @@ http://blogs.studylinux.net
         -i.bak \
         /etc/yum.repos.d/Rocky-*.repo
 
-    dnf makecache
+     dnf makecache
