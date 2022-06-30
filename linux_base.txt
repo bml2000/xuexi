@@ -1409,7 +1409,7 @@ http://blogs.studylinux.net
             1#root#/bin/bash
 
 39. grep
-
+    egrep  =   grep -E
     grep [option] PATTERN [FILE]
         -i   # 忽略大小写
         -v   #显示不包含指定内容的行
@@ -1423,7 +1423,7 @@ http://blogs.studylinux.net
         -B   #before多少行
         -C   #上下多少行
         -G   #基本正则
-        -e   #扩展正则
+        -E   #扩展正则
         
         --include #指定包含的文件类型
         --exclude #指定排除的文件类型
