@@ -1,9 +1,17 @@
+
+
+
 net.ipv4.ip_forward=1
 net.ipv4.conf.all.rp_filter = 0
 net.ipv4.conf.[ethX].rp_filter = 0
 net.ipv4.tcp_tw_reuse = 0
 net.ipv4.tcp_tw_recycle = 0
 net.ipv4.ip_local_port_range="32768 60999"
+
+
+https://developer.aliyun.com/graph/Kubernetes
+https://developer.aliyun.com/trainingcamp/d58713876bf34dd0a7ec301dc578b952?spm=a2c6h.21110250.J_6701630730.2.7f6d760fvy4MyG
+
 
 ============================使用 Kubectl 部署 web 服务到 K8s 集群===============
 registry.cn-shanghai.aliyuncs.com/workbench1459088147016887/handsonack_test:3
