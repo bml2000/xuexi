@@ -1455,6 +1455,16 @@ http://blogs.studylinux.net
                 {m,n}  #匹配前面字符最少M次， 最多N次
                 ()        #分组
                 |         # or
+                例子：[root@rocky92 ~]# cat b
+                            i like my lover.
+                            i love my lover.
+                            he likes his lovers.
+                            he love his lovers.
+                            he lave his lavers.
+                        [root@rocky92 ~]# grep -E "(l.v).*\1" b  
+                        i love my lover.
+                        he love his lovers.
+                        he lave his lavers.
 
 
 

@@ -1,0 +1,321 @@
+net.ipv4.ip_forward=1
+net.ipv4.conf.all.rp_filter = 0
+net.ipv4.conf.[ethX].rp_filter = 0
+net.ipv4.tcp_tw_reuse = 0
+net.ipv4.tcp_tw_recycle = 0
+net.ipv4.ip_local_port_range="32768 60999"
+
+============================使用 Kubectl 部署 web 服务到 K8s 集群===============
+registry.cn-shanghai.aliyuncs.com/workbench1459088147016887/handsonack_test:3
++++++++++++++++++++++++++++++++++++
+deployment.yaml:
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+  namespace: handson-42808f57ab97825591fac00ba3e829ca
+  labels:
+    app: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: myapp
+  template:
+    metadata:
+      labels:
+        name: myapp
+      namespace: handson-42808f57ab97825591fac00ba3e829ca
+    spec:
+      containers:
+        - name: myapp
+          image: registry.cn-shanghai.aliyuncs.com/workbench_1459088147016887/handson_ack_test:3
+          ports:
+            - containerPort: 8080
+
+=========================service=============
+service.yaml:
+ 
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+  namespace: handson-42808f57ab97825591fac00ba3e829ca
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    name: myapp
+
+=========================ingress==========================
+example-ingress.yaml:
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: example-ingress
+  namespace: handson-42808f57ab97825591fac00ba3e829ca
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /welcome
+        backend:
+          serviceName: myapp-service
+          servicePort: 8080
+
+***********
+kubectl delete ingress example-ingress
+kubectl delete service myapp-service
+========================================================================
+
+
+aliyun:  nignx_ingress-lb
+    apiVersion: v1
+    kind: Service
+    metadata:
+    annotations:
+    labels:
+        app: nginx-ingress-lb
+    name: nginx-ingress-lb
+    namespace: kube-system
+    spec:
+    externalTrafficPolicy: Local
+    ports:
+    - name: http
+        port: 80
+        protocol: TCP
+        targetPort: 80
+    - name: https
+        port: 443
+        protocol: TCP
+        targetPort: 443
+    selector:
+        app: ingress-nginx
+    type: LoadBalancer
+
+
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  default.conf: |
+    server {
+      listen       80;
+      server_name  localhost;
+      location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+      }
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html;
+      }
+      location /nginx_status {
+        stub_status;
+        allow 127.0.0.1; 
+        deny all;   
+      }
+    }
+---
+
+=========================================
+【体验】多容器 Pod 及其设计模式
+https://start.aliyun.com/handson/0iNJ9RDH/Understand_Multi-Container_Pod_design_patterns
+Kubernetes中运行多种不同类型的多容器Pod，这包括：
+Sidecar
+Ambanssdor
+Adapter
+Initializer
+===========================
+envoy.yaml
+
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address: { address: 0.0.0.0, port_value: 80 }
+    filter_chains:
+    - filters:
+      - name: envoy.http_connection_manager
+        config:
+          stat_prefix: ingress_http
+          codec_type: AUTO
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/" }
+                route: { cluster: mageedu_service }
+          http_filters:
+          - name: envoy.router
+  clusters:
+  - name: mageedu_service
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: mageedu_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 8080
+
+===================================
+sidecar-container-demo.yaml
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-container-demo
+spec:
+  containers:
+  - name: proxy   # 容器一
+    image: envoyproxy/envoy-alpine:v1.16.2
+    command: ['/bin/sh','-c']
+    args: ['sleep 3 && envoy -c /etc/envoy/envoy.yaml']
+    lifecycle:
+      postStart:
+        exec:
+          command: ['/bin/sh','-c','wget -O /etc/envoy/envoy.yaml https://code.aliyun.com/MageEdu/kubernetes-ckad/raw/master/tutorials/handson/Understand_Multi-Container_Pod_design_patterns/envoy.yaml']
+  - name: demoapp    # 容器二
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: HOST
+      value: "127.0.0.1"
+    - name: PORT
+      value: "8080"
+
+*******
+kubectl apply -f sidecar-container-demo.yaml
+kubectl get pods -o wide
+kubectl exec sidecar-container-demo -c proxy -- netstat -tnlp
+envoyIP=$(kubectl get pods/sidecar-container-demo -o jsonpath={.status.podIP})
+kubectl run client-$RANDOM --image="ikubernetes/admin-toolbox:v1.0" --restart=Never --rm -it --env=envoyIP=${envoyIP} --command -- /bin/sh
+    curl -I http://$envoyIP/
+
+
+===============
+ambassador-container-demo.yaml
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ambassador-container-demo
+spec:
+  containers:
+  - name: curl
+    image: ikubernetes/admin-toolbox:v1.0
+    command: ["sleep", "999999"]
+  - name: ambassador
+    image: bitnami/kubectl:1.21
+    command: ["/bin/sh","-c","kubectl proxy"]
+    args:    # 传递给 kubectl proxy 的选项，若需要改变默认监听的tcp/8001端口，可以额外附加“--port=NUM”选项；
+    - --server="https://kubernetes.default.svc"
+    - --certificate-authority="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    - --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+    - --accept-paths='^.\*'
+
+*****
+kubectl apply -f ambassador-container-demo.yaml
+kubectl exec -it ambassador-container-demo -c curl -- /bin/sh
+    curl localhost:8001/
+    exit
+
+===========================================
+adapter-container-demo.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: adapter-container-demo
+spec:
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - mountPath: /etc/nginx/conf.d/
+      name: nginx-conf
+      readOnly: true
+  - name: adapter
+    image: nginx/nginx-prometheus-exporter:0.9.0
+    args: ["-nginx.scrape-uri","http://localhost/nginx_status"]
+    ports:      # nginx-prometheus-exporter默认监听tcp/9113端口
+    - name: exporter
+      containerPort: 9113   
+  volumes:
+  - name: nginx-conf
+    configMap:
+      name: nginx-conf
+      items:
+      - key: default.conf
+        path: default.conf
+
+*************
+kubectl apply -f adapter-container-demo.yaml
+kubectl get pods/adapter-container-demo -o wide
+adapterIP=$(kubectl get pods/adapter-container-demo -o jsonpath={.status.podIP})
+kubectl run client-$RANDOM --image="ikubernetes/admin-toolbox:v1.0" --restart=Never --rm -it --env=adapterIP=${adapterIP} --command -- /bin/sh
+    curl -I http://$adapterIP:9113/metrics/
+    exit
+
+
+
+=======================================
+init_containter_demo.yaml
+
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kbles-init
+    image: ikubernetes/admin-toolbox:v1.0
+    imagePullPolicy: IfNotPresent
+    command: ['/bin/sh','-c']
+    args: ['iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-port 80']
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: http
+      containerPort: 80
+
+*****
+kubectl apply -f init-container-demo.yaml
+kubectl describe pods/init-container-demo
+kubectl exec init-container-demo -- iptables -t nat -vnL
+podIP=$(kubectl get pods/init-container-demo -o jsonpath={.status.podIP})
+kubectl run client-$RANDOM --image="ikubernetes/admin-toolbox:v1.0" --restart=Never --rm -it --env=podIP=${podIP} --command -- /bin/sh
+    curl http://$podIP:8080/
+    exit
+
+
+kubectl get pods,configmaps
+kubectl delete pods,configmaps --all --force --grace-period=0
+
