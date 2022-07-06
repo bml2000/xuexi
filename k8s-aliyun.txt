@@ -46,9 +46,9 @@ sudo cat /sys/class/dmi/id/product_uuid
 
 5. hosts      dns名字统一设置到hosts中
 cat >> /etc/hosts << EOF
-192.168.100.4 master
-192.168.100.5 node1
-192.168.100.6 node2
+192.168.110.20 master
+192.168.110.25 node1
+192.168.110.26 node2
 EOF
 
 6.  加载配置模块
@@ -80,15 +80,32 @@ yum install containerd -y
 9. 配置 containerd
 containerd config default > /etc/containerd/config.toml
 sed -i "s#k8s.gcr.io/pause#registry.aliyuncs.com/google_containers/pause#g" /etc/containerd/config.toml
-sed -i "s/systemd_cgroup = false/systemd_cgroup = true/g"  /etc/containerd/config.toml
 添加
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
             endpoint = ["https://9npjh5s8.mirror.aliyuncs.com"]
-
 systemctl restart containerd
 systemctl enable containerd
 systemctl status containerd.service
+
+cat<<END> install-2.sh 
+#!/bin/bash
+containerd config default > /etc/containerd/config.toml
+sed -i "s#k8s.gcr.io/pause:3.6#registry.aliyuncs.com/google_containers/pause:3.7#g" /etc/containerd/config.toml
+sed -i "s#systemd_cgroup = false#systemd_cgroup = true#g" /etc/containerd/config.toml
+
+sed -i "s#https://registry-1.docker.io#https://0k0953tv.mirror.aliyuncs.com#g" /etc/containerd/config.toml
+systemctl restart containerd
+systemctl status containerd.service
+cat > /etc/crictl.yaml <<EOF
+runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 10
+debug: false
+EOF
+END
+
+sh  install-2.sh
 
 10. 配置 crictl 环境
 # crictl config runtime-endpoint /run/containerd/containerd.sock  #自动生成、/etc/crictl.yaml 
@@ -707,4 +724,30 @@ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outfor
 ————————————————
 版权声明：本文为CSDN博主「茁壮成长的麦芽」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
 原文链接：https://blog.csdn.net/qq_34953582/article/details/125400579
+
+
+config.toml
+
+
+Registry Configuration
+Here is a simple example for a default registry hosts configuration. Set config_path = "/etc/containerd/certs.d" in your config.toml for containerd. Make a directory tree at the config path that includes docker.io as a directory representing the host namespace to be configured. Then add a hosts.toml file in the docker.io to configure the host namespace. It should look like this:
+
+$ tree /etc/containerd/certs.d
+/etc/containerd/certs.d
+└── docker.io
+    └── hosts.toml
+
+$ cat /etc/containerd/certs.d/docker.io/hosts.toml
+server = "https://docker.io"
+
+[host."https://registry-1.docker.io"]
+  capabilities = ["pull", "resolve"]
+To specify a custom certificate:
+
+$ cat /etc/containerd/certs.d/192.168.12.34:5000/hosts.toml
+server = "https://192.168.12.34:5000"
+
+[host."https://192.168.12.34:5000"]
+  ca = "/path/to/ca.crt"
+See docs/hosts.md for the further information.
 
