@@ -1,4 +1,4 @@
-
+https://blog.csdn.net/qq_25599925/article/details/123759160
 https://blog.csdn.net/u012069313/article/details/125201017
 
 https://blog.csdn.net/pleong/article/details/125086963
@@ -16,69 +16,11 @@ net.ipv4.ip_local_port_range="32768 60999"
  openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text   #查看证书有效期
 
 ==============阿里云  k8s  安装：===========================
+yum install -y conntrack ntpdate ntp ipvsadm ipset jq iptables curl sysstat libseccomp wget vim net-tools git
 
-1. docker-ce 
-安装包
-# step 1: 安装必要的一些系统工具
-sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-# Step 2: 添加软件源信息
-sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-# Step 3
-sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
-# Step 4: 更新并安装Docker-CE
-sudo yum makecache fast
-#  sudo yum -y install docker-ce                # 安装 docker-centos
+ yum install  -y  iproute-tc  git sysstat ipvsadm ipset 
 
-
-yum install containerd                          #安装 containerd  
-cat<<END> install-2.sh                         
-#!/bin/bash
-containerd config default > /etc/containerd/config.toml
-sed -i "s#k8s.gcr.io/pause:3.2#registry.aliyuncs.com/google_containers/pause:3.2#g" /etc/containerd/config.toml
-sed -i "s#https://registry-1.docker.io#https://0k0953tv.mirror.aliyuncs.com#g" /etc/containerd/config.toml
-systemctl restart containerd
-systemctl status containerd.service
-cat > /etc/crictl.yaml <<EOF
-runtime-endpoint: unix:///run/containerd/containerd.sock
-image-endpoint: unix:///run/containerd/containerd.sock
-timeout: 10
-debug: false
-EOF
-END
-
-# Step 4: 开启Docker服务
-sudo service docker start
-2.  国内镜像加速
-cat  > /etc/docker/daemon.json <<EOF
-{
-"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"],
-"exec-opts": ["native.cgroupdriver=systemd"]
-}
-EOF
-
-systemctl daemon-reload
-systemctl enable docker
-systemctl restart docker
-
-
-
-
-3.  网络准备
-lsmod | grep br_netfilter 来完成。若要显式加载该模块，可执行 sudo modprobe br_netfilter
-
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-br_netfilter
-EOF
-
-cat  > /etc/sysctl.d/k8s.conf <<EOF
-vm.swappiness = 0
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-EOF
-sudo sysctl --system
-
-
-4.  关闭防火墙
+1 关闭防火墙
 systemctl stop firewalld
 systemctl disable firewalld
 iptables -F && iptables -X && iptables -F -t nat &&  iptables -X -t nat
@@ -86,19 +28,79 @@ iptables -P FORWARD ACCEPT
 setenforce 0
 sed -i  's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 
-5. 关闭swap
+2. 关闭swap
 swapoff -a 
 sed  -i  '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 
-
-
+3. 同步服务器时间
+timedatectl set-timezone Asia/Shanghai
+yum install chrony -y 
+sed -i "s/pool.*$/server ntp.aliyun.com iburst\nserver time1.cloud.tencent.com iburst\nserver ntp.tuna.tsinghua.edu.cn iburst/g" /etc/chrony.conf
+systemctl enable chronyd 
+systemctl start chronyd 
+chronyc sources
+hwclock -w
 
 4.  确保唯一 uuid 和mac 地址
 sudo cat /sys/class/dmi/id/product_uuid
 
-5. chronyd    时间同步一致。
-6. hosts      dns名字统一设置到hosts中
-7. 安装kubeadmin
+5. hosts      dns名字统一设置到hosts中
+cat >> /etc/hosts << EOF
+192.168.100.4 master
+192.168.100.5 node1
+192.168.100.6 node2
+EOF
+
+6.  加载配置模块
+lsmod | grep br_netfilter 来完成。若要显式加载该模块，可执行 sudo modprobe br_netfilter
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+sudo modprobe br_netfilter
+sudo modprobe overlay
+
+yum install iproute-tc -y  # 安装环境
+
+7. 配置网络转发
+cat  > /etc/sysctl.d/k8s.conf <<EOF
+vm.swappiness = 0
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+user.max_user_namespaces=28633
+EOF
+sudo sysctl --system
+# sysctl -p /etc/sysctl.d/k8s.conf
+
+8.  安装containerd
+wget -O /etc/yum.repos.d/docker-ce.repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum install containerd -y
+
+9. 配置 containerd
+containerd config default > /etc/containerd/config.toml
+sed -i "s#k8s.gcr.io/pause#registry.aliyuncs.com/google_containers/pause#g" /etc/containerd/config.toml
+sed -i "s/systemd_cgroup = false/systemd_cgroup = true/g"  /etc/containerd/config.toml
+添加
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+            endpoint = ["https://9npjh5s8.mirror.aliyuncs.com"]
+
+systemctl restart containerd
+systemctl enable containerd
+systemctl status containerd.service
+
+10. 配置 crictl 环境
+# crictl config runtime-endpoint /run/containerd/containerd.sock  #自动生成、/etc/crictl.yaml 
+或
+cat > /etc/crictl.yaml <<EOF
+runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 10
+debug: false
+EOF
+
+11. 安装kubeadmin
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -108,35 +110,144 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
-setenforce 0
 yum install -y kubelet kubeadm kubectl
 systemctl enable kubelet && systemctl start kubelet
 
-# 配置containerd 
+#设置运行时
+# crictl config runtime-endpoint /run/containerd/containerd.sock
 
 
+12. 部署 集群
+mkdir -p /root/k8s-install
+kubeadm  config print  init-defaults >  /root/k8s-install/kubeadm-ini.yaml  #生成配置文件
 
-# 下载imag
-kubeadm  config print  init-defaults > kubeadm-ini.yaml
-# 
-kubeadm  config images list --config  kubeadm-ini.yaml
+更改  kubeadm-init.yaml  
+sed -i "s/imageRepository.*$/imageRepository: registry.aliyuncs.com\/google_containers/g" /root/k8s-install/kubeadm-ini.yaml
+sed -i "s/advertiseAddress: 1.2.3.4/advertiseAddress: 192.168.110.92/g"  /root/k8s-install/kubeadm-ini.yaml   # 设置apiserver的ip地址
+sed -i "s/name: node/name: rocky92/g"  /root/k8s-install/kubeadm-ini.yaml    # 设置apiserver的hostname
+在 serviceSubnet 下设置 podSubnet 172.16.0.0/16                               # 设置 pod网络地址段
+
+下载镜像：
+kubeadm  config images  list  --config /root/k8s-install/kubeadm-ini.yaml    #查看镜像
+kubeadm  config  images pull  --config  /root/k8s-install/kubeadm-ini.yaml   #下载镜像
+
+生成集群 #master执行
+kubeadm init --config /root/k8s-install/kubeadm-ini.yaml --upload-certs |tee kubeadm-ini.log  #生成集群并保留日志
+
+kubeadm join 192.168.110.92:6443 --token abcdef.0123456789abcdef \                      #node   执行加入集群
+	--discovery-token-ca-cert-hash sha256:f5acc246eb029d2bcbcdf4f4d25d43d0f23764fd9556468f2e425cdf86fcc224 
 
 
+配置命令环境
+#master
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config       # master 执行
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-https://developer.aliyun.com/graph/Kubernetes
-https://developer.aliyun.com/trainingcamp/d58713876bf34dd0a7ec301dc578b952?spm=a2c6h.21110250.J_6701630730.2.7f6d760fvy4MyG
+# node                                                          
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/kubelet.conf  $HOME/.kube/config   #NODES 
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-
-
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-#安装网络
-
+13. # 安装calico 网络
+cd /root/k8s-install
 wget https://docs.projectcalico.org/manifests/calico.yaml
-kubectl apply -f  calico.yaml
+grep "image"  calico.yaml                                             #查看镜像
+crictl pull  XXX                                                      #手动加载镜像
+kubectl apply -f  calico.yaml                                         # 生成calico 网络ip设置
 
+14.  # 验证k8s
+kubectl  get  cs    #查看集群
+kubectl  get  pods  -A  -o wide    #查看pod  所有都running
+kkubectl create deployment nginx --image=nginx
+kubectl  get  nodes    
+kubectl expose deployment nginx --port=80 --type=NodePort
+kubectl get pod,svc -o wide
+输入访问地址：http://192.168.1.28:32039
+
+
+
+15. #验证apiserver.crt证书有效期限
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout | grep Not 
+更新到10年有效期
+git clone https://github.com/yuyicai/update-kube-cert.git
+cd update-kubeadm-cert
+chmod 755 update-kubeadm-cert.sh
+sed -i "s/docker/crictl/g" update-kubeadm-cert.sh   #将docker 命令替换成crictl 命令
+./update-kubeadm-cert.sh all                # 执行延期操作更改为10年
+
+16. 生成加入 k8s 集群环境的加入token,默认 token 有效期为 24 小时，当过期需要重新创建 加入token，操作如下：
+kubeadm token create  [--ttl=0]               # ttl=0 永不过期 
+kubeadm token list                            #查看token
+#下面是查询服务器token的hash256 
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+kubeadm token create --print-join-command   #直接生成join token
+
+17. kubernetes 维护：
+ kubeadm  reset  # 删除集群
+ kubectl  delete nodes   xx    #删除node
+
+
++++++++++++++++++++++++++++++++参数优化+++++++++++
+/etc/security/limits.conf"
+"* soft nofile 655360"
+"* hard nofile 131072"
+"* soft nproc 655350"
+"* hard nproc 655350"
+"* soft memlock unlimited"
+"* hard memlock unlimited" 
++++++++++++++++++
+/k8s.conf 
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+fs.may_detach_mounts = 1
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_watches=89100
+fs.file-max=52706963
+fs.nr_open=52706963
+net.netfilter.nf_conntrack_max=2310720
+
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_probes = 3
+net.ipv4.tcp_keepalive_intvl =15
+net.ipv4.tcp_max_tw_buckets = 36000
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_max_orphans = 327680
+net.ipv4.tcp_orphan_retries = 3
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_syn_backlog = 16384
+net.ipv4.ip_conntrack_max = 65536
+net.ipv4.tcp_max_syn_backlog = 16384
+net.ipv4.tcp_timestamps = 0
+net.core.somaxconn = 16384
++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+============================================= docker-ce  安装 =============================================
+1.  安装
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+sudo yum makecache 
+sudo yum -y install docker-ce                # 安装 docker-centos
+sudo service docker start
+2.  国内镜像加速
+cat  > /etc/docker/daemon.json <<EOF
+{
+"registry-mirrors":  ["https://9npjh5s8.mirror.aliyuncs.com"],
+"exec-opts": ["native.cgroupdriver=systemd"]
+}
+EOF
+3. 启动服务
+systemctl daemon-reload
+systemctl enable docker
+systemctl restart docker
+
+=================================================================
 
 
 ============================使用 Kubectl 部署 web 服务到 K8s 集群===============
@@ -452,4 +563,148 @@ kubectl run client-$RANDOM --image="ikubernetes/admin-toolbox:v1.0" --restart=Ne
 
 kubectl get pods,configmaps
 kubectl delete pods,configmaps --all --force --grace-period=0
+
+
+
+
+ctr i -h查看帮助
+
+ctr i pull docker.io/library/redis:alpine 拉取镜像（默认不带镜像仓库地址） docker pull docker.io/library/redis:alpine docker仓库会自动补全
+
+ctr i ls 查看镜像
+
+ctr ns 查看命名空间 c 创建 ls 查看  rm删除 label设置标签
+
+docker tag redis:alpine registry.cn-hangzhou.aliyuncs.com/imooc/redis:alpine将镜像重新打标签
+
+docker push registry.cn-hangzhou.aliyuncs.com/imooc/redis:alpin上传镜像
+
+ctr i pull registry.cn-hangzhou.aliyuncs.com/imooc/redis:alpin 拉取镜像
+
+ctr i ls查看镜像
+
+ctr run -t -d registry.cn-hangzhou.aliyuncs.com/imooc/redis:alpin redis 启动容器
+
+ctr c ls查看当前运行容器
+
+ctr t ls 查看当前运行任务
+
+ctr t kill 杀掉当前任务
+
+ctr t rm 删除任务
+
+ctr c rm 删除容器
+
+ctr -n default t ls 查看当前命名空间任务
+
+k8s给containerd提供crictl命令
+
+crictl images 查看镜像
+
+crictl ps 查看进程
+
+crictl pod 查看pod
+
+crictl logs 查看日志
+
+crictl exec 进入容器
+
+alias docker=crictl 将crictl转变为docker命令操作ctr
+
+
+
+安装 kubernetes-dashboard
+最新版本查看地址：https://github.com/kubernetes/dashboard/releases
+
+1.下载
+wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.0/aio/deploy/recommended.yaml
+
+2.修改配置文件
+默认 Dashboard 只能集群内部访问，修改 Dashboard 配置文件的 Service 为 NodePort 类型，暴露到外部访问：
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30001
+  selector:
+    k8s-app: kubernetes-dashboard
+
+---
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+3.执行配置文件
+kubectl apply -f recommended.yaml
+1
+查看 kubernetes-dashboard：
+
+kubectl get pods -n kubernetes-dashboard
+1
+NAME                                        READY   STATUS    RESTARTS   AGE
+dashboard-metrics-scraper-8c47d4b5d-4blld   1/1     Running   0          21s
+kubernetes-dashboard-5676d8b865-2t9mz       1/1     Running   0          21s
+1
+2
+3
+4.创建 dashboard 的 serviceaccount
+kubectl create serviceaccount dashboard-admin -n kube-system
+1
+查看 serviceaccount：
+
+kubectl get serviceaccount -n kube-system | grep dashboard-admin
+1
+5.创建 clusterrolebinding
+创建 clusterrolebinding 绑定 clusterrole 使用 serviceaccount 认证：
+
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+1
+6.生成 token
+kubectl create token dashboard-admin -n kube-system --duration=87600h
+eyJhbGciOiJSUzI1NiIsImtpZCI6InNka1d3VVNYaDF3N2dfQ1B6Q3Ruc2cxWjZRbUxhU1lYN0dDbVZ4WmR5VlUifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxOTcwNTY0OTQ4LCJpYXQiOjE2NTUyMDQ5NDgsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJkYXNoYm9hcmQtYWRtaW4iLCJ1aWQiOiI4MDgxOGEyNy0yNTkyLTRmMDctODdlMi1mZmZmYTRjMTE2ZjAifX0sIm5iZiI6MTY1NTIwNDk0OCwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmRhc2hib2FyZC1hZG1pbiJ9.PdWWzm1vZKRKPnBqds5LSeFvtMdjl4R85zml03LVebP1Eh52oZKy35gLHOvosHTSTXaWELIQcuMYZed7DZjudvxQOKmmKptKRL17EiOmML528OYD_SlraQjVjwFh5LI523mKSioHLp_NhfJuswqJFUoAoB_J49cOGKHjU3TcTvwzUJz1ywQxSx7L5LZ42XJn2q-fXYzhf3fOe6VLhXeibPey_SFFc20d7YvfDfLMTYnPe69KX9U9QCD79qVaGPOnsHGV2GWu3L7BlL-FZWz8uzFT37qEo35V1fnqmuEjtNs-tQVgcU0qtnprTV-bEckWbfdVyPTDoCwdmEP0XbXyTQ
+1
+2
+7.查看生成的 token
+kubectl get secret -n kube-system | grep dashboard-admin
+1
+8.查看令牌
+kubectl describe secret dashboard-admin-token-23uyr  -n kube-system
+1
+9.访问
+输入访问地址：https://192.168.1.28:30001，输入 token，点击【登录】：
+————————————————
+版权声明：本文为CSDN博主「奔跑吧邓邓子」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/u012069313/article/details/125201017
+
+
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed ‘s/^.* //’ #获取hash
+————————————————
+版权声明：本文为CSDN博主「茁壮成长的麦芽」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/qq_34953582/article/details/125400579
 
