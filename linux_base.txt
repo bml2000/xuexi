@@ -1,3 +1,6 @@
+
+
+
 http://blogs.studylinux.net
 
 常用命令：
@@ -1466,7 +1469,102 @@ http://blogs.studylinux.net
                         he love his lovers.
                         he lave his lavers.
 
+40. ctr  命令：          #containerd  cli    命令
+    ctr   c      #container     
+          ns     #namespace
+          i      #image
+          run    
+          event   # 日志
+          t       #task   任务
 
+    ctr  i     #image             # 镜像操作
+            check                    check existing images to ensure all content is available locally
+            export                   export images
+            import                   import images
+            list, ls                 list images known to containerd   
+            mount                    mount an image to a target path
+            unmount                  unmount the image from the target
+            pull                     pull an image from a remote
+            push                     push an image to a remote
+            delete, del, remove, rm  remove one or more images by reference
+            tag                      tag an image
+            label                    set and clear labels for an image
+            convert                  convert an image
+
+    ctr  c    #containers                        #容器操作
+            create                   create container
+            delete, del, remove, rm  delete one or more existing containers
+            info                     get info about a container
+            list, ls                 list containers
+            label                    set and clear labels for a container
+           
+    ctr t             #tasks - manage tasks
+            attach                   attach to the IO of a running container
+            checkpoint               checkpoint a container
+            delete, del, remove, rm  delete one or more tasks
+            exec                     execute additional processes in an existing container
+            list, ls                 list tasks
+            kill                     signal a container (default: SIGTERM)
+            pause                    pause an existing container
+            ps                       list processes for container
+            resume                   resume a paused container
+            start                    start a container that has been created
+
+     ctr t exec [command options] [flags] CONTAINER CMD [ARG...]   # 执行容器命令
+            --cwd value       working directory of the new process
+            --tty, -t         allocate a TTY for the container
+            --detach, -d      detach from the task after it has started execution
+            --exec-id value   exec specific id for the process
+            --fifo-dir value  directory used for storing IO FIFOs
+            --log-uri value   log uri for custom shim logging
+            --user value      user id or name
+    ctr   ns    #namespaces                #命名空间
+            create, c   create a new namespace
+            list, ls    list namespaces
+            remove, rm  remove one or more namespaces
+            label       set and clear labels for a namespace
+  例子：
+       ctr  -n k8s.io i ls -q      #查看k8s.io空间的image
+       ctr  t   start  -d  nginx   #以守护方式 deamon  运行一个容器
+       ctr c create  docker.io/library/nginx:latest nginx   #创建容器
+       ctr t exec --exec-id 0  -t nginx sh                  #进入容器并执行shell
+
+41. crictl           #k8s 的工具  client for CRI
+        attach              Attach to a running container
+        create              Create a new container
+        exec                Run a command in a running container
+        version             Display runtime version information
+        images, image, img  List images
+        inspect             Display the status of one or more containers
+        inspecti            Return the status of one or more images
+        imagefsinfo         Return image filesystem info
+        inspectp            Display the status of one or more pods
+        logs                Fetch the logs of a container
+        port-forward        Forward local port to a pod
+        ps                  List containers
+        pull                Pull an image from a registry
+        run                 Run a new container inside a sandbox
+        runp                Run a new pod
+        rm                  Remove one or more containers
+        rmi                 Remove one or more images
+        rmp                 Remove one or more pods
+        pods                List pods
+        start               Start one or more created containers
+        info                Display information of the container runtime
+        stop                Stop one or more running containers
+        stopp               Stop one or more running pods
+        update              Update one or more running containers
+        config              Get and set crictl client configuration options
+        stats               List container(s) resource usage statistics
+        statsp              List pod resource usage statistics
+        completion          Output shell completion code
+        help, h             Shows a list of commands or help for one command
+
+42.  kubectl
+
+      kubectl  api-resouces    #查看全部资源
+      kubectl  cluster-info    #查看集群信息
+      
 
 
 

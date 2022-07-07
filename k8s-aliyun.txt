@@ -174,6 +174,7 @@ crictl pull  XXX                                                      #手动加
 kubectl apply -f  calico.yaml                                         # 生成calico 网络ip设置
 
 14.  # 验证k8s
+kubectl -n kube-system get cm kubeadm-config -o yaml   #查看集群的配置
 kubectl  get  cs    #查看集群
 kubectl  get  pods  -A  -o wide    #查看pod  所有都running
 kkubectl create deployment nginx --image=nginx
@@ -204,6 +205,32 @@ kubeadm token create --print-join-command   #直接生成join token
  kubeadm  reset  # 删除集群
  kubectl  delete nodes   xx    #删除node
 
+18. kubernetes-Dashboard
+  wget https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.0/aio/deploy/recommended.yaml
+   编辑 recommended.yaml 更改service 的type为 NodePort
+      kind: Service
+      apiVersion: v1
+      metadata:
+        labels:
+          k8s-app: kubernetes-dashboard
+        name: kubernetes-dashboard
+        namespace: kubernetes-dashboard
+      spec:
+        type: NodePort
+        ports:
+          - port: 443
+            targetPort: 8443
+            nodePort: 30001
+        selector:
+          k8s-app: kubernetes-dashboard
+kubectl  apply -f recommended.yaml     #生成  dashboard 任务
+kubectl  create serviceaccount  dashboard-admin -n kubernetes-dashboard    #生成账号
+kubectl get serviceaccount -n kubernetes-dashboard |grep  dashboard-admin  #查看账号
+kubectl create  clusterrolebinding dashboard-admin --clusterrole=cluster-admin \
+           --serviceaccount=kubernetes-dashboard:dashboard-admin            #将账号绑定cluster-admin 角色
+kubectl get clusterrolebind -n kubernetes-dashboard |grep dashboard-admin
+
+    
 
 +++++++++++++++++++++++++++++++参数优化+++++++++++
 /etc/security/limits.conf"
@@ -265,6 +292,21 @@ systemctl enable docker
 systemctl restart docker
 
 =================================================================
+
+
+
+
+==========================k8s  containerd  命令 ======================
+systemctl start containerd
+ctr version       #container CLI  命令行工具
+
+
+         
+
+
+
+
+
 
 
 ============================使用 Kubectl 部署 web 服务到 K8s 集群===============
