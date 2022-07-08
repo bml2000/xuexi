@@ -73,6 +73,186 @@ EOF
 sudo sysctl --system
 # sysctl -p /etc/sysctl.d/k8s.conf
 
+
+# 配置limit
+ulimit -SHn 65535
+cat >> /etc/security/limits.conf <<EOF
+* soft nofile 655360
+* hard nofile 131072
+* soft nproc 655350
+* hard nproc 655350
+* seft memlock unlimited
+* hard memlock unlimitedd
+EOF
+
+# ipvs 安装
+yum install ipvsadm ipset sysstat conntrack libseccomp -y   #安装ipvs
+#加载ipvs支持内核
+cat >> /etc/modules-load.d/ipvs.conf <<EOF 
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+nf_conntrack
+ip_tables
+ip_set
+xt_set
+ipt_set
+ipt_rpfilter
+ipt_REJECT
+ipip
+EOF
+systemctl restart systemd-modules-load.service
+lsmod | grep -e ip_vs -e nf_conntrack
+
+#修改内核参数
+cat <<EOF > /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-iptables = 1
+fs.may_detach_mounts = 1
+vm.overcommit_memory=1
+vm.panic_on_oom=0
+fs.inotify.max_user_watches=89100
+fs.file-max=52706963
+fs.nr_open=52706963
+net.netfilter.nf_conntrack_max=2310720
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_probes = 3
+net.ipv4.tcp_keepalive_intvl =15
+net.ipv4.tcp_max_tw_buckets = 36000
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_max_orphans = 327680
+net.ipv4.tcp_orphan_retries = 3
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_syn_backlog = 16384
+net.ipv4.ip_conntrack_max = 65536
+net.ipv4.tcp_max_syn_backlog = 16384
+net.ipv4.tcp_timestamps = 0
+net.core.somaxconn = 16384
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.lo.disable_ipv6 = 0
+net.ipv6.conf.all.forwarding = 1
+EOF
+sysctl --system  #执行生效
+
+#编译安装 nginx    #所有master节点安装
+yum install -y pcre pcre-devel openssl openssl-devel gcc gcc-c++ automake autoconf libtool make  zlib-devel
+yum install -y pcre pcre-devel openssl openssl-devel gcc  zlib-devel
+wget https://nginx.org/download/nginx-1.20.2.tar.gz
+tar xf nginx-1.20.2.tar.gz
+cd nginx-1.20.2/
+useradd nginx -s /sbin/nologin -M
+./configure --prefix=/opt/nginx/ --with-pcre --with-http_ssl_module --with-http_stub_status_module --with-stream --with-http_stub_status_module --with-http_gzip_static_module
+make  &&  make install  
+cat >/usr/lib/systemd/system/nginx.service<<EOF
+# /usr/lib/systemd/system/nginx.service
+[Unit]
+Description=The nginx HTTP and reverse proxy server
+After=network.target sshd-keygen.service
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/sshd
+ExecStartPre=/opt/nginx/sbin/nginx -t -c /opt/nginx/conf/nginx.conf
+ExecStart=/opt/nginx/sbin/nginx -c /opt/nginx/conf/nginx.conf
+ExecReload=/opt/nginx/sbin/nginx -s reload
+ExecStop=/opt/nginx/sbin/nginx -s stop
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#开机启动
+[root@k8s-01 nginx-1.20.2]# systemctl enable nginx --now
+
+
+
+yum  install -y   nginx  #yum安装nginx需要注意下面的配置文件路径就是/etc/nginx/nginx.conf
+vim  /opt/nginx/conf/nginx.conf  #配置nginx
+  user nginx nginx;
+  worker_processes auto;
+  events {
+      worker_connections  20240;
+      use epoll;
+  }
+  error_log /var/log/nginx_error.log info;
+
+  stream {
+      upstream kube-servers {
+          hash $remote_addr consistent;
+          
+          server rocky92:6443 weight=5 max_fails=1 fail_timeout=3s;  #这里可以写IP
+          server 192.168.110.95:6443 weight=5 max_fails=1 fail_timeout=3s;
+          server 192.168.110.96:6443 weight=5 max_fails=1 fail_timeout=3s;
+      }
+
+      server {
+          listen 8443 reuseport;
+          proxy_connect_timeout 3s;
+          # 加大timeout
+          proxy_timeout 3000s;
+          proxy_pass kube-servers;
+      }
+  }
+systemctl enable nginx --now     #启动nginx
+
+#安装keepalived   所有master安装
+yum install -y keeplaived
+#配置keepalived
+cat > /etc/keepalived/keepalived.conf <<EOF
+! Configuration File for keepalived
+global_defs {
+   router_id 192.168.110.92    #节点ip，master每个节点配置自己的IP
+}
+vrrp_script chk_nginx {
+    script "/etc/keepalived/check_port.sh 8443"
+    interval 2
+    weight -20
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 251
+    priority 100
+    advert_int 1
+    mcast_src_ip 192.168.110.92    #节点IP
+    nopreempt
+    authentication {
+        auth_type PASS
+        auth_pass 11111111
+    }
+    track_script {
+         chk_nginx
+    }
+    virtual_ipaddress {
+        192.168.110.99   #VIP
+    }
+}
+EOF
+#编写健康检查脚本
+vi /etc/keepalived/check_port.sh  
+CHK_PORT=$1
+ if [ -n "$CHK_PORT" ];then
+        PORT_PROCESS=`ss -lt|grep $CHK_PORT|wc -l`
+        if [ $PORT_PROCESS -eq 0 ];then
+                echo "Port $CHK_PORT Is Not Used,End."
+                exit 1
+        fi
+ else
+        echo "Check Port Cant Be Empty!"
+ fi
+
+#运行keeplived
+systemctl  enable --now  keeplaived
+#测试网络
+ping  rocky99.cn   #VIP地址
+
+
+
+
 8.  安装containerd
 wget -O /etc/yum.repos.d/docker-ce.repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 yum install containerd -y
@@ -226,24 +406,23 @@ kubeadm token create --print-join-command   #直接生成join token
 kubectl  apply -f recommended.yaml     #生成  dashboard 任务
 访问  https://192.168.110.92:30001
 
-#token 方式登陆
-#wget https://raw.githubusercontent.com/cby-chen/Kubernetes/main/yaml/dashboard-user.yaml #实现如下功能
-  kubectl  create serviceaccount  dashboard-admin -n kubernetes-dashboard    #生成账号
-  kubectl get serviceaccount -n kubernetes-dashboard |grep  dashboard-admin  #查看账号
-  kubectl create  clusterrolebinding dashboard-admin --clusterrole=cluster-admin \
-            --serviceaccount=kubernetes-dashboard:dashboard-admin            #将账号绑定cluster-admin 角色
-  kubectl get clusterrolebind -n kubernetes-dashboard |grep dashboard-admin
+  #token 方式登陆
+  #wget https://raw.githubusercontent.com/cby-chen/Kubernetes/main/yaml/dashboard-user.yaml #实现如下功能
+    kubectl  create serviceaccount  dashboard-admin -n kubernetes-dashboard    #生成账号
+    kubectl get serviceaccount -n kubernetes-dashboard |grep  dashboard-admin  #查看账号
+    kubectl create  clusterrolebinding dashboard-admin --clusterrole=cluster-admin \
+              --serviceaccount=kubernetes-dashboard:dashboard-admin            #将账号绑定cluster-admin 角色
+    kubectl get clusterrolebind -n kubernetes-dashboard |grep dashboard-admin
 
-kubectl create token -n kubernetes-dashboard  dashboard-admin    #生成并查看用token
-# kubeconfig登陆
-cd /etc/kubernetes/pki  #  k8s的master节点操作
-kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.110.92:6443" \
- --embed-certs=true  --kubeconfig=/root/admin-user.conf    #创建 cluster
-DEF_NS_ADMIN_TOKEN=$(kubectl create token kubernetes-dashboard -n kubernetes-dashboard) #生成token并赋值
-kubectl config set-credentials kubernetes-dashboard --token=$DEF_NS_ADMIN_TOKEN  --kubeconfig=/root/admin-user.conf #开始创建credentials
-kubectl config set-context  kubernetes-dashboard@kubernetes --cluster=kubernetes--user=kubernetes-dashboard --kubeconfig=/root/admin-user.conf #创建context
-kubectl config use-context kubernetes-dashboard@kubernetes --kubeconfig=/root/admin-user.conf #切换context的current-context是lucky@kubernetes
-
+  kubectl create token -n kubernetes-dashboard  dashboard-admin    #生成并查看用token
+  # kubeconfig登陆
+  cd /etc/kubernetes/pki  #  k8s的master节点操作
+  kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.110.92:6443" \
+  --embed-certs=true  --kubeconfig=/root/admin-user.conf    #创建 cluster
+  DEF_NS_ADMIN_TOKEN=$(kubectl create token admin-user -n kubernetes-dashboard) #生成token并赋值
+  kubectl config set-credentials admin-user --token=$DEF_NS_ADMIN_TOKEN  --kubeconfig=/root/admin-user.conf #开始创建credentials
+  kubectl config set-context  admin-user@kubernetes --cluster=kubernetes --user=admin-user --kubeconfig=/root/admin-user.conf #创建context
+  kubectl config use-context admin-user@kubernetes --kubeconfig=/root/admin-user.conf #切换context的current-context是admin-user@kubernetes #登陆选择kubeconfig 文件即可 
 
 
     

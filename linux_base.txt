@@ -1561,9 +1561,15 @@ http://blogs.studylinux.net
         help, h             Shows a list of commands or help for one command
 
 42.  kubectl
-
       kubectl  api-resouces    #查看全部资源
       kubectl  cluster-info    #查看集群信息
+      kubectl create token  admin-user -n kubernetes-dashbaord #生成并查看用户token
+      kubectl  config view  # 查看默认配置文件 $KUBECONFIG 的内容 （系统环境变量）/etc/kubernetes/admin.conf
+      kubectl  create  serviceaccount -n namepsace_name   #新建用户账号
+      kubectl  create  role  #新建角色
+      kubectl  create clusterrole   #新建集群角色
+      kubectl  create  rolebinding   #角色绑定
+      kubectl  create  clusterrolebinding  dashboard-admin  --clusterrole=cluster-admin  --sericeaccount=kuberents-dashboard:dashboard-admin  #集群角色绑定
       
 
 
