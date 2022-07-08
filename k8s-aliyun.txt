@@ -177,7 +177,7 @@ kubectl apply -f  calico.yaml                                         # 生成ca
 kubectl -n kube-system get cm kubeadm-config -o yaml   #查看集群的配置
 kubectl  get  cs    #查看集群
 kubectl  get  pods  -A  -o wide    #查看pod  所有都running
-kkubectl create deployment nginx --image=nginx
+kubectl create deployment nginx --image=nginx
 kubectl  get  nodes    
 kubectl expose deployment nginx --port=80 --type=NodePort
 kubectl get pod,svc -o wide
@@ -224,11 +224,27 @@ kubeadm token create --print-join-command   #直接生成join token
         selector:
           k8s-app: kubernetes-dashboard
 kubectl  apply -f recommended.yaml     #生成  dashboard 任务
-kubectl  create serviceaccount  dashboard-admin -n kubernetes-dashboard    #生成账号
-kubectl get serviceaccount -n kubernetes-dashboard |grep  dashboard-admin  #查看账号
-kubectl create  clusterrolebinding dashboard-admin --clusterrole=cluster-admin \
-           --serviceaccount=kubernetes-dashboard:dashboard-admin            #将账号绑定cluster-admin 角色
-kubectl get clusterrolebind -n kubernetes-dashboard |grep dashboard-admin
+访问  https://192.168.110.92:30001
+
+#token 方式登陆
+#wget https://raw.githubusercontent.com/cby-chen/Kubernetes/main/yaml/dashboard-user.yaml #实现如下功能
+  kubectl  create serviceaccount  dashboard-admin -n kubernetes-dashboard    #生成账号
+  kubectl get serviceaccount -n kubernetes-dashboard |grep  dashboard-admin  #查看账号
+  kubectl create  clusterrolebinding dashboard-admin --clusterrole=cluster-admin \
+            --serviceaccount=kubernetes-dashboard:dashboard-admin            #将账号绑定cluster-admin 角色
+  kubectl get clusterrolebind -n kubernetes-dashboard |grep dashboard-admin
+
+kubectl create token -n kubernetes-dashboard  dashboard-admin    #生成并查看用token
+# kubeconfig登陆
+cd /etc/kubernetes/pki  #  k8s的master节点操作
+kubectl config set-cluster kubernetes --certificate-authority=./ca.crt --server="https://192.168.110.92:6443" \
+ --embed-certs=true  --kubeconfig=/root/admin-user.conf    #创建 cluster
+DEF_NS_ADMIN_TOKEN=$(kubectl create token kubernetes-dashboard -n kubernetes-dashboard) #生成token并赋值
+kubectl config set-credentials kubernetes-dashboard --token=$DEF_NS_ADMIN_TOKEN  --kubeconfig=/root/admin-user.conf #开始创建credentials
+kubectl config set-context  kubernetes-dashboard@kubernetes --cluster=kubernetes--user=kubernetes-dashboard --kubeconfig=/root/admin-user.conf #创建context
+kubectl config use-context kubernetes-dashboard@kubernetes --kubeconfig=/root/admin-user.conf #切换context的current-context是lucky@kubernetes
+
+
 
     
 
