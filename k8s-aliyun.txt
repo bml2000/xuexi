@@ -1,9 +1,13 @@
+
+https://blog.csdn.net/abcdocker/article/details/124855014
+https://blog.csdn.net/zhaikaiyun/article/details/104633824/
+
 https://blog.csdn.net/qq_25599925/article/details/123759160
 https://blog.csdn.net/u012069313/article/details/125201017
 
 https://blog.csdn.net/pleong/article/details/125086963
 https://blog.csdn.net/clover661/article/details/120093243
-https://blog.csdn.net/u012069313/article/details/125201017
+
 =====================================
 阿里云 的k8s 网络设置
 net.ipv4.ip_forward=1
@@ -234,9 +238,10 @@ vrrp_instance VI_1 {
 EOF
 #编写健康检查脚本
 vi /etc/keepalived/check_port.sh  
+#!bin/bash
 CHK_PORT=$1
  if [ -n "$CHK_PORT" ];then
-        PORT_PROCESS=`ss -lt|grep $CHK_PORT|wc -l`
+        PORT_PROCESS=`ss -lnt|grep $CHK_PORT|wc -l`
         if [ $PORT_PROCESS -eq 0 ];then
                 echo "Port $CHK_PORT Is Not Used,End."
                 exit 1
@@ -318,11 +323,26 @@ systemctl enable kubelet && systemctl start kubelet
 mkdir -p /root/k8s-install
 kubeadm  config print  init-defaults >  /root/k8s-install/kubeadm-ini.yaml  #生成配置文件
 
-更改  kubeadm-init.yaml  
+更改  kubeadm-init.yaml   -单master
 sed -i "s/imageRepository.*$/imageRepository: registry.aliyuncs.com\/google_containers/g" /root/k8s-install/kubeadm-ini.yaml
 sed -i "s/advertiseAddress: 1.2.3.4/advertiseAddress: 192.168.110.92/g"  /root/k8s-install/kubeadm-ini.yaml   # 设置apiserver的ip地址
 sed -i "s/name: node/name: rocky92/g"  /root/k8s-install/kubeadm-ini.yaml    # 设置apiserver的hostname
 在 serviceSubnet 下设置 podSubnet 172.16.0.0/16                               # 设置 pod网络地址段
+
+多master ：
+kind: ClusterConfiguration
+kubernetesVersion: 1.24.0
+controlPlaneEndpoint: apiserver.frps.cn:8443        #高可用地址，我这里填写vip
+networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.96.0.0/12
+  podSubnet: 172.16.0.0/16              
+scheduler: {}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: ipvs      
+
 
 下载镜像：
 kubeadm  config images  list  --config /root/k8s-install/kubeadm-ini.yaml    #查看镜像
@@ -340,6 +360,9 @@ kubeadm join 192.168.110.92:6443 --token abcdef.0123456789abcdef \              
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config       # master 执行
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+#或设置环境变量
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
 
 # node                                                          
 mkdir -p $HOME/.kube
