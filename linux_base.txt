@@ -371,6 +371,7 @@ http://blogs.studylinux.net
   
         yum info  查看包信息
         yum provides  查看文件由哪个包提供
+        yum whatprovides ifconfig   #查看命令在哪个包中
         yum clean 清理本地缓存
         yum  makecache  生成缓存
         yum repolist  显示仓库列表
@@ -1327,11 +1328,13 @@ http://blogs.studylinux.net
 	dnf distro-sync   #更新到稳定版本
 	
 33. chrony
-    systemctl  start chronyd
-	systemctl  enable chronyd
-	/etc/chrony.conf 
-	    server  npt1.aliyun.com
-	
+   yum install chrony -y
+   	/etc/chrony.conf 
+	    server  npt.aliyun.com  iburst    #iburst 是参数 发送个八个数据包可加快初始同步速度
+	systemctl enable chronyd 
+    systemctl start chronyd 
+    chronyc sources #查看连接
+    hwclock -w
 34.  忘记root密码处理：
      grub -e
      编辑启动项， 将ro  更改 rw  init=/sysroot/bin/bash    #启动bash 并设置rw
@@ -1570,7 +1573,95 @@ http://blogs.studylinux.net
       kubectl  create clusterrole   #新建集群角色
       kubectl  create  rolebinding   #角色绑定
       kubectl  create  clusterrolebinding  dashboard-admin  --clusterrole=cluster-admin  --sericeaccount=kuberents-dashboard:dashboard-admin  #集群角色绑定
-      
+
+43.   linux  性能查看
+      yum  install sysstat -y    # 系统状态工具
+    free -h   #查看内存使用情况
+
+    dmesg |tail  #查看最后10行的日期
+
+    top [-] [d delay] [q] [c] [S] [s] [i] [n] [b]  #top命令包含了前面好几个命令的检查的内容。比如系统负载情况（uptime）、系统内存使用情况（free）、系统CPU使用情况（vmstat）等。可排序
+        -d	指定每两次屏幕信息刷新之间的时间间隔，如希望每秒刷新一次，则使用：top -d 1
+        -p	通过指定PID来仅仅监控某个进程的状态
+        -S	指定累计模式
+        -s	使top命令在安全模式中运行。这将去除交互命令所带来的潜在危险
+        -i	使top不显示任何闲置或者僵死的进程
+        -c	显示整个命令行而不只是显示命令名
+       显示：
+        PID  	进程id
+        USER	进程所有者的用户名
+        PR	   	优先级
+        NI		nice值，负值表示高优先级，正值表示低优先级
+        VIRT	进程使用的虚拟内存总量，单位kb。VIRT=SWAP+RES
+        RES		进程使用的、未被换出的物理内存大小，单位kb。RES=CODE+DATA
+        SHR		共享内存大小，单位kb
+        S		进程状态。D=不可中断的睡眠状态 R=运行 S=睡眠 T=跟踪/停止 Z=僵尸进程
+        %CPU	上次更新到现在的CPU时间占用百分比
+        %CPU	上次更新到现在的CPU时间占用百分比
+        %MEM	进程使用的物理内存百分比
+        TIME+	进程使用的CPU时间总计，单位1/100秒
+        COMMAND	命令名/命令行
+        按“F" 键查看 缩写的具体解释  可设置显示项d、排序项s
+    
+    uptime    #cpu  平均负载
+        23:51:26 up 21:31,  1 user,  load average: 30.02, 26.43, 19.02
+        以运行时间， 用户数 CPU平均负载 1分钟、5分钟、15分钟
+
+    mpstat [-P {|ALL}] [internal [count]]   #多处理器状态查询
+        09:59:49 AM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
+        09:59:49 AM  all    0.52    0.04    1.45    0.40    3.28    0.53    0.00    0.00    0.00   93.77
+        09:59:49 AM    0    0.53    0.04    1.48    0.37    3.38    0.65    0.00    0.00    0.00   93.55
+        09:59:49 AM    1    0.52    0.04    1.43    0.42    3.18    0.42    0.00    0.00    0.00   94.0
+           #显示每个CPU的占用情况，如果有一个CPU占用率特别高，那么有可能是一个单线程应用程序引起的
+    pidstat    [internal [count]]    #显示每个进程pid的cpu占用情况
+        10:01:45 AM   UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+        10:01:45 AM     0         1    0.01    0.09    0.00    0.01    0.10     0  systemd
+        10:01:45 AM     0         2    0.00    0.00    0.00    0.00    0.00     0  kthreadd
+
+    vmstat   [internal [count]]   #虚拟内存状态
+        procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+        r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+        2  0      0 631708   3160 776800    0    0   102    20  398  671  1  5 94  0  0
+            r：等待在CPU资源的进程数。这个数据比平均负载更加能够体现CPU负载情况，数据中不包含等待IO的进程。如果这个数值大于机器CPU核数，那么机器的CPU资源已经饱和。
+            b: 阻塞进程数
+            us, sy, id, wa, st：这些都代表了CPU时间的消耗，它们分别表示用户时间（user）、
+            系统（内核）时间（sys）、空闲时间（idle）、IO等待时间（wait）和被偷走的时间（stolen，一般被其他虚拟机消耗）。
+    
+    iostat [-xz]   [internal [count]]    #查看io读写情况
+        avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+            0.56    0.05    5.49    0.54    0.00   93.35
+        Device            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s  %rrqm  %wrqm r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+        sda              3.26    1.74    224.26     43.48     0.01     0.32   0.28  15.43   14.90    4.26   0.06    68.83    24.97   2.61   1.30
+        dm-0             1.96    8.43    270.19     69.49     0.00     0.00   0.00   0.00    5.41    0.87   0.02   138.06     8.24   0.96   1.00
+        dm-1             0.01    0.00      0.31      0.00     0.00     0.00   0.00   0.00    0.26    0.00   0.00    21.57     0.00   0.30   0
+            rrqm/s：每秒读请求的合并次数
+            %util：设备利用率。这个数值表示设备的繁忙程度，经验值是如果超过60，可能会影响IO性能（可以参照IO操作平均等待时间）。如果到达100%，说明硬件设备已经饱和。
+            aqu-sz：平均请求队列长度，请求队列过高则会带来响应时间会更慢
+            rrqm/s：每秒读请求的合并次数
+            r/s+  w/s  ，就是 IOPS；   (r/s ：每秒的读请求数）
+            rkB/s+wkB/s ，就是吞吐量； （rkB/s：每秒读取的数据量(单位kB)）
+            r_await+w_await ，就是响应时间
+        ls -l /dev/mapper  #查看设备来源
+            crw------- 1 root root 10, 236 Jul 12 11:29 control
+            lrwxrwxrwx 1 root root       7 Jul 12 11:29 rl-root -> ../dm-0  #lvdisplay   #逻辑卷对应dm-0
+            lrwxrwxrwx 1 root root       7 Jul 12 11:29 rl-swap -> ../dm-1
+
+    sar -n  DEV     [internal [count]]  #查看网络设备
+        10:06:49 AM     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s   rxcmp/s   txcmp/s  rxmcst/s   %ifutil
+        10:06:50 AM        lo     16.00     16.00      1.25      1.25      0.00      0.00      0.00      0.00
+        10:06:50 AM     ens33      1.00      4.00      0.06      0.33      0.00      0.00      0.00      0.00
+        10:06:50 AM     tunl0      0.00      0.00      0.00      0.00      0.00      0.00      0.00      0.00
+           #网络设备的吞吐量，判断网络设备是否已经饱和。如示例输出中，eth0网卡设备，吞吐率大概在22 Mbytes/s，既176 Mbits/sec，没有达到1Gbit/sec的硬件上限。
+    
+    sar -n TCP ETCP  [internal [count]]  #查看TCP 连接情况
+        10:08:59 AM  active/s passive/s    iseg/s    oseg/s
+        10:09:00 AM     10.00      1.00      9.00     17.00
+        10:08:59 AM  atmptf/s  estres/s retrans/s isegerr/s   orsts/s
+        10:09:00 AM      1.00      1.00      0.00      0.00      2.00
+            #是否由于建立了过多的连接，进一步可以判断是主动发起的连接，还是被动接受的连接。ETCP -TCP重传可能是因为网络环境恶劣，或者服务器压力过大导致丢包。
+
+
+
 
 
 
