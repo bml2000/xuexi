@@ -588,7 +588,7 @@ envoyIP=$(kubectl get pods/sidecar-container-demo -o jsonpath={.status.podIP}); 
 kubectl run client-$RANDOM --image="ikubernetes/admin-toolbox:v1.0" --restart=Never --rm -it --env=envoyIP=${envoyIP} --command -- /bin/sh
     curl -I http://$envoyIP/
     exit
-Step3：Ambanssdor容器
+Step3：Ambassador容器
 cat > ambassador-container-demo.yaml <<EOF
 # Create By: "MageEdu <mage@magedu.com>"
 # Site: www.magedu.com
@@ -713,6 +713,213 @@ kubectl describe pods/init-container-demo
     exit
 
   =================================
+  阿里云 存储卷与数据持久化
+  ++++++Step2: emptyDir存储卷+++++++
+cat  > volumes-emptydir-demo.yaml <<EOF
+  # Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-emptydir-demo
+spec:
+  initContainers:
+  - name: config-file-downloader
+    image: ikubernetes/admin-box
+    imagePullPolicy: IfNotPresent
+    command: ['/bin/sh','-c','wget -O /data/envoy.yaml https://code.aliyun.com/MageEdu/kubernetes-start/raw/master/tutorials/handson/volume-basics-01/envoy.yaml']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /data
+  containers:
+  - name: envoy
+    image: envoyproxy/envoy-alpine:v1.16.2
+    command: ['/bin/sh','-c']
+    args: ['envoy -c /etc/envoy/envoy.yaml']
+    volumeMounts:
+    - name: config-file-store
+      mountPath: /etc/envoy
+      readOnly: true
+  volumes:
+  - name: config-file-store
+    emptyDir:
+      medium: Memory
+      sizeLimit: 16Mi
+EOF
+kubectl apply -f volumes-emptydir-demo.yaml
+kubectl describe pods volumes-emptydir-demo
+kubectl exec volumes-emptydir-demo -- netstat -tnl
+podIP=$(kubectl get pods/volumes-emptydir-demo -o jsonpath={.status.podIP});kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.0" --restart=Never --env=podIP=$podIP --rm -it --command -- curl -s $podIP:9901/clusters
++++++++
+Step3：hostPath存储卷
+cat  >volumes-hostpath-demo.yaml <<EOF
+# Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volumes-hostpath-demo
+  labels:
+    app: redis
+spec:
+  containers:
+  - name: redis
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+      name: redisport
+    securityContext:
+      runAsUser: 999
+    volumeMounts:
+    - mountPath: /data
+      name: redisdata
+  volumes:
+    - name: redisdata
+      hostPath:
+        path: /appdatas/redis/
+        type: DirectoryOrCreate
+EOF
+kubectl apply -f volumes-hostpath-demo.yaml
+kubectl get pods/volumes-hostpath-demo -o jsonpath={.status.hostIP}
+kubectl exec -it volumes-hostpath-demo -- redis-cli
+127.0.0.1:6379> set mykey "Hi MageEdu"
+OK
+127.0.0.1:6379> get mykey
+"Hi MageEdu"
+127.0.0.1:6379> BGSAVE
+Background saving started
+127.0.0.1:6379> exit
+
+kubectl delete -f volumes-hostpath-demo.yaml && kubectl apply -f volumes-hostpath-demo.yaml 
+kubectl get pods/volumes-hostpath-demo -o jsonpath={.status.hostIP}
+kubectl exec -it volumes-hostpath-demo -- redis-cli
+127.0.0.1:6379> get mykey
+"Hi MageEdu"
+127.0.0.1:6379> exit
+
++++++Step4：阿里云的云盘存储++++
+cat > pvc-demo.yaml << EOF
+# Created-By:"MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: diskplugin.csi.alibabacloud.com
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: pvc-demo
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: alicloud-disk-ssd
+  volumeMode: Filesystem
+EOF
+
+kubectl apply -f pvc-demo.yaml
+kubectl get pvc/pvc-demo
+
+cat > redis-with-pvc.yaml  <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-with-pvc
+spec:
+  containers:
+  - name: redis
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+      name: redisport
+    volumeMounts:
+    - mountPath: /data
+      name: redisdata
+  volumes:
+    - name: redisdata
+      persistentVolumeClaim:   # PVC存储卷插件
+        claimName: pvc-demo
+        readOnly: false
+EOF
+kubectl apply -f redis-with-pvc.yaml    
+kubectl exec -it redis-with-pvc -- redis-cli set site "www.magedu.com"
+kubectl exec -it redis-with-pvc -- redis-cli bgsave
+kubectl exec -it redis-with-pvc -- ls /data
+kubectl delete -f redis-with-pvc.yaml
+kubectl apply -f redis-with-pvc.yaml
+kubectl exec -it redis-with-pvc -- redis-cli get site
+    www.magedu.com    
+
++++++++++++++configmap++++++++++++
+#命令式参数创建ConfigMap
+kubectl create configmap demoapp-config --from-literal=demoapp.host='0.0.0.0' --from-literal=demoapp.port='8080'
+kubectl get configmaps demoapp-config -o yaml
+#命令行加载文件创建ConfigMap
+ kubectl create configmap nginx-confs --from-file=./nginx-conf.d/myserver.conf --from-file=status.cfg=./nginx-conf.d/myserver-status.cfg 
+ kubectl get configmap nginx-confs -o yaml
+ kubectl create configmap nginx-config-files --from-file=./nginx-conf.d/
+ kubectl get configmap/nginx-config-files -o yaml
+ #: 通过环境变量引用ConfigMap键值
+ cat  >configmaps-env-demo.yaml <<EOF
+ # Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demoapp-config
+data:
+  demoapp.port: "8080"
+  demoapp.host: 0.0.0.0
+---
+# Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmaps-env-demo
+spec:
+  containers:
+  - image: ikubernetes/demoapp:v1.0
+    name: demoapp
+    env:
+    - name: PORT
+      valueFrom:
+        configMapKeyRef:
+          name: demoapp-config
+          key: demoapp.port
+          optional: false
+    - name: HOST
+      valueFrom:
+        configMapKeyRef:
+          name: demoapp-config
+          key: demoapp.host
+          optional: true
+EOF
+kubectl apply -f configmaps-env-demo.yaml
+kubectl exec configmaps-env-demo -- netstat -tnl 
+# 使用configmap存储卷
+
+cat  > configmaps-volume-demo.yaml <<EOF
+# Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmaps-volume-demo
+spec:
+  containers:
+  - image: nginx:alpine
+    name: nginx-server
+    volumeMounts:
+    - name: ngxconfs
+      mountPath: /etc/nginx/conf.d/
+      readOnly: true
+  volumes:
+  - name: ngxconfs
+    configMap:
+      name: nginx-config-files
+      optional: false
+podIP=$(kubectl get pods configmaps-volume-demo -o go-template={{.status.podIP}})
+kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.1" --restart=Never --env="podIP=${podIP}" --rm -it --command -- /bin/sh
+  curl http://${podIP}:8080/nginx-status
+kubectl exec configmaps-volume-demo -- ls /etc/nginx/conf.d
 
 
 ============================使用 Kubectl 部署 web 服务到 K8s 集群===============
