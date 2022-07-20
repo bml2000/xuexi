@@ -1573,6 +1573,20 @@ http://blogs.studylinux.net
       kubectl  create clusterrole   #新建集群角色
       kubectl  create  rolebinding   #角色绑定
       kubectl  create  clusterrolebinding  dashboard-admin  --clusterrole=cluster-admin  --sericeaccount=kuberents-dashboard:dashboard-admin  #集群角色绑定
+      kubectl  get  pod --show-labels   # 显示labels
+      kubectl  get  pod -l  labels      #过滤显示label的pod     labels in (xxx);
+      kubectl get pod --show-labels -l 'fornt in (dev, test)'
+            NAME       READY   STATUS    RESTARTS   AGE    LABELS
+            demoapp1   1/1     Running   0          115m   app=demoapp1,fornt=dev
+            demoapp2   1/1     Running   0          115m   app=demoapp2,fornt=test
+      kubectl  lable   pod   demoapp1  app-  #删除pod的label
+      kubectl  label   pod   demoapp2 app2=demoapp  #新增label
+      kubectl  label pod demoapp2 app2=demoapp3 --overwrite   #修改label
+      
+
+
+
+
 
 43.   linux  性能查看
       yum  install sysstat -y    # 系统状态工具

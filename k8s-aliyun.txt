@@ -922,6 +922,418 @@ kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.1" --restart=Never --e
 kubectl exec configmaps-volume-demo -- ls /etc/nginx/conf.d
 
 
++++++ services++++
+Step2: ClusterIP类型的Service资源
+cat > demoapp.yaml <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demoapp
+  labels:
+    app: demoapp
+spec:
+  containers:
+  - name: demoapp
+    image: nginx
+    resources:
+    ports:
+      - containerPort: 80
+EOF
+#
+cat  > deployment_demoapp.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoapp
+spec:
+  selector:
+    matchLabels:
+      app: demoapp
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: demoapp
+    spec:
+      containers:
+      - name: demoapp
+        image: ikubernetes/demoapp:v1.0
+        ports:
+        - containerPort: 80
+EOF
+kubectl apply -f deployment_demoapp.yaml 
+
+cat > services-clusterip-demo.yaml <<EOF
+# Created-By:"MageEdu <mage@magedu.com>"
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp
+spec:
+  selector:
+    app: demoapp
+  ports:
+  - name: http       # 端口名称标识
+    protocol: TCP    # 协议，支持TCP、UDP和SCTP
+    port: 80          # Service自身的端口号
+    targetPort: 80   # 目标端口号，即Endpoint上定义的端口号
+EOF
+
+kubectl apply -f services-clusterip-demo.yaml
+kubectl get services/demoapp -o wide
+kubectl describe services demoapp
+kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.2" --restart=Never --rm -it  --command -- /bin/bash
+  for ((i=0;i<=6;i++)); do curl http://$DEMOAPP_SERVICE_HOST; sleep .1; done
+
+++++++Step3: NodePort类型的Service资源+++
+# Created-By:"MageEdu <mage@magedu.com>"
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp
+spec:
+  type: NodePort
+  selector:
+    app: demoapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+kubectl apply -f services-nodeport-demo.yaml
+kubectl get services/demoapp -o wide
+  我们可于集群外部的某一主机上，向集群的任一节点的该NodePort发起请求。请求流量将由services/demoapp-nodeport调度给后端端点。
+  该service使用了与前面的services/demoapp相同的标签选择器，因而，无论客户端请求自<SERVICE_IP>:<SERVICE_PORT>进入，
+  还是经由<NODE_IP>:<NODE_PORT>进入，都可由该Service一体完成流量调度。
+
++++++++Step4：LoadBalancer类型的Service+++++
+cat >  services-loadbalancer-demo.yaml <<EOF
+ # Created-By:"MageEdu <mage@magedu.com>"
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp
+spec:
+  type: LoadBalancer
+  selector:
+    app: demoapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+EOF
+kubectl apply -f services-loadbalancer-demo.yaml
+kubectl get services/demoapp -o wide
+  除了原有的流量入口外，services/demoapp此时还能够通过集群分配的外部IP地址（EXTERNAL-IP字段的值）接入外部流量，
+  并将其转发至各节点的NodePort之上。接下来，我们可于集群外部访问该LB IP上暴露的服务，对于services/demoapp来说，
+  在本地主机上打开浏览器，键入上面的外部地址即可。
+++++++++++++++++++++Step5：基于ClusterDNS的服务发现+++++++++++++++
+kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.2" --restart=Never --rm -it  --command -- /bin/bash
+  cat /etc/resolv.conf 
+  nslookup -query=A demoapp  #解析demoapp的A记录
+  host -t SRV demoapp      #查询服务地址
+  host -t PTR ${DEMOAPP_SERVICE_HOST}   #查询反向解析地址  ip查域名
+  host -t NS cluster.local.              #查询dns服务名称
+  host -t A kubernetes.default.svc       #k8s服务的地址
+
+  ++++++++++++++配置Pod的DNS策略 +++++++++++++
+    Default：从运行在的节点继承DNS名称解析相关的配置；
+    ClusterFirst：于集群DNS服务上解析集群域内的名称，其他域名的解析则交由从节点继承而来的上游名称服务器；
+    ClusterFirstWithHostNet：专用于在设置了hostNetwork的Pod对象上使用的ClusterFirst策略，任何配置了hostNetwork的Pod对象都应该显式使用该策略；
+    None：用于忽略Kubernetes集群的默认设定，而仅使用由dnsConfig自定义的配置；
+Pod资源的自定义DNS配置要通过嵌套于spec.dnsConfig字段中的如下几个字段进行，它们的最终生效结果要结合dnsPolicy的定义生成。
+    nameservers <[]string>：DNS名称服务器列表，它附加于由dnsPolicy生成的DNS名称服务器之后；
+    searches <[]string>：DNS名称解析时的搜索域，它附加由于dnsPolicy生成的搜索域之后；
+    options <[]Object>：DNS解析选项列表，它将会同dnsPolicy生成的解析选项合并成最终生效的定义；
+
+
+cat  > pod-with-customed-dnspolicy.yaml <<EOF
+# Created-By:"MageEdu <mage@magedu.com>"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-customed-dnspolicy
+spec:
+  containers:
+  - name: demo
+    image: ikubernetes/demoapp:v1.0
+    imagePullPolicy: IfNotPresent
+  dnsPolicy: None
+  dnsConfig:
+    nameservers:
+    - 172.21.0.10
+    searches: 
+    - svc.cluster.local
+    - cluster.local
+    - magedu.com
+    options:
+    - name: ndots
+      value: "5"
+EOF
+kubectl apply -f pod-with-customed-dnspolicy.yaml
+kubectl exec -it pod-with-customed-dnspolicy -- /bin/sh
+    cat /etc/resolv.conf 
+    nslookup -query=A demoapp
+
++++++++++++++Step7：External Service+++++++++++++++
+Kubernetes将那些ClusterIP字段值为“None”的Service资源称为Headless Service，该类Service的请求流量无须kube-proxy处理，也不会有负载均衡和路由相关的iptables或ipvs规则
+我们把无标签选择器的第一种情形（使用CNAME记录）的Headless Service当作一种独立的Service类型使用，即ExternalName Service，
+而将那些把Service名称使用A记录解析为端点IP地的情况则统一称为Headless Service。
+
+cat > externalname-mageedu-svc.yaml <<EOF
+kind: Service
+apiVersion: v1
+metadata:
+  name: externalname-mageedu
+spec:
+  type: ExternalName
+  externalName: www.magedu.com
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  selector: {}
+EOF
+kubectl apply -f externalname-mageedu-svc.yaml
+kubectl run pod-$RANDOM --image="ikubernetes/admin-box:v1.2" --restart=Never --rm -it  --command -- /bin/bash
+  nslookup -query=A externalname-mageedu 
+++++++++++++++++++Step8: Headless Service+++++++++++
+cat > demoapp-headless-svc.yaml <<EOF
+kind: Service
+apiVersion: v1
+metadata:
+  name: demoapp-headless-svc
+spec:
+  clusterIP: None
+  selector:
+    app: demoapp
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+EOF
+kubectl apply -f demoapp-headless-svc.yaml
+    nslookup -query=A demoapp-headless-svc 
+    for ip in $(host -t A demoapp-headless-svc | awk '{print $4}'); do host -t PTR $ip; done
+
++++++++++++++++++++++++++++++++++++Job和Cronjob控制器 +++++++++++++++++++++++++++++++++
+++++Step2: Job控制器 +++
+
+定义Job资源时，spec字段内嵌的必要字段仅有template一个，Job会为其Pod对象自动添加job-name=JOB_NAME和controller-uid=UID标签，
+并使用标签选择器完成对controller-uid标签的关联。
+cat > job-demo.yaml <<EOF
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-demo
+spec:
+  template:
+    spec:
+      containers:
+      - name: myjob
+        image: ikubernetes/admin-toolbox:v1.0
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "sleep 60"]
+      restartPolicy: Never
+  completions: 3
+  ttlSecondsAfterFinished: 3600   # Job的留存时长，超过该时长将被自动删除；  
+  backoffLimit: 3   # 将作业标记为失败状态之前的重试次数，默认值为6；
+  activeDeadlineSeconds: 300   # Job的最大活动时长，超过该时长仍未成功结束时将被标记为失败；
+EOF
+
+kubectl apply -f job-demo.yaml
+kubectl get jobs/job-demo -o wide
+kubectl get jobs/job-demo -o wide
+kubectl get pods -l job-name=job-demo
+等作业任务完成后，jobs/job-demo所创建的所有Pod对象将处于“Completed”状态。
+    NAME             READY   STATUS      RESTARTS   AGE
+    job-demo-42gjf   0/1     Completed   0          13m
+    job-demo-g9hdt   0/1     Completed   0          11m
+    job-demo-pcpvd   0/1     Completed   0          12m
+
++++++Step3：并行式Job++++
+cat > job-para-demo.yaml <<EOF
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-para-demo
+spec:
+  template:
+    spec:
+      containers:
+      - name: myjob
+        image: ikubernetes/admin-toolbox:v1.0
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "sleep 60"]
+      restartPolicy: OnFailure
+  completions: 10
+  parallelism: 2
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  activeDeadlineSeconds: 1200
+EOF
+kubectl apply -f job-para-demo.yaml
+kubectl get jobs/job-para-demo -o wide
+kubectl get pods -l job-name=job-para-demo
+kubectl patch jobs/job-para-demo -p '{"spec":{"parallelism":5}}'
+kubectl get pods -l job-name=job-para-demo
+
+++++Step5：Cronjob控制器++++
+cat >  cronjob-demo.yaml <<EOF
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com  
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-demo
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    metadata:
+      labels:
+        app: mycronjob-jobs
+    spec:
+      parallelism: 1
+      completions: 1
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 3
+      activeDeadlineSeconds: 60
+      template:
+        metadata:
+          labels:
+            app: cronjob-demo-pod
+        spec:
+          containers:
+          - name: myjob
+            image: "ikubernetes/admin-toolbox:v1.0"
+            command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from CronJob, sleep a while…; sleep 10;
+          restartPolicy: OnFailure
+  startingDeadlineSeconds: 300
+EOF
+kubectl apply -f cronjob-demo.yaml
++++++++++++++++++++++++理解和使用ServiceAccount+++++++++++++++++++++++++++++++++
++++++Step2：ServiceAccount自动化+++
+为每个名称空间自动创建一名为default的ServiceAccount，并为每个未指定ServiceAccount的Pod自动附加其所属名称空间上的serviceaccounts/default对象。
+ServiceAccount将其适用的名称空间、认证到API Server的Token，以及信任的CA证书等敏感信息存储于专用的Secret对象中。
+Pod会以存储卷的形式附加其使用的ServiceAccount相关的Secret对象，并由各容器挂载至默认的/var/run/secrets/kubernetes.io/serviceaccount目录下。
+
+kubectl run pod-01 --image="ikubernetes/demoapp:v1.0" --restart=Never --rm -it --command -- /bin/sh
+kubectl get pods/pod-01 -o yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      ……
+      name: pod-01
+      namespace: handson-22084b6dfd81c0d5e414222b5f461693
+      ……
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        image: ikubernetes/demoapp:v1.0
+        imagePullPolicy: IfNotPresent
+        name: pod-01
+        ……
+        volumeMounts:
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount    # Secret存储卷的挂载点
+          name: default-token-6dhx2
+          readOnly: true
+      ……
+      serviceAccount: default     # 使用的ServiceAccount对象，已废弃该字段，由下面的字段所替换；
+      serviceAccountName: default    # 使用的ServiceAccount对象；
+      ……
+      volumes:
+      - name: default-token-6dhx2    # ServiceAccount对象相关的Secret存储卷
+        secret:
+          defaultMode: 420
+          secretName: default-token-6dhx2    # Secret对象的名称
+    ……
+
+kubectl describe serviceaccounts/default
+ls -1 /var/run/secrets/kubernetes.io/serviceaccount
+    ca.crt      # CA的证书文件
+    namespace   # 保存有适用的名称空间的文件
+    token       # 保存有认证到API Server的Token的文件 
+
++++Step3：创建ServiceAccount对象+++
+该Secret对象属于特殊的kubernetes.io/service-account-token类型，它包含ca.crt、namespace和token3个数据项
+kubectl create serviceaccount mysa01
+kubectl get serviceaccounts/mysa01 -o jsonpath={.secrets[0].name}
+      mysa01-token-2qfbl     # 名称后缀随机生成；
+kubectl get secrets $(kubectl get serviceaccounts/mysa01 -o jsonpath={.secrets[0].name}) -o yaml
+
+++++Step4：ServiceAccount资源规范+++
+cat > serviceaccount-demo.yaml <<EOF
+# Create By: "MageEdu <mage@magedu.com>"
+# Site: www.magedu.com
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin
+automountServiceAccountToken: true
+EOF
+kubectl apply -f serviceaccount-demo.yaml
+kubectl get serviceaccounts/admin -o jsonpath={.secrets[0].name}
+kubectl get serviceaccounts/default -o yaml
+ServiceAccount资源还可以基于spec.imagePullSecret字段附带一个由下载镜像专用的Secret资源组成的列表，
+用于让Pod对象在创建容器时从私有镜像仓库下载镜像文件之前完成身份认证。
+kubectl get serviceaccounts/default -o yaml
+    ……
+    imagePullSecrets:
+    - name: acr-credential-d8cb8c4195a48ca6dbefe56f6399ef1f
+    - name: acr-credential-27b7396c3bc51e6df6ffbf8189648a39
+    - name: acr-credential-2b442760ae1031e228cdeea8831392a1
+    - name: acr-credential-278a682b6f1cc97ae2bdfefacfa9b8a8
+    - name: acr-credential-e0de33735568ed2f86e4b7795df1e710
+++++Step5：配置Pod使用自定义的ServiceAccount++++
+cat > pod-with-sa.yaml <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-sa
+spec:
+  containers:
+  - name: adminbox
+    image: ikubernetes/admin-toolbox:v1.0
+    imagePullPolicy: IfNotPresent
+  serviceAccountName: admin
+EOF
+kubectl apply -f pod-with-sa.yaml
+kubectl exec -it pod-with-sa -- /bin/sh
+cd /var/run/secrets/kubernetes.io/serviceaccount;curl --cacert ./ca.crt  \ 
+   -H "Authorization: Bearer $(cat ./token)" https://kubernetes.default.svc.cluster.local/api/v1/namespaces/$(cat ./namespace)/pods/
+
+      {
+        "kind": "Status",
+        "apiVersion": "v1",
+        "metadata": {
+
+        },
+        "status": "Failure",
+        "message": "pods is forbidden: User \"system:serviceaccount:handson-22084b6dfd81c0d5e414222b5f461693:admin\" cannot list resource \"pods\" in API group \"\" in the namespace \"handson-22084b6dfd81c0d5e414222b5f461693\"",
+        "reason": "Forbidden",
+        "details": {
+          "kind": "pods"
+        },
+        "code": 403
+      }
+kubectl create rolebinding admin-binding-admin --clusterrole=view --serviceaccount=handson-22084b6dfd81c0d5e414222b5f461693:admin
+kubectl create rolebinding admin-binding-admin --clusterrole=view --serviceaccount=default:admin #授权
+若能够正常显示，则表示授权成功。这也表明了使用特定ServiceAccount的Pod可以使用该ServiceAccount上获得的相应权限。
+
+
+
+
+
+
 ============================使用 Kubectl 部署 web 服务到 K8s 集群===============
 registry.cn-shanghai.aliyuncs.com/workbench1459088147016887/handsonack_test:3
 +++++++++++++++++++++++++++++++++++
