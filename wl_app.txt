@@ -1761,7 +1761,7 @@ ELK +　　kafka
 		yum localinstall mysql80-community-release-el7-3.noarch.rpm
 		yum repolist enabled | grep "mysql.*-community.*"
 		yum repolist all | grep mysql
-		yum  install msyql-community-server -y
+		yum  install mysql-community-server -y
 		
 		mkdir -p /data/mysql
 		mkdir -p /var/lib/mysql
