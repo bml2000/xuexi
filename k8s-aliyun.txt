@@ -8,6 +8,13 @@ https://blog.csdn.net/u012069313/article/details/125201017
 https://blog.csdn.net/pleong/article/details/125086963
 https://blog.csdn.net/clover661/article/details/120093243
 
+=============git cli  安装================
+
+yum  config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+yum install gh
+
+
+ 
 =====================================
 阿里云 的k8s 网络设置
 net.ipv4.ip_forward=1
@@ -1817,4 +1824,52 @@ server = "https://192.168.12.34:5000"
 [host."https://192.168.12.34:5000"]
   ca = "/path/to/ca.crt"
 See docs/hosts.md for the further information.
+
+
+
+
+curl -Lo minikube  https://kubernetes.oss-cn-hangzhou.aliyuncs.com/minikube/releases/latest/minikube-linux-amd64
+
+
+========================== istio =================================
+1.   安装：
+curl -L https://istio.io/downloadIstio | sh -
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.14.3 TARGET_ARCH=x86_64 sh -
+
+mv   istio-1.14.3 /usr/local
+cat >>/etc/profile <<EOF   #加入path
+export PATH=$PATH:/usr/local/istio-1.14.3/bin
+EOF
+
+加载 ip_tables 支持  istio_ingressgateway
+lsmod | grep ip_tables 来完成。若要显式加载该模块，可执行 sudo modprobe ip_tables
+cat <<EOF | sudo tee /etc/modules-load.d/istio.conf
+ip_tables
+iptable_filter
+EOF
+
+modprobe ip_tables
+modprobe iptable_filter
+
+cp  istioctl /usr/bin   #加入运行环境， 可用istioctl
+istioctl  profile  list   #查看内置 profile 表
+
+istioctl install --set profile=demo -y 
+istioctl ps #  proxy-status    查看proxy的状态  是否下发完毕
+istioctl pc all   # proxy-config   查看proxy的config配置
+
+kubectl label namespace default istio-injection=enabled
+kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+
+
+kubectl  apply  -f  /usr/local/istio-1.14.3/samples/addons
+
+kubectl edit  svc   istio-ingressgateway -n istio-system
+在clusterIPs 后新增 外部地址 ， 看通过外部地址访问
+    externalIPs:
+    - 192.168.110.92
+
+
+
+
 

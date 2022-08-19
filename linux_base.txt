@@ -1746,3 +1746,9 @@ vi  /etc/security/limits.conf
     wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo &> /dev/null
     yum clean all &> /dev/null
     yum makecache &> /dev/null
+
+48. curl
+    -L, --location (HTTP/HTTPS) 跟踪重定向  如果服务器报告请求页面已移动到另一个位置(用location: header和3XX响应代码表示)，此选项将使curl在新位置上重做请求。
+    -o, --output <file> 输出到一个文件，而不是标准输出。
+    -O, --remote-name  写入到本地文件，名称与远程文件的名称相同。
+    -d, --data <data>  使用该选项，那么默认请求方式为 POST。(HTTP)在POST请求中向HTTP服务器发送指定的数据，
