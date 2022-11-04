@@ -943,8 +943,11 @@ After=network.target24 	mariadb
 			./node_exporter --web.listen-address 127.0.0.1:8080
 			./node_exporter --web.listen-address :9100
  	node_mysql:
-		    export  DATA_SOURCE_NAME='root:pass@(localhost:3306)/db1'
-			或者：
+		CREATE USER 'exporter'@'%' IDENTIFIED BY 'password' WITH MAX_USER_CONNECTIONS 3;
+		GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
+		export DATA_SOURCE_NAME='exporter:password@(localhost:3306)/'
+		export  DATA_SOURCE_NAME='exportert:password@(localhost:3306)/db1'
+		或者：
 			/root/.my.cnf
 				[client]
 				user=root
@@ -952,6 +955,9 @@ After=network.target24 	mariadb
 				port=3306
 				host=localhost
 				database=db1
+		cd /opt/prometheus/exporter/mysqld_exporter-0.14.0.linux-amd64
+		nohup ./mysqld_exporter &
+
 25.0.1  grafana
         访问端口：3000
 		https://grafana.com/grafana/
