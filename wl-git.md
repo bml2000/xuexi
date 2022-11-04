@@ -1,3 +1,6 @@
+ git clone  失败是执行如下命令
+ git config --system http.sslverify false
+
 # Git 使用#
 ### 配置
 1. 设置项目用户信息

@@ -916,6 +916,66 @@ After=network.target24 	mariadb
         在zabbix 新建模版和监控项
 		在主机设置的图形界面加入新建的监控项。
 
+25.0  prometheus
+	https://prometheus.io/download/
+	http://localhost:9090
+	  
+	默认端口  : prometheus-server: 9090; node_export:9100;windows_export:9182;mysql:9104
+	server:
+		tar xvfz prometheus-*.tar.gz
+		cd prometheus-*	
+		vi prometheus.yml：
+		    static_configs:
+			- targets: ['localhost:8080', 'localhost:8081']
+				labels:
+				group: 'production'
+			- targets: ['localhost:8082']
+				labels:
+			 	group: 'canary'
+				# Start Prometheus.
+		# By default, Prometheus stores its database in ./data (flag --storage.tsdb.path).
+		./prometheus --config.file=prometheus.yml
+	node_export:
+	    默认配置文件名称： /root/.my.cnf 
+			tar -xzvf node_exporter-*.*.tar.gz
+			cd node_exporter-*.*
+			# Start 3 example targets in separate terminals:
+			./node_exporter --web.listen-address 127.0.0.1:8080
+			./node_exporter --web.listen-address :9100
+ 	node_mysql:
+		    export  DATA_SOURCE_NAME='root:pass@(localhost:3306)/db1'
+			或者：
+			/root/.my.cnf
+				[client]
+				user=root
+				password=pass
+				port=3306
+				host=localhost
+				database=db1
+25.0.1  grafana
+        访问端口：3000
+		https://grafana.com/grafana/
+		https://grafana.com/grafana/dashboards/    #仪表盘模版下载
+		https://grafana.com/grafana/download?pg=get&plcmt=selfmanaged-box1-cta1  #下载地址
+		wget https://dl.grafana.com/enterprise/release/grafana-enterprise-9.2.3-1.x86_64.rpm
+		sudo yum install grafana-enterprise-9.2.3-1.x86_64.rpm
+		sudo yum install initscripts urw-fonts wget
+		wget <rpm package url>
+		sudo rpm -Uvh <local rpm package>
+		sudo yum localinstall <local rpm package>
+		sudo systemctl daemon-reload
+		sudo systemctl start grafana-server
+		sudo systemctl status grafana-server
+		sudo systemctl enable grafana-server
+    IF  proxy:
+			http_proxy=http://proxy.domain:3128/
+			https_proxy=http://proxy.domain:3128/
+			no_proxy=internal.domain,127.0.0.1
+	默认配置文件：/etc/grafana/grafana.ini
+	Open your web browser and go to http://localhost:3000/.
+
+
+
 25.1   mongodb
 	1.  yum.repos.d/mongodb.repo
 		[mongodb-org-4.4]
@@ -1858,7 +1918,8 @@ ELK +　　kafka
 
 		mysqld --initialzize-insecure   #安装 密码为空
 		mysqld  --initiazlize      #安装 自动生成密码
-		cp /usr/local/mysql/supports/mysql.server  /etc/init.d/
+		cp /usr/local/mysql/support-files/mysql.server  /etc/init.d/
+
 		chkconfig -add  mysql.server     #设置服务
 		systemctl   start  mysql         #启动mysql
 		cat  /var/log/mysql.log  |grep  password    # 查看密码
