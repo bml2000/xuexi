@@ -44,6 +44,17 @@ libcurl-devel wget tar zip unzip openssl openssl-devel gcc libxml2 libxml2-devel
         sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 		
 
+# 时间同步 chrony
+yum  install chrony -Y
+systemctl enable chonryd
+systemctl start chronyd
+vi  /etc/chrony.conf
+增加：  server  npt.aliyun.com  iburst 
+systemctl restart chronyd
+timedatectl   或clock 、date  检查时间
+
+
+
 
 
 
@@ -957,6 +968,84 @@ After=network.target24 	mariadb
 				database=db1
 		cd /opt/prometheus/exporter/mysqld_exporter-0.14.0.linux-amd64
 		nohup ./mysqld_exporter &
+
+	alertmanager:
+	   wget   https://github.com/prometheus/alertmanager/releases/download/v0.24.0/alertmanager-0.24.0.linux-amd64.tar.gz
+	   tar xf alertmanager-0.24.0.linux-amd64.tar.gz -C /usr/local
+	   ln -vs  /usr/local/alertmanager-0.24.0.linux-amd64  /usr/local/alertmanager
+	   cd /usr/local/alertmanager
+	   vi alertmanger.yml  # https://prometheus.io/docs/alerting/latest/configuration/
+	   #邮箱报警
+	    route:
+		group_by: ['alertname']
+		group_wait: 30s
+		group_interval: 5m
+		repeat_interval: 1h
+		receiver: 'dingding.webhook'
+		receivers:
+		- name: 'mail_me'
+		  email_configs:
+			-   to: 'wanglong@tongdelai.cn'
+				from: 'gateway@tongdelai.cn'
+				smarthost: 'smtp.qiye.163.com:465'
+				auth_username: 'gateway@tongdelai.cn'
+				auth_password: 'Tdl112233'
+				require_tls: false
+		inhibit_rules:
+		- source_match:
+			alertname: node-up
+			severity: 'critical'
+			target_match:
+			alertname: node-up
+			severity: 'warning'
+
+		cat /usr/local/prometheus/rules.yml
+		groups:
+			- name: node-up
+			rules:
+			- alert: node-up
+				expr: up == 0
+				for: 10s
+				labels:
+				severity: critical
+				service: node
+				annotations:
+				description: "{{ $labels.instance }} of job of {{ $labels.job }} has been down for more than 5 minutes."
+				summary: "{{ $labels.instance }} down,up=={{ $value }}" 
+		vi  /usr/local/prometheus/prometheus.yml
+		# Alertmanager configuration
+			alerting:
+			alertmanagers:
+				- static_configs:
+					- targets:
+					# - alertmanager:9093
+					- 192.168.110.29:9093
+
+	   ./alertmanager --config.file=alertmanager.yml
+    # 钉钉群消息报警：#机器的时间必须准确
+	https://github.com/timonwong/prometheus-webhook-dingtalk
+	https://github.com/timonwong/prometheus-webhook-dingtalk/releases  #下载
+	wget https://github.com/timonwong/prometheus-webhook-dingtalk/releases/download/v2.1.0/prometheus-webhook-dingtalk-2.1.0.linux-amd64.tar.gz
+	tar xvf prometheus-webhook-dingtalk-2.1.0.linux-amd64.tar.gz -C /usr/local
+	cd /usr/local/prometheus-webhook-dingtalk
+	vi config.yml
+	## Targets, previously was known as "profiles"
+	targets:
+	webhook1:
+		url: https://oapi.dingtalk.com/robot/send?access_token=398f48f285872b454ea1fc8e154c0dd93496d854f9d073d38d845b4c980a3271
+		# secret for signature
+		secret: SEC27407417b12aac053faa20a3675ffc70637493dbcdfb7d1162d2ff5d71683b0b
+			#url 到钉钉群中的智能助手-添加机器人-自定义-webhook 选择 ”加签“， url地址为webhook 的地址
+			#securet： 为”加签“ 的密钥
+    ./prometheus-webhook-dingtalk
+
+	配置：alertmanger 的配置文件， 增加 receiver：
+     alertmanager.yaml:
+		recevers:
+		- name: 'dingding.webhook'
+		  webhook_configs:
+			- url:  http://localhost:8060/dingtalk/webhook1/send
+				send_resolved: true
 
 25.0.1  grafana
         git clone https://github.com/Einsteinish/Docker-Compose-Prometheus-and-Grafana.git
