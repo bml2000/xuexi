@@ -163,7 +163,22 @@ http://blogs.studylinux.net
         mwcli  show con
     新增加网卡
         nmcli  con show - 查看网卡设备名称
-        nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
+		配置文件位置： /etc/NetworkManager/system-connections/ens33.nmconnection
+		nmcli  connect   reload
+		nmcli connect up ens33
+		nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
+		
+		nmcli con modify  ens33  ipv4.method manual ipv4.address   192.168.110.60/24 ipv4.gateway 192.168.110.2 ipv4.dns 114.114.114.114
+		nmcli connect down ens33
+		nmcli connect  up  ens33
+		nmcli devices show
+		nmcli device  connect  ens33
+		nmcli device  disconnect  ens33
+		nmcli connect show ens33
+		nmcli connect modify ens33  ipv4.method manual  ipv4.address 192.168.110.62/24  ipv4.dns 114.114.114.114 ipv4.gateway 192.168.110.2 
+		nmcli connect  up  ens33
+		
+
     
 6.1 服务
     systemctl
