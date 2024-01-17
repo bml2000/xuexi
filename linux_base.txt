@@ -1,5 +1,106 @@
 http://blogs.studylinux.net
 
+更改 apt 更新源为阿里云的源
+
+sed -i 's/https:\/\/mirrors.aliyun.com/http:\/\/mirrors.cloud.aliyuncs.com/g' /etc/apt/sources.list
+apt  install  chrony
+vi /etc/chrony/chrony.conf
+    server   ntp1.aliyun.com  iburst
+
+systemctl start chrony
+
+chronyc tracking  检查时间同步
+chronyc makestep   手动同步
+chronyc sources -v  查看同步源信息
+
+localectl   #设置区域和语言
+hostnamectl   set-hostname  #设置主机名
+timedatectl  set-timezone  Asia/Shanghai #设置时区
+date   #显示时间和日期
+date -set   20230114  设置日期
+date  -set  11:22:33   设置时间
+
+包管理：
+dpkg 和  apt
+dpkg  -i  #install
+dpkg -iR   ./deb目录名    #安装目录下所有deb的包
+dpkg  -r  #remove  保留配置
+dpkg  -rp  #remove和清理配置文件
+dpkg  -P   #卸载包和配置文件
+dpkg  -V   #检查包的完整性
+dbkg  -s  包名     # 查看状态
+dbkg  -S  filemane     # 文件所属包名(搜索包)
+dpkg  -L  包名      # 查看包内文件及位置
+dpkg -l 包名  # 查看已经安装包名及功能介绍
+
+apt  install -f   包名 #自动解决依赖关系
+apt  instll  包名 --reinstall  #重装包  
+apt  install  包名=version   #指定版本安装
+apt  update   #更新源  /etc/apt/sources.list
+apt  search       #查找包
+apt dist-upgrade  #升级os
+apt  clean  #清理已经下载的包  /var/cache/apt/archives  下载目录
+apt clean  #清理已经下载包
+apt upgrade #升级包
+apt  donwload   #下载
+apt-cache  search   package  #在缓存中搜索包
+apt-key  list  #查看key
+apt-key  adv keyfile   #导入key文件
+
+网络配置
+netplan  
+vi /etc/netplan/01-network-manager-all.yaml
+# Let NetworkManager manage all devices on this system
+network:
+  renderer: NetworkManager
+  ethernets:
+    ens33:
+      addresses:
+        - 192.168.110.20/24
+      nameservers:
+        addresses:
+          - 114.114.114.114
+      routes:
+          - to: default
+            via: 192.168.110.2
+  version: 2
+
+netplan try   #尝试应用网络
+netplan  apply   #应用网络配置
+netplan  status  #查看网络状态
+netplan get  #查看 yaml 配置文件
+
+nmcli:  NetworkManager 
+nmlic  con show    #查看连接
+nmcli  dev  show    #查看设备
+nmcli general status  #看状态
+nmcli  general  hostname   #主机名
+nmcli  general  permission  #查看权限功能
+nmcli  radio all on/off    # 关闭WiFi  WWan 网络ip设置
+nmcli  monitor  #监控网络
+nmcli  device status #查看设备状态
+nmcli  con up con-name    #用连接名 称打开设备
+nmcli con donw ifname   dev-name   #用设备名称关闭设备
+nmcli  dev  up     dev_name  #
+nmcli con  up     con-name   #
+nmcli dev modify ens33  ipv4.addresses 192.168.110.102/24
+                         ipv4.gatewaycd
+
+nmcli device wifi list  3查看WiFi ssid
+nmcli device  wifi  connect  "SSid"   password  "password"  #连wifi
+nmcli  --ask  device wifi  connect  “ssid”  #连接WiFi输入密码
+nmcli  -p -f general ， wifi-properties   devices show wlan0 #wifi 网络详情
+ 
+nmcli con add  con-name my-cona  ifname em1 type ethernat \
+    ip4 192.168.100.100/24 gw4 192.168.100.1 IP4 1.1.2.3 \
+    ip6 abbe::nf_conntrack_tcp_timeout_fin_wait
+
+nmcli  con modify con-name ipv4.dns "8.8.8.8 8.8.4.4"
+nmcli  con modify conname  +ipv4.dns  1.1.1.4
+nmcli -p con  show my-con-name
+nmcli  dev reapply   dev-name #将设置保存。
+
+
 常用命令：
     Stress- 压力测试工具
 	环境变量
@@ -127,7 +228,7 @@ http://blogs.studylinux.net
         nmap
             是一款非常实用的扫描工具，适用于linux、windows、mac三大主流平台。 
             $wget http://nmap.org/dist/nmap-7.01.tar.bz2
-            $tar -xvf nmap-7.01.tar.bz2 
+            $tar -xvf nmap-7.01.up tar.bz2 
             nmap -v #检测是否安装成功：
             nmap 192.168.1.2  #扫描特定主机：
             nmap 192.168.1.1/24  #扫描整个子网
@@ -163,7 +264,7 @@ http://blogs.studylinux.net
         mwcli  show con
     新增加网卡
         nmcli  con show - 查看网卡设备名称
-		配置文件位置： /etc/NetworkManager/system-connections/ens33.nmconnection
+		配置文件位置： /etc/NetworkcatManager/system-connections/ens33.nmconnection
 		nmcli  connect   reload
 		nmcli connect up ens33
 		nmcli con add con-name ens34 type ethernet ifname ens34  加网卡设备 （名称与查询的设备名称相同）
