@@ -42,7 +42,7 @@ grub2-set-default  X      #设置默认启动
 
 
 apt  edit-source   #  编辑apt source
-sudo sed -i 's/archive.ubunut/mirrors.aliyun.com/g' /etc/apt/source.list     # 更改 apt source
+sudo sed -i 's/cn.archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list    # 更改 apt source
 
 ========================= network  ====================================
 #设置网络
@@ -166,9 +166,10 @@ apt autoremove             # 自动删除软件包
 apt list --upgradeable：           #展示可升级表单。
 apt list --installed：                                  展示已安装表单。 
 apt list -a -versions：                               展示系统中所有能找到的package。   ？
+apt policy  <package_name>                           查看所有可安装的版本
 apt install <package_name> --no-upgrade：            安装该package但是不升级。
 apt install <package_name> --only-upgrade：         升级该package。
-apt install <package_name>=<version_number>：       安装该package的固定版本。
+apt install <package_name>=<version_number>：       安装该package的固定版本。 nginx=1.14
 apt show:                                             查看package内容
 
 apt install openssh-server    #安装ssh服务
